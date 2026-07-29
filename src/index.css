@@ -1,0 +1,131 @@
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #EFEFF1;
+  /* System font first — it already ships optical sizing and legibility tuning.
+     Pretendard carries the Hangul, Inter-like metrics carry the Latin. */
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Pretendard',
+    system-ui, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  color: #0B0B0C;
+}
+
+:lang(ko) {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+button { font-family: inherit; color: inherit; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes materialize {
+  from { opacity: 0; transform: scale(.96); backdrop-filter: blur(0px); }
+  to   { opacity: 1; transform: scale(1); backdrop-filter: blur(24px); }
+}
+@keyframes scanline {
+  0%   { transform: translateY(14px); }
+  50%  { transform: translateY(196px); }
+  100% { transform: translateY(14px); }
+}
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: .35; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/*
+  Desktop shows the design inside a device shell so it can be reviewed at its
+  intended size. On a phone the shell disappears and the app owns the viewport,
+  including the area behind the notch and the home indicator.
+*/
+.stage {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.phone {
+  width: 390px;
+  background: #0a0a0b;
+  border-radius: 54px;
+  padding: 12px;
+  box-shadow: 0 30px 70px -20px rgba(11, 11, 12, .45);
+}
+
+.screen {
+  position: relative;
+  width: 366px;
+  height: 792px;
+  border-radius: 43px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #F7F7F8;
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+}
+
+.scroller {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+.scroller::-webkit-scrollbar { display: none; }
+
+/* Where content meets floating chrome, fade it out instead of drawing a rule. */
+.scroll-mask {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 14px);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 14px);
+}
+
+@media (max-width: 480px) {
+  .stage { padding: 0; align-items: stretch; }
+  .phone {
+    width: 100%;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: #F7F7F8;
+  }
+  .screen {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@media (min-width: 481px) and (max-height: 900px) {
+  .screen { height: calc(100dvh - 72px); max-height: 792px; }
+}
+
+/* Reduced motion means gentler, not absent: keep opacity, drop travel. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 120ms !important;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: none; } to { opacity: 1; transform: none; } }
+}
+
+/* Translucency is decoration until it isn't legible — go frosty on request. */
+@media (prefers-reduced-transparency: reduce) {
+  .material { background: #fff !important; backdrop-filter: none !important; }
+  .glassbar { background: #fff; box-shadow: 0 -1px 0 rgba(11, 11, 12, .08); }
+  .glassbar-layer { display: none !important; }
+}

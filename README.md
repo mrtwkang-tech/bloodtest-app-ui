@@ -1,52 +1,61 @@
-# 혈액검사 구독 앱 UI — v3
+# Full Panel — blood test subscription app
 
-정신건강 5개 척도 위에 질병 6종 스크리닝을 얹은 결과 리포트 목업.
+At-home blood testing mockup: five mental health scales and six condition
+screenings (cancer, Alzheimer's, MI, Parkinson's, stroke, diabetes), read
+through a 3D anatomy viewer. React + Vite + three.js, English base with a
+full Korean dictionary.
 
-## 문제
+## Design decisions
 
-두 데이터는 성격이 다르다.
+**Mind and body are separate tabs.** The scales are *state* (continuous,
+fluctuating); the screenings are *risk* (mostly-null, heavy). They answer
+different questions, so they never share one chart.
 
-| | 정신건강 5척도 | 질병 6종 |
-|---|---|---|
-| 성격 | **상태** — 지금 얼마나 우울한가 | **위험** — 앞으로의 신호 |
-| 값 분포 | 연속 점수, 매 회차 오르내림 | 대부분 "이상 없음" |
-| 감정 무게 | 일상적 | 무거움 |
-| 행동 지시 | 셀프케어 | 병원 방문 |
+**Every percentage is computed.** Scale scores convert to peer percentiles
+via a normal CDF (`src/lib/stats.js`); the radar plots percentiles, so the
+peer average is a regular pentagon at 50 and every axis is comparable.
+Status, biomarker counts, and the health score are all derived from raw
+values — nothing shown on screen is stored twice.
 
-그래서 하나의 레이더에 11축으로 합치지 않고, 리포트를 **마음 · 몸 두 개의 장**으로 나누되 색·컴포넌트·모션 언어는 공유한다.
+**The body is a procedural 3D anatomy** (`src/three/`). Six conditions group
+into four organ systems — brain & nerves, cardiovascular (heart + vessel
+tree), metabolic (pancreas + liver), whole-body (cancer, which lights the
+figure itself). A flagged system glows in its status colour; selecting one
+brings it forward. Drag to rotate (1:1, momentum projected on release), tap
+an organ to open its markers.
 
-## 설계 규칙
+**Motion follows Apple's fluid-interface rules** (`src/motion/physics.js`):
+press feedback on pointer-down, sheets track the finger 1:1 and rubber-band
+past bounds, flicks land where the gesture was going
+(`project()` — exponential decay, not v²/2a), reduced-motion honoured.
 
-1. **핀이 아니라 4존 바디맵** — 6개 중 3개(알츠하이머·파킨슨·뇌졸중)가 뇌라서 질환당 핀 하나를 찍으면 머리에 몰린다. 뇌·신경 / 심혈관 / 대사 / 전신으로 묶고, 찍을 장기가 없는 암은 실루엣 전체의 채움으로 표현한다.
-2. **어휘 분리** — 마음은 양호·주의·경고, 몸은 이상 없음·관찰 필요·전문의 상담 권장. 색은 공유하되 "경고"는 질병에 쓰지 않고, 질환명을 단정하는 대신 마커로 말한다.
-3. **좋은 소식은 압축** — 이상 없는 존은 표시하지 않고 한 줄로 접힌다. 표시의 부재가 곧 정상.
-4. **재사용 우선** — 새로 만든 건 실루엣 SVG 하나뿐. 마커 수치는 5척도 카드의 신호등 밴드를, 추이는 기존 변화율 그래프를 그대로 쓴다.
+**The tab bar is real glass.** A progressive-blur stack (four masked
+`backdrop-filter` layers, 2→26px) melts content into the material instead of
+cutting it; the tint firms up only while content runs underneath and clears
+at the page end; a specular band drifts as content moves. Solid fallback
+under `prefers-reduced-transparency`.
 
-## 데모 시나리오
+**Statutory pages ship in-app** (`src/data/legal.js`): terms, privacy policy,
+sensitive-data consent, refund/withdrawal, sample handling, open-source
+licences, business disclosure. Company fields are visible placeholders
+flagged "확인 필요" — replace before launch.
 
-| 회차 | 마음 | 몸 |
-|---|---|---|
-| 3회차 | 스트레스 주의 | 대사 관찰 필요 (HbA1c 5.9%) |
-| 2회차 | 전 항목 양호 | 전 항목 이상 없음 |
-| 1회차 | 불안·수면·번아웃 주의 | 심혈관 관찰 필요 (LDL 142) |
-
-## 구조
-
-- `index.html` — 목업 전체 (마크업 + 상태 로직)
-- `support.js` — Design Doc 런타임. React를 unpkg CDN에서 로드한다.
-
-## 로컬에서 보기
-
-`file://`로 직접 열면 런타임이 정적 스냅샷으로 잡히므로 서버가 필요하다.
+## Run
 
 ```bash
-python3 -m http.server 8765
+npm install
+npm run dev
 ```
 
-## 알려진 런타임 제약
+## Layout
 
-DC 런타임은 `{{ }}` 보간을 HTML `<span>`으로 감싸는데, SVG `<text>` 안에서는 span이 렌더링되지 않는다. 그래서 동적 텍스트는 전부 SVG 밖 HTML로 빼서 얹는다 (바디맵 존 라벨, 추이 그래프 값 라벨).
+- `src/data/` — instruments, zones, sessions, legal copy (all derived stats live here)
+- `src/lib/` — normal CDF / percentile, trend projection
+- `src/three/` — procedural anatomy + scene driver
+- `src/motion/` — springs, velocity tracker, momentum projection
+- `src/i18n/` — `en`/`ko` dictionaries, `useLang`
+- `src/screens/`, `src/components/` — UI
 
-## 면책
+## Disclaimer
 
-스크리닝 수치는 전부 데모용 가상 데이터다. 의학적 진단이 아니다.
+All values are fabricated demo data. Screening output is not a diagnosis.
