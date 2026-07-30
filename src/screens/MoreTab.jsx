@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Masthead from "../components/Masthead";
 import Pressable from "../components/Pressable";
 import { Caret, Card, SectionTitle } from "../components/primitives";
 import { C, DIVIDER, DIVIDER_TOP, R, T, fadeUp } from "../tokens";
@@ -37,12 +38,14 @@ export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
 
   return (
     <div>
-      <header
+      <Masthead title={t("more.title")} />
+
+      <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: 14,
-          margin: "4px 0 18px",
+          margin: "0 0 18px",
           ...fadeUp(0),
         }}
       >
@@ -105,7 +108,7 @@ export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
             </Pressable>
           ))}
         </div>
-      </header>
+      </div>
 
       {/* The medical disclaimer is a standing notice, not buried in a doc. */}
       <Card variant="group" pad="lg" style={{ background: C.night }} delay={20}>

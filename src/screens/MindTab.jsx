@@ -4,7 +4,7 @@ import { withEmphasis } from "../components/Emphasis";
 import ScaleRow from "../components/ScaleRow";
 import { band } from "../components/ScaleRow";
 import TrendChart from "../components/TrendChart";
-import SessionChips from "../components/SessionChips";
+import Masthead from "../components/Masthead";
 import {
   Card,
   SectionLabel,
@@ -23,18 +23,15 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
   const summary = mindSummary(session);
   const meta = SCALE_META[metric];
   const rounds = [...SESSIONS].reverse();
+  const activities = pick(session.mindActivities, lang);
 
   return (
     <div>
-      <header style={fadeUp(0)}>
-        <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
-          {t("mind.title")}
-        </h1>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 5 }}>
-          {t("mind.subtitle")}
-        </div>
-        <SessionChips sel={sel} onPick={onPickSession} />
-      </header>
+      <Masthead
+        title={t("mind.title")}
+        sel={sel}
+        onPickSession={onPickSession}
+      />
 
       <Card pad="md" delay={40}>
         <SectionLabel value={`${summary.ok}/${SCALE_META.length}`}>
@@ -70,17 +67,21 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
           </div>
         )}
         {/* In full. A "더 보기" on a three-line paragraph asks the reader to
-            work for text that was going to fit anyway. */}
-        <p
-          style={{
-            ...T.bodyText,
-            color: C.body,
-            margin: "12px 0 0",
-            textWrap: "pretty",
-          }}
-        >
-          {withEmphasis(pick(session.summary, lang))}
-        </p>
+            work for text that was going to fit anyway. Optional, though: since
+            the move to monthly most rounds have nothing worth saying, and an
+            empty paragraph is better left unrendered than filled. */}
+        {pick(session.summary, lang) && (
+          <p
+            style={{
+              ...T.bodyText,
+              color: C.body,
+              margin: "12px 0 0",
+              textWrap: "pretty",
+            }}
+          >
+            {withEmphasis(pick(session.summary, lang))}
+          </p>
+        )}
       </Card>
 
       <div style={{ marginTop: 10 }}>
@@ -142,40 +143,59 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
         onPickOption={setMetric}
       />
 
-      <SectionTitle>{t("mind.activities")}</SectionTitle>
-      <Card pad="md">
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {pick(session.mindActivities, lang).map((text, i) => (
-            <div
-              key={text}
-              style={{ display: "flex", gap: 11, alignItems: "flex-start" }}
-            >
-              <span
-                style={{
-                  ...T.micro,
-                  color: C.faintest,
-                  flex: "none",
-                  marginTop: 3,
-                  width: 14,
-                }}
-              >
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span
-                style={{ ...T.bodyText, color: C.body, textWrap: "pretty" }}
-              >
-                {text}
-              </span>
+      {/* Heading and card together, or neither. Six of the twelve rounds have
+          no activities written for them — a heading over an empty card is the
+          same mistake as advice invented to fill a box. */}
+      {activities?.length > 0 && (
+        <>
+          <SectionTitle>{t("mind.activities")}</SectionTitle>
+          <Card pad="md">
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {activities.map((text, i) => (
+                <div
+                  key={text}
+                  style={{ display: "flex", gap: 11, alignItems: "flex-start" }}
+                >
+                  <span
+                    style={{
+                      ...T.micro,
+                      color: C.faintest,
+                      flex: "none",
+                      marginTop: 3,
+                      width: 14,
+                    }}
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span
+                    style={{ ...T.bodyText, color: C.body, textWrap: "pretty" }}
+                  >
+                    {text}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
+        </>
+      )}
 
       <SectionTitle>{t("mind.state")}</SectionTitle>
+      {/* The card always renders: the caveats below are the terms these
+          numbers come under, not a per-round remark. The prose above them is
+          per-round, and is often absent. */}
       <Card pad="md">
-        <p style={{ ...T.bodyText, color: C.body, margin: 0, textWrap: "pretty" }}>
-          {withEmphasis(pick(session.mind, lang))}
-        </p>
+        {pick(session.mind, lang) && (
+          <p
+            style={{
+              ...T.bodyText,
+              color: C.body,
+              margin: "0 0 12px",
+              textWrap: "pretty",
+            }}
+          >
+            {withEmphasis(pick(session.mind, lang))}
+          </p>
+        )}
         {/* The caveats, as a footnote rather than a badge. A tinted pill made
             the disclaimer look like a status the reader had earned; it is not
             a result, it is the terms these numbers come under. The sentences
@@ -186,7 +206,7 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
           style={{
             ...T.caption,
             color: C.faintest,
-            margin: "12px 0 0",
+            margin: 0,
             paddingTop: 11,
             boxShadow: `inset 0 1px 0 ${C.hairline}`,
             textWrap: "pretty",

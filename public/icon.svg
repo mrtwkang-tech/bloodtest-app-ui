@@ -1,6 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#123F30"/>
-  <circle cx="256" cy="196" r="62" fill="#EAF4EF"/>
-  <path d="M186 306c0-16 14-28 32-28h76c18 0 32 12 32 28l-10 108c-2 16-14 26-30 26h-60c-16 0-28-10-30-26z" fill="#EAF4EF"/>
-  <circle cx="256" cy="330" r="46" fill="none" stroke="#38C08D" stroke-width="14"/>
+<!--
+  The wordmark's symbol, on a tile. Replaces a green person-in-a-circle left
+  over from an accent the product no longer uses.
+
+  Plain: the interior rules that make the drop read as layered sit 3.3 units
+  apart in a 24 box, which is under two pixels once a browser draws this in a
+  tab. Same constraint the organ icons are drawn under — detail that cannot
+  survive the smallest size it will be shown at makes a mark muddy, not richer.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect width="24" height="24" rx="5.4" fill="#16171A"/>
+  <path d="M12 3.4c0 0-5.7 6.9-5.7 11.1a5.7 5.7 0 0 0 11.4 0C17.7 10.3 12 3.4 12 3.4Z"
+        fill="none" stroke="#FBFBF9" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round"
+        transform="translate(12 12) scale(0.8) translate(-12 -12)"/>
 </svg>

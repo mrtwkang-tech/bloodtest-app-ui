@@ -4,13 +4,12 @@ import BodyScene from "../three/BodyScene";
 import Icon from "../components/Icon";
 import NextStep from "../components/NextStep";
 import Pressable from "../components/Pressable";
-import SessionChips from "../components/SessionChips";
+import Masthead from "../components/Masthead";
 import TrendChart from "../components/TrendChart";
 import {
   Card,
   Caret,
   ChipRail,
-  SectionLabel,
   SectionTitle,
   Status,
 } from "../components/primitives";
@@ -78,17 +77,13 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
 
   return (
     <div>
-      <header style={fadeUp(0)}>
-        <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
-          {t("body.title")}
-        </h1>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 5 }}>
-          {t("body.subtitle")}
-        </div>
-        <SessionChips sel={sel} onPick={onPickSession} />
-      </header>
+      <Masthead
+        title={t("body.title")}
+        sel={sel}
+        onPickSession={onPickSession}
+      />
 
-      <div style={{ marginTop: 13, ...fadeUp(40) }}>
+      <div style={fadeUp(40)}>
         <ChipRail
           items={railItems}
           value={active ?? "__all"}
@@ -121,25 +116,16 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         </div>
       </Card>
 
+      {/* Ten systems and their state, all visible at once — which the chip
+          rail above cannot do, because it scrolls and shows four at 375px.
+          The "종합 9/17" label and the sentence under it were the redundant
+          part: the home screen's body row already says exactly that. */}
       <Card pad="md" delay={120}>
-        <SectionLabel value={`${summary.okConditions}/${summary.total}`}>
-          {t("body.summary")}
-        </SectionLabel>
-        <div style={{ ...T.title3, color: C.ink, marginTop: 9 }}>
-          {summary.flagged.length === 0
-            ? t("body.allClear", { n: summary.total })
-            : t("body.someFlagged", {
-                ok: summary.okConditions,
-                total: summary.total,
-                n: summary.flagged.length,
-              })}
-        </div>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: "9px 12px",
-            marginTop: 13,
           }}
         >
           {summary.zones.map(({ zone, level }) => (

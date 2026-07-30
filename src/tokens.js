@@ -38,7 +38,12 @@ export const FONT_MONO =
   '"JetBrains Mono Variable", "JetBrains Mono", "Wanted Sans Variable", ui-monospace, SFMono-Regular, Menlo, monospace';
 
 /**
- * Fraunces — the display face, and it is used on roughly three numbers.
+ * Fraunces — the display face. The rule for it is now a sentence rather than a
+ * count: THE SERIF IS THE PRODUCT SPEAKING. It gets the wordmark, where the
+ * product says its own name, and the health score, where it gives the one
+ * answer everything resolves to. Nothing else. Tab titles stay in the
+ * grotesque, so the two uses stay distinguishable from the interface around
+ * them and from each other.
  *
  * A health score set in the same grotesque as the tab labels is a number you
  * read and forget. It is also the one figure the whole product resolves to, and

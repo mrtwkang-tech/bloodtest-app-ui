@@ -1,5 +1,5 @@
 import Pressable from "./Pressable";
-import { C, DIVIDER, EASE, R, T } from "../tokens";
+import { C, EASE, R, T } from "../tokens";
 import { SESSIONS } from "../data/sessions";
 import { useT } from "../i18n";
 
@@ -7,14 +7,17 @@ import { useT } from "../i18n";
  * Round picker, shared by mind, body and signals so the selection carries
  * across tabs.
  *
- * It used to be a scrolling rail of six 62px chips — a horizontally-scrolling
- * strip inside a vertically-scrolling page, which is a gesture conflict for
- * something you use to step one round at a time. It is also the same six
- * buttons on three screens, taking a card's worth of height on each.
+ * It began as a scrolling rail of six 62px chips, became a full-width bar with
+ * a position readout, and is now the stepper alone, sitting inside the
+ * masthead. Every step took something out for the same reason: stepping is the
+ * actual behaviour. You compare this round to the one before it, not round 2
+ * to round 9.
  *
- * A thin bar instead: the round you are on, and an arrow in each direction.
- * Stepping is the actual behaviour — you compare this round to the one before —
- * and jumping to round 2 of 6 is rare enough to be worth a tap on the dots.
+ * The position count went with the move into one line. `12/12` and `07.03` are
+ * the same fact twice, and for a monthly series the date is the better half —
+ * "07.03" places you in the year, where "12/12" only places you in a list.
+ * Where the ends are is still visible: an arrow disables when there is nothing
+ * past it.
  */
 export default function SessionChips({ sel, onPick }) {
   const t = useT();
@@ -28,105 +31,41 @@ export default function SessionChips({ sel, onPick }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 4,
-        margin: "12px 0 0",
-        paddingBottom: 9,
-        boxShadow: DIVIDER,
+        gap: 1,
+        flex: "none",
+        // The arrows carry their own padding; pull the trailing one back so
+        // the row optically ends on the glyph and not on its hit area.
+        marginRight: -7,
       }}
     >
-      {/* The arrows flank the label rather than the bar. Pinned to the edges
-          they read as "page back / page forward" for the whole screen; against
-          the label it is obvious they step the round. */}
-      <div
+      <Step
+        dir="prev"
+        label={t("round.older")}
+        onClick={older != null ? () => onPick(older) : null}
+      />
+      <span style={{ ...T.label, color: C.ink, whiteSpace: "nowrap" }}>
+        {t("round.n", { n: s.round })}
+      </span>
+      <span
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 2,
-          flex: 1,
-          minWidth: 0,
+          ...T.caption,
+          color: C.faintest,
+          marginLeft: 5,
+          whiteSpace: "nowrap",
         }}
       >
-        <Step
-          dir="prev"
-          label={t("round.older")}
-          onClick={older != null ? () => onPick(older) : null}
-        />
-        <span style={{ ...T.label, color: C.ink, whiteSpace: "nowrap" }}>
-          {t("round.n", { n: s.round })}
-        </span>
-        <span
-          style={{
-            ...T.caption,
-            color: C.faintest,
-            marginLeft: 6,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {s.date}
-        </span>
-        <Step
-          dir="next"
-          label={t("round.newer")}
-          onClick={newer != null ? () => onPick(newer) : null}
-        />
-      </div>
-
-      {/* Position in the series, which the arrows cannot say. Six dots fit; at
-          twelve they crowd the arrow and each becomes too small to aim at, so
-          past eight rounds the count carries it instead. */}
-      {SESSIONS.length > 8 ? (
-        <span
-          style={{
-            ...T.num,
-            fontSize: 12,
-            color: C.faint,
-            flex: "none",
-            marginLeft: 8,
-          }}
-        >
-          {SESSIONS.length - sel}/{SESSIONS.length}
-        </span>
-      ) : (
-        <div style={{ display: "flex", gap: 4, flex: "none" }}>
-          {SESSIONS.map((r, i) => (
-            <Pressable
-              key={r.round}
-              as="button"
-              type="button"
-              aria-label={t("round.n", { n: r.round })}
-              aria-current={i === sel ? "true" : undefined}
-              onClick={() => onPick(i)}
-              pressScale={0.9}
-              style={{
-                width: 14,
-                height: 22,
-                padding: 0,
-                border: "none",
-                background: "none",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <span
-                style={{
-                  width: i === sel ? 7 : 5,
-                  height: i === sel ? 7 : 5,
-                  borderRadius: "50%",
-                  background: i === sel ? C.ink : C.hairlineStrong,
-                  transition: `all 220ms ${EASE}`,
-                }}
-              />
-            </Pressable>
-          ))}
-        </div>
-      )}
+        {s.date}
+      </span>
+      <Step
+        dir="next"
+        label={t("round.newer")}
+        onClick={newer != null ? () => onPick(newer) : null}
+      />
     </div>
   );
 }
 
-/** One arrow. Disabled at the ends rather than hidden, so the bar never jumps. */
+/** One arrow. Disabled at the ends rather than hidden, so the row never jumps. */
 function Step({ dir, label, onClick }) {
   const off = !onClick;
   return (
@@ -139,8 +78,8 @@ function Step({ dir, label, onClick }) {
       pressScale={off ? 1 : 0.88}
       hoverStyle={off ? null : { background: C.surface }}
       style={{
-        width: 30,
-        height: 30,
+        width: 28,
+        height: 28,
         flex: "none",
         borderRadius: R.control,
         border: "none",
@@ -155,8 +94,8 @@ function Step({ dir, label, onClick }) {
       }}
     >
       <svg
-        width="17"
-        height="17"
+        width="16"
+        height="16"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

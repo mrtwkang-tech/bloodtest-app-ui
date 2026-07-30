@@ -2,7 +2,7 @@ import { useState } from "react";
 import DisclosureRow from "../components/DisclosureRow";
 import NextStep from "../components/NextStep";
 import RiskBody, { riskLevel } from "../components/RiskEstimates";
-import SessionChips from "../components/SessionChips";
+import Masthead from "../components/Masthead";
 import { LinkBody } from "../components/InBodyPanel";
 import { Collapse, DisclosureButton } from "../components/Collapse";
 import { Badge, Card, SectionTitle } from "../components/primitives";
@@ -13,7 +13,6 @@ import {
   LEVEL_LAMP,
   R,
   T,
-  fadeUp,
 } from "../tokens";
 import { formatValue } from "../data/body";
 import { interactionsFor } from "../data/interactions";
@@ -217,15 +216,11 @@ function Screen({ sel, onPickSession, children }) {
   const { t } = useLang();
   return (
     <div>
-      <header style={fadeUp(0)}>
-        <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
-          {t("signal.title")}
-        </h1>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 5 }}>
-          {t("signal.subtitle2")}
-        </div>
-        <SessionChips sel={sel} onPick={onPickSession} />
-      </header>
+      <Masthead
+        title={t("signal.title")}
+        sel={sel}
+        onPickSession={onPickSession}
+      />
       {children}
     </div>
   );

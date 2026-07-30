@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Masthead, { Avatar } from "../components/Masthead";
 import Pressable from "../components/Pressable";
 import { NavIcon } from "../components/Icon";
 import { Caret, Display, Segmented } from "../components/primitives";
@@ -80,50 +81,37 @@ export default function HomeTab({ onGoStore, onGoTab }) {
     riskEstimates(latest.roundIndex).length;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginBottom: 18,
-          ...fadeUp(0),
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {/* Sans, not tracked monospace. A date is a word, not a measurement,
-              and the mono treatment was one of three type voices competing in
-              the top forty pixels of the app. */}
-          <div style={{ ...T.caption, color: C.faint }}>
-            {t("home.drawnOn", { date: pick(latest.fullDate, lang) })} ·{" "}
-            {t("round.n", { n: latest.round })}
-          </div>
-          <h1 style={{ ...T.title1, color: C.ink, margin: "4px 0 0" }}>
-            {t("home.greeting", { name: pick(PROFILE.name, lang) })}
-          </h1>
-        </div>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: R.control,
-            background: C.chipIdle,
-            color: C.body,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            ...T.label,
-            flex: "none",
-          }}
-        >
-          {PROFILE.initial}
-        </div>
-      </header>
+    <div
+      style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}
+    >
+      {/* The front page is where a name belongs, and "홈" would be the emptiest
+          heading in the product — so this is the one masthead that carries the
+          wordmark instead of a title. It replaces a greeting, which is what a
+          screen puts at the top when it has nothing to say there. */}
+      <Masthead brand right={<Avatar initial={PROFILE.initial} />} />
 
       {/* The verdict. One display numeral — the only one in the product — with
           the month's move beside it and the comparison underneath. */}
       <div style={fadeUp(40)}>
-        <div style={{ ...T.caption, color: C.faint }}>{t("home.myScore")}</div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 10,
+          }}
+        >
+          <span style={{ ...T.caption, color: C.faint }}>
+            {t("home.myScore")}
+          </span>
+          {/* The draw this score came from. It was the first line of the old
+              header; it belongs against the number it produced, not above a
+              greeting. */}
+          <span style={{ ...T.caption, color: C.faintest }}>
+            {t("home.drawnOn", { date: pick(latest.fullDate, lang) })} ·{" "}
+            {t("round.n", { n: latest.round })}
+          </span>
+        </div>
         <div
           style={{
             display: "flex",
@@ -193,9 +181,9 @@ export default function HomeTab({ onGoStore, onGoTab }) {
 
       <div style={{ flex: 1, minHeight: 20 }} />
 
-      {/* "12회차" appeared twice on this screen meaning two different things —
-          the round just drawn, and the number drawn so far. The header owns
-          the first; this line owns the tally. */}
+      {/* "12회차" appears twice on this screen meaning two different things —
+          the round just drawn, and the number drawn so far. The score caption
+          owns the first; this line owns the tally. */}
       <div
         style={{
           ...T.caption,
