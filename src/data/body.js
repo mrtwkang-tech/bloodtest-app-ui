@@ -818,6 +818,35 @@ export function markerLevel(marker, value) {
   return 0;
 }
 
+/**
+ * How far this value sits from its limit, as a proportion.
+ *
+ * THE POINT IS THAT IT HAS NO UNIT. The panel measures in μmol/mmol, 10³/μL,
+ * pg/mL and twenty other scales, so a reader shown "33.2" has to know the limit
+ * is 30 and do the arithmetic before the number means anything — and cannot
+ * compare it to anything else on the screen. A proportion of the limit is the
+ * one reading that works the same way for all sixty-nine markers.
+ *
+ * `ref` is a THRESHOLD for every marker, not a midpoint, and `dir` says which
+ * side is harmful (see markerLevel above). For `dir: "low"` the reference is a
+ * floor, so the ratio inverts. Either way 1.00 is the limit exactly and 1.34
+ * means a third of the way past it — which keeps the sign in one place instead
+ * of at every call site.
+ */
+export function deviationOf(marker, value) {
+  const ratio =
+    marker.dir === "low"
+      ? marker.ref / Math.max(value, 1e-9)
+      : value / marker.ref;
+  return {
+    ratio,
+    // Distance from the limit in either direction, so the copy can say
+    // "34% past it" or "34% of headroom left" from the same number.
+    pct: Math.round(Math.abs(ratio - 1) * 100),
+    over: ratio > 1,
+  };
+}
+
 /** "Optimal" is comfortably inside the range, not merely the right side of it. */
 export function isOptimal(marker, value) {
   return marker.dir === "low"

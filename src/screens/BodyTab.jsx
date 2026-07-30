@@ -25,6 +25,7 @@ import {
 } from "../tokens";
 import {
   BODY_STATUS_KEY,
+  deviationOf,
   formatValue,
   markerBand,
   markerLeft,
@@ -199,7 +200,9 @@ export default function BodyTab({ sel, onPickSession }) {
         series={series}
         labels={rounds.map((s) => t("round.n", { n: s.round }))}
         reference={pickMetric.marker.ref}
-        referenceLabel={t("body.refUpper")}
+        referenceLabel={t(
+          pickMetric.marker.dir === "low" ? "body.refLower" : "body.refUpper",
+        )}
         sel={sel}
         color={LEVEL_COLOR[markerLevel(pickMetric.marker, currentValue)]}
         options={BODY_METRICS.map((m) => ({
@@ -219,7 +222,13 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
   const [showAll, setShowAll] = useState(false);
   const over = zone.markers
     .map((m, i) => ({ marker: m, value: values[i] }))
-    .filter((p) => markerLevel(p.marker, p.value) > 0);
+    .filter((p) => markerLevel(p.marker, p.value) > 0)
+    // Worst first. Four out-of-range markers listed in panel order said nothing
+    // about which one to care about.
+    .sort(
+      (a, b) =>
+        deviationOf(b.marker, b.value).ratio - deviationOf(a.marker, a.value).ratio,
+    );
 
   return (
     <Card
@@ -282,7 +291,8 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
               names: over
                 .map((p) => {
                   const k = plainKeyOf(p.marker);
-                  return k ? t(k) : p.marker.name;
+                  const name = k ? t(k) : p.marker.name;
+                  return `${name} ${deviationOf(p.marker, p.value).pct}%`;
                 })
                 .join(" · "),
             })}
@@ -384,11 +394,25 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
   );
 }
 
-/** One biomarker against its reference range, on the same axis grammar. */
+/**
+ * One biomarker, read as distance from its limit rather than as a raw value.
+ *
+ * "33.2 μmol/mmol" asks the reader to know that the limit is 30 and to do the
+ * subtraction, and it cannot be compared to the "178 10³/μL" two rows down. A
+ * proportion of the limit is unitless, so every marker in the panel is suddenly
+ * on one scale — which is the whole reason this is the headline number now and
+ * the assay value sits underneath with the name.
+ *
+ * The copy deliberately never says "높음" or "낮음". For a `dir: "low"` marker
+ * the reference is a floor, so eGFR at 98.7 against a limit of 90 is 9% of
+ * headroom while being numerically higher. Safe-side versus past-the-limit is
+ * the only framing that survives both directions.
+ */
 function MarkerBar({ marker, value }) {
   const t = useLang().t;
   const level = markerLevel(marker, value);
   const plain = plainKeyOf(marker);
+  const dev = deviationOf(marker, value);
   return (
     <div>
       <div
@@ -403,30 +427,33 @@ function MarkerBar({ marker, value }) {
           <span style={{ ...T.label, color: C.ink, display: "block" }}>
             {plain ? t(plain) : marker.name}
           </span>
-          {plain && (
-            <span
-              style={{ ...T.micro, color: C.faintest, display: "block", marginTop: 2 }}
-            >
-              {marker.name}
-            </span>
-          )}
-        </span>
-        <span style={{ flex: "none" }}>
           <span
             style={{
-              ...T.num,
-              fontSize: 13.5,
-              fontWeight: 600,
-              color: LEVEL_COLOR[level],
+              ...T.micro,
+              color: C.faintest,
+              display: "block",
+              marginTop: 2,
             }}
           >
+            {plain ? `${marker.name} · ` : ""}
             {formatValue(value, marker.dp)}
+            {marker.unit ? ` ${marker.unit}` : ""}
           </span>
-          {marker.unit && (
-            <span style={{ ...T.unit, color: C.faintest, marginLeft: 4 }}>
-              {marker.unit}
-            </span>
-          )}
+        </span>
+        <span
+          style={{
+            ...T.label,
+            fontWeight: 600,
+            color: LEVEL_COLOR[level],
+            flex: "none",
+            textAlign: "right",
+          }}
+        >
+          {dev.pct === 0
+            ? t("body.dev.at")
+            : t(dev.over ? "body.dev.over" : "body.dev.under", {
+                pct: dev.pct,
+              })}
         </span>
       </div>
       {/* Same grammar as the mind scale: the band, where the limit is, and
@@ -456,8 +483,9 @@ function MarkerBar({ marker, value }) {
         />
       </div>
       <div style={{ ...T.caption, color: C.faintest }}>
-        {t("body.reference", { v: formatValue(marker.ref, marker.dp) })}
-        {level > 0 ? ` · ${t("body.over")}` : ""}
+        {t(marker.dir === "low" ? "body.referenceMin" : "body.reference", {
+          v: formatValue(marker.ref, marker.dp),
+        })}
       </div>
     </div>
   );

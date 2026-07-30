@@ -356,6 +356,10 @@ export const PROFILE = {
   fullName: { en: "Jiho Kim", ko: "김지호" },
   initial: "J",
   age: 34,
+  // Demo value. The name is gender-neutral in Korean, so this is a choice the
+  // fixture makes rather than something derivable — change this one line and the
+  // age-and-sex cohort relabels itself.
+  sex: { en: "male", ko: "남성" },
   nextInDays: 52,
   roundsSoFar: 6,
   monthsTracked: 18,

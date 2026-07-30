@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Pressable from "../components/Pressable";
 import { ScanGlyph } from "../components/Icon";
 import {
@@ -7,12 +8,12 @@ import {
   Display,
   SectionLabel,
   SectionTitle,
+  Segmented,
 } from "../components/primitives";
 import {
   C,
   DIVIDER,
   DIVIDER_TOP,
-  EASE,
   LEVEL_COLOR,
   R,
   T,
@@ -28,6 +29,12 @@ import {
   healthScore,
   pick,
 } from "../data/sessions";
+import {
+  DEFAULT_COHORT,
+  ageBand,
+  cohortPercentile,
+  cohortsFor,
+} from "../data/cohorts";
 import { useLang } from "../i18n";
 
 const latest = SESSIONS[0];
@@ -47,15 +54,9 @@ const HOME_METRICS = ["smm", "bodyFat", "visceral"];
  */
 export default function HomeTab({ onGoStore, onOpen, onScan }) {
   const { t, lang } = useLang();
+  const [cohort, setCohort] = useState(DEFAULT_COHORT);
   const score = healthScore(latest);
   const counts = biomarkerCounts(latest);
-
-  const leadKey =
-    score >= 82
-      ? "home.scoreLead.great"
-      : counts.out === 0
-        ? "home.scoreLead.ok"
-        : "home.scoreLead.watch";
 
   return (
     <div>
@@ -94,34 +95,54 @@ export default function HomeTab({ onGoStore, onOpen, onScan }) {
         </div>
       </header>
 
-      {/* The one number the whole panel resolves to. No tinted wash behind
-          it: a coloured gradient under a number says nothing the number does
-          not already say, and reads as decoration applied for its own sake. */}
+      {/* The one number the whole panel resolves to.
+          There used to be a progress ring beside it, which restated 62 as an
+          arc length — a second encoding of a number that was already legible,
+          and it answered nothing a reader actually wonders. 62 out of 100 means
+          nothing without a group to sit in, so the space goes to the comparison
+          instead. */}
       <Card pad="md" delay={40}>
-        <SectionLabel value={t("home.scoreOutOf")}>
-          {t("home.score")}
-        </SectionLabel>
+        <div style={{ ...T.caption, color: C.faint }}>{t("home.myScore")}</div>
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginTop: 10,
+            alignItems: "baseline",
+            gap: 8,
+            marginTop: 2,
           }}
         >
-          <Display size={54}>{score}</Display>
-          <ScoreRing value={score} />
+          <Display size={60}>{score}</Display>
+          <span style={{ ...T.caption, color: C.faintest }}>
+            {t("home.scoreOutOf")}
+          </span>
         </div>
-        <p
+        {/* The comparison, and it replaces a prose summary that used to sit
+            here ("a few values need attention"). That sentence was stranded
+            between two quantitative statements — the score above it and the
+            in-range counts immediately below, which say the same thing with
+            actual numbers and put the 9 in red. */}
+        <div
           style={{
-            ...T.bodyText,
-            color: C.body,
-            margin: "12px 0 0",
-            textWrap: "pretty",
+            marginTop: 12,
+            paddingTop: 11,
+            boxShadow: `inset 0 1px 0 ${C.hairline}`,
           }}
         >
-          {t(leadKey)}
-        </p>
+          <Segmented
+            items={cohortsFor().map((c) => ({
+              key: c.key,
+              label: t(c.labelKey, {
+                band: ageBand(),
+                sex: pick(PROFILE.sex, lang),
+              }),
+            }))}
+            value={cohort}
+            onChange={setCohort}
+          />
+          <div style={{ ...T.bodyText, color: C.ink, marginTop: 11 }}>
+            {t("home.percentile", { pct: cohortPercentile(score, cohort) })}
+          </div>
+        </div>
       </Card>
 
       <Card pad="sm" style={{ boxShadow: DIVIDER_TOP }} delay={80}>
@@ -318,68 +339,3 @@ function MoreRow({ label, count, beta, onClick, last }) {
     </Pressable>
   );
 }
-
-/**
- * Thin progress ring — the score restated as a proportion.
- *
- * The track is recessed and the arc is lit: a soft blurred copy underneath
- * throws the arc's own colour onto the panel, and the arc itself carries a
- * gradient so the light falls off along its length rather than sitting at one
- * flat value the whole way round.
- */
-function ScoreRing({ value }) {
-  const r = 25;
-  const circ = 2 * Math.PI * r;
-  // Lamp values: this is a shape, not text.
-  const color =
-    value >= 80 ? C.optimalLamp : value >= 60 ? C.watchLamp : C.alertLamp;
-  const dash = `${(circ * value) / 100} ${circ}`;
-  return (
-    <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
-      <defs>
-        <linearGradient id="ringLight" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.72" />
-          <stop offset="55%" stopColor={color} stopOpacity="1" />
-        </linearGradient>
-        <filter id="ringGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="3.2" />
-        </filter>
-      </defs>
-      <circle
-        cx="32"
-        cy="32"
-        r={r}
-        fill="none"
-        stroke={C.surfaceSunken}
-        strokeWidth="4.5"
-      />
-      <circle
-        cx="32"
-        cy="32"
-        r={r}
-        fill="none"
-        stroke={color}
-        strokeOpacity="0.55"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeDasharray={dash}
-        transform="rotate(-90 32 32)"
-        filter="url(#ringGlow)"
-      />
-      <circle
-        cx="32"
-        cy="32"
-        r={r}
-        fill="none"
-        stroke="url(#ringLight)"
-        strokeWidth="4.5"
-        strokeLinecap="round"
-        strokeDasharray={dash}
-        transform="rotate(-90 32 32)"
-        style={{ transition: `stroke-dasharray 720ms ${EASE}` }}
-      />
-    </svg>
-  );
-}
-
-/** One domain, one line: a lamp, a name, a verdict. */

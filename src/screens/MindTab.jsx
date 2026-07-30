@@ -1,7 +1,8 @@
 import { useState } from "react";
 import RadarChart from "../components/RadarChart";
 import Clamp from "../components/Clamp";
-import ScaleCard from "../components/ScaleCard";
+import ScaleRow from "../components/ScaleRow";
+import { band } from "../components/ScaleRow";
 import TrendChart from "../components/TrendChart";
 import SessionChips from "../components/SessionChips";
 import {
@@ -16,7 +17,7 @@ import { SCALE_META } from "../data/scales";
 import { SESSIONS, mindSummary, pick } from "../data/sessions";
 import { useLang } from "../i18n";
 
-export default function MindTab({ sel, onPickSession, showNew }) {
+export default function MindTab({ sel, onPickSession, showNew, onOpenScale }) {
   const { t, lang } = useLang();
   const [metric, setMetric] = useState(2);
   const session = SESSIONS[sel];
@@ -120,22 +121,26 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       >
         {t("mind.cadenceNote")}
       </p>
-      {/* An index that is fine does not need a bar, a driver, a mechanism and
-          a disclosure — it needs to be accounted for. The ones that are asking
-          for something stay open; the rest collapse to a line each and can
-          still be opened. */}
+      {/* Five rows of one shape. The card used to be thin when the index was
+          fine and tall when it was not, so the five never scanned as five of
+          the same thing — and the detail unfolded downward, costing the reader
+          their place. It opens in a sheet now. */}
       <Card
         variant="group"
         style={{ overflow: "hidden", padding: 0, ...fadeUp(120) }}
       >
         {SCALE_META.map((m, i) => (
-          <ScaleCard
+          <ScaleRow
             key={m.key}
-            meta={m}
+            meta={{
+              icon: m.icon,
+              label: t(m.axisKey),
+              comparison: t(`mind.vsPeer.${band(session.indices[i])}`),
+              statusLabel: t(`status.${session.status[i]}`),
+            }}
             index={session.indices[i]}
             status={session.status[i]}
-            roundIndex={session.roundIndex}
-            collapsed={session.status[i] === "good"}
+            onOpen={() => onOpenScale(m.key)}
             last={i === SCALE_META.length - 1}
           />
         ))}

@@ -8,11 +8,13 @@ import SignalTab from "./screens/SignalTab";
 import MoreTab from "./screens/MoreTab";
 import StoreTab from "./screens/StoreTab";
 import HomeDetail from "./screens/HomeDetail";
+import ScaleDetail from "./screens/ScaleDetail";
 import InfoDoc from "./screens/InfoDoc";
 import ScanFlow from "./screens/ScanFlow";
 import AnalyzingFlow from "./screens/AnalyzingFlow";
 import { C, LEVEL_LAMP, STATUS_LAMP } from "./tokens";
 import { SESSIONS, bodySummary, mindSummary } from "./data/sessions";
+import { SCALE_META } from "./data/scales";
 import { docByKey } from "./data/legal";
 import { useT } from "./i18n";
 
@@ -66,6 +68,9 @@ export default function App() {
 
   const docKey = sheet?.startsWith("doc:") ? sheet.slice(4) : null;
   const homeView = sheet?.startsWith("home:") ? sheet.slice(5) : null;
+  // A mind scale opens over the page rather than unfolding inside it.
+  const scaleKey = sheet?.startsWith("scale:") ? sheet.slice(6) : null;
+  const scaleMeta = SCALE_META.find((m) => m.key === scaleKey);
   // Each of Home's second-layer views is a sheet with its own title.
   const HOME_TITLES = {
     composition: "home.compositionRow",
@@ -123,6 +128,7 @@ export default function App() {
                     sel={sel}
                     onPickSession={setSel}
                     showNew={showNew && sel === 0}
+                    onOpenScale={(k) => setSheet(`scale:${k}`)}
                   />
                 )}
                 {tab === "body" && (
@@ -178,6 +184,16 @@ export default function App() {
                 roundIndex={latest.roundIndex}
                 onOpenSession={openSession}
               />
+            </Sheet>
+          )}
+
+          {scaleMeta && (
+            <Sheet
+              title={t(scaleMeta.axisKey)}
+              subtitle={t("mind.scales")}
+              onClose={() => setSheet(null)}
+            >
+              <ScaleDetail scaleKey={scaleKey} sel={sel} />
             </Sheet>
           )}
 
