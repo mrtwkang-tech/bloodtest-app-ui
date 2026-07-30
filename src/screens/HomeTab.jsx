@@ -2,6 +2,7 @@ import { useState } from "react";
 import Pressable from "../components/Pressable";
 import { Collapse, DisclosureButton } from "../components/Collapse";
 import InBodyPanel from "../components/InBodyPanel";
+import RiskEstimates from "../components/RiskEstimates";
 import {
   Card,
   CountStrip,
@@ -236,6 +237,8 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
           </div>
         )}
       </div>
+
+      <RiskEstimates roundIndex={latest.roundIndex} />
 
       <SectionTitle value={`${SESSIONS.length}`}>
         {t("home.history")}

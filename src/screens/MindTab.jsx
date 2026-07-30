@@ -86,7 +86,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
               return (
                 <Status
                   key={k}
-                  emoji={meta.emoji}
+                  icon={meta.icon}
                   level={session.status[i] === "alert" ? 2 : 1}
                 >
                   {t(meta.axisKey)}

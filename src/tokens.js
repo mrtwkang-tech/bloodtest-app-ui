@@ -38,6 +38,24 @@ export const FONT_MONO =
   '"JetBrains Mono Variable", "JetBrains Mono", "Wanted Sans Variable", ui-monospace, SFMono-Regular, Menlo, monospace';
 
 /**
+ * Fraunces — the display face, and it is used on roughly three numbers.
+ *
+ * A health score set in the same grotesque as the tab labels is a number you
+ * read and forget. It is also the one figure the whole product resolves to, and
+ * it should look like it. Fraunces is a variable old-style serif with real
+ * stroke contrast and a genuine optical-size axis, which matters here: at 58px
+ * `opsz` pulls the serifs fine and the contrast high, the way display cuts of
+ * metal faces were actually drawn, so the numeral gets editorial weight rather
+ * than just being big.
+ *
+ * `SOFT` rounds the terminals a little so it does not read as a newspaper
+ * masthead, and `WONK` stays off — its swashed alternates are charming in a
+ * word and distracting in a number.
+ */
+export const FONT_DISPLAY =
+  '"Fraunces Variable", "Fraunces", "Wanted Sans Variable", Georgia, serif';
+
+/**
  * COLOUR.
  *
  * The old triad was olive, ochre and brick: three desaturated earth tones that
@@ -100,11 +118,14 @@ export const C = {
   alertTint: "#FBE6E4",
 
   // The brand tint is deliberately not one of the status hues: interactive and
-  // "this is your result" must never be the same colour.
-  accent: "#4338CA",
-  accentLamp: "#6366F1",
-  accentSoft: "#E8E7FB",
-  onAccent: "#FFFFFF",
+  // "this is your result" must never be the same colour. The actual values live
+  // in theme/accents.js and are painted onto :root, so the accent can be
+  // switched at runtime without a re-render. See that file for why the choice
+  // of hue is as constrained as it is.
+  accent: "var(--accent)",
+  accentLamp: "var(--accent-lamp)",
+  accentSoft: "var(--accent-soft)",
+  onAccent: "var(--on-accent)",
 
   night: "#17181B",
   scanBg: "#0F1012",
@@ -168,9 +189,18 @@ export const SURFACE_SUNKEN = C.surfaceSunken;
 /** Track wells only — a bar has to look like it contains something. */
 export const INSET = "none";
 
-/** rgba from a hex, so a status colour can become its own light. */
-export function tint(hex, alpha) {
-  const n = parseInt(hex.slice(1), 16);
+/**
+ * rgba from a hex, so a status colour can become its own light.
+ *
+ * The accent arrives as a CSS variable rather than a hex, and cannot be picked
+ * apart here — `color-mix` does the same job in the browser, where the variable
+ * has a value.
+ */
+export function tint(color, alpha) {
+  if (!color.startsWith("#")) {
+    return `color-mix(in srgb, ${color} ${Math.round(alpha * 100)}%, transparent)`;
+  }
+  const n = parseInt(color.slice(1), 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
 }
 
@@ -230,13 +260,17 @@ export const CARET = { display: "inline-block", transform: "translateX(.6px)" };
  * only by a point or two of size.
  */
 export const T = {
+  /** The hero numeral. Serif, high contrast, optically sized for display. */
   display: {
-    fontFamily: FONT_SANS,
+    fontFamily: FONT_DISPLAY,
     fontSize: 52,
-    fontWeight: 700,
-    lineHeight: 1,
-    letterSpacing: "-0.04em",
-    fontVariantNumeric: "tabular-nums",
+    fontWeight: 620,
+    lineHeight: 0.94,
+    // Serifs already do the work of binding the figures together, so the tight
+    // tracking the grotesque needed would jam them.
+    letterSpacing: "-0.012em",
+    fontVariantNumeric: "lining-nums tabular-nums",
+    fontVariationSettings: "'opsz' 144, 'SOFT' 30, 'WONK' 0",
   },
   title1: {
     fontFamily: FONT_SANS,

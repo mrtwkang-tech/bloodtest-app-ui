@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
 import { Collapse, DisclosureButton } from "../components/Collapse";
 import BodyScene from "../three/BodyScene";
+import Icon from "../components/Icon";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
 import TrendChart from "../components/TrendChart";
 import {
   Card,
   ChipRail,
-  Glyph,
   SectionLabel,
   SectionTitle,
   Status,
@@ -61,7 +61,7 @@ export default function BodyTab({ sel, onPickSession }) {
       ...summary.zones.map(({ zone, level }) => ({
         key: zone.key,
         label: t(zone.nameKey),
-        emoji: zone.emoji,
+        icon: zone.icon,
         level,
       })),
     ],
@@ -142,7 +142,7 @@ export default function BodyTab({ sel, onPickSession }) {
           }}
         >
           {summary.zones.map(({ zone, level }) => (
-            <Status key={zone.key} emoji={zone.emoji} level={level}>
+            <Status key={zone.key} icon={zone.icon} level={level}>
               {t(zone.nameKey)}
             </Status>
           ))}
@@ -238,7 +238,7 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Glyph emoji={zone.emoji} level={level} size={26} />
+          <Icon name={zone.icon} level={level} size={28} />
           <span style={{ ...T.title3, color: C.ink }}>{t(zone.nameKey)}</span>
           <span
             style={{

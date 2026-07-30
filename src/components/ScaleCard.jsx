@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
-import { Dot, Glyph } from "./primitives";
+import { Dot } from "./primitives";
+import Icon from "./Icon";
 import { C, DIVIDER, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { scaleDrivers } from "../data/scales";
@@ -40,10 +41,10 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
         }}
       >
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <Glyph
-            emoji={meta.emoji}
+          <Icon
+            name={meta.icon}
             level={status === "alert" ? 2 : status === "watch" ? 1 : 0}
-            size={24}
+            size={26}
           />
           <span style={{ ...T.title3, color: C.ink }}>{t(meta.axisKey)}</span>
         </span>

@@ -1,6 +1,7 @@
+import { useState } from "react";
 import Pressable from "../components/Pressable";
 import { Caret, Card, SectionTitle } from "../components/primitives";
-import { C, DIVIDER, DIVIDER_TOP, T, fadeUp } from "../tokens";
+import { C, DIVIDER, DIVIDER_TOP, R, T, fadeUp } from "../tokens";
 import {
   APP_BUILD,
   APP_VERSION,
@@ -11,6 +12,12 @@ import {
 import { PLANS, PROFILE, pick } from "../data/sessions";
 import { LANGS, DICTS } from "../i18n/dict";
 import { useLang } from "../i18n";
+import {
+  ACCENTS,
+  ACCENT_KEYS,
+  applyAccent,
+  storedAccent,
+} from "../theme/accents";
 
 const LEGAL_ORDER = [
   "terms",
@@ -23,6 +30,7 @@ const LEGAL_ORDER = [
 
 export default function MoreTab({ onOpenDoc, onGoStore }) {
   const { t, lang, setLang } = useLang();
+  const [accent, setAccent] = useState(storedAccent);
   // The notice is written per jurisdiction, not translated.
   const notice = MEDICAL_NOTICE[lang] ?? MEDICAL_NOTICE.en;
 
@@ -147,6 +155,60 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
         <MenuRow label={t("more.notifications")} value={t("more.on")} />
         <MenuRow label={t("more.export")} />
         <MenuRow label={t("store.title")} onClick={onGoStore} last />
+      </Card>
+
+      {/* Accent picker. The rationale for each option is written out in
+          theme/accents.js; this is the tweak surface for it. */}
+      <SectionTitle>{t("accent.title")}</SectionTitle>
+      <Card style={{ padding: "14px 16px" }} delay={60}>
+        <div style={{ display: "flex", gap: 10 }}>
+          {ACCENT_KEYS.map((key) => {
+            const a = ACCENTS[key];
+            const on = accent === key;
+            return (
+              <Pressable
+                key={key}
+                as="button"
+                type="button"
+                aria-pressed={on}
+                onClick={() => setAccent(applyAccent(key))}
+                pressScale={0.95}
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  padding: "10px 8px 9px",
+                  borderRadius: R.inner,
+                  border: "none",
+                  cursor: "pointer",
+                  background: on ? C.surfaceSunken : "transparent",
+                  boxShadow: on ? "none" : `inset 0 0 0 1px ${C.hairline}`,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 7,
+                }}
+              >
+                <span
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    background: a.base,
+                    boxShadow: on ? `0 0 0 3px ${a.soft}` : "none",
+                  }}
+                />
+                <span
+                  style={{ ...T.micro, color: on ? C.ink : C.faint }}
+                >
+                  {t(a.nameKey)}
+                </span>
+              </Pressable>
+            );
+          })}
+        </div>
+        <div style={{ ...T.micro, color: C.faintest, marginTop: 11 }}>
+          {ACCENTS[accent].contrast}
+        </div>
       </Card>
 
       <SectionTitle>{t("more.legal")}</SectionTitle>

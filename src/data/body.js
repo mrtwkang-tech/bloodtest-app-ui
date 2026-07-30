@@ -67,7 +67,7 @@ const RAW_SYSTEMS = [
   {
     key: "neuro",
     nameKey: "sys.neuro",
-    emoji: "🧠",
+    icon: "neuro",
     specialtyKey: "spec.neuro",
     noteKey: "sys.neuro.note",
     conditionKeys: ["cond.alzheimers", "cond.parkinsons", "cond.stroke"],
@@ -158,7 +158,7 @@ const RAW_SYSTEMS = [
   {
     key: "cardio",
     nameKey: "sys.cardio",
-    emoji: "🫀",
+    icon: "cardio",
     specialtyKey: "spec.cardio",
     noteKey: "sys.cardio.note",
     conditionKeys: ["cond.mi", "cond.hypertension"],
@@ -245,7 +245,7 @@ const RAW_SYSTEMS = [
   {
     key: "endocrine",
     nameKey: "sys.endocrine",
-    emoji: "⚖️",
+    icon: "endocrine",
     specialtyKey: "spec.endocrine",
     noteKey: "sys.endocrine.note",
     conditionKeys: ["cond.diabetes", "cond.thyroid"],
@@ -324,7 +324,7 @@ const RAW_SYSTEMS = [
   {
     key: "hepatic",
     nameKey: "sys.hepatic",
-    emoji: "⚗️",
+    icon: "hepatic",
     specialtyKey: "spec.hepatic",
     noteKey: "sys.hepatic.note",
     conditionKeys: ["cond.fattyLiver", "cond.hepatitis"],
@@ -391,7 +391,7 @@ const RAW_SYSTEMS = [
   {
     key: "renal",
     nameKey: "sys.renal",
-    emoji: "🫘",
+    icon: "renal",
     specialtyKey: "spec.renal",
     noteKey: "sys.renal.note",
     conditionKeys: ["cond.ckd"],
@@ -456,7 +456,7 @@ const RAW_SYSTEMS = [
   {
     key: "hematology",
     nameKey: "sys.hematology",
-    emoji: "🩸",
+    icon: "hematology",
     specialtyKey: "spec.hematology",
     noteKey: "sys.hematology.note",
     conditionKeys: ["cond.anemia"],
@@ -524,7 +524,7 @@ const RAW_SYSTEMS = [
   {
     key: "pulmonary",
     nameKey: "sys.pulmonary",
-    emoji: "🫁",
+    icon: "pulmonary",
     specialtyKey: "spec.pulmonary",
     noteKey: "sys.pulmonary.note",
     conditionKeys: ["cond.copd", "cond.asthma"],
@@ -581,7 +581,7 @@ const RAW_SYSTEMS = [
   {
     key: "immune",
     nameKey: "sys.immune",
-    emoji: "🛡️",
+    icon: "immune",
     specialtyKey: "spec.immune",
     noteKey: "sys.immune.note",
     conditionKeys: ["cond.ra", "cond.autoimmune"],
@@ -646,7 +646,7 @@ const RAW_SYSTEMS = [
   {
     key: "oncology",
     nameKey: "sys.oncology",
-    emoji: "🧬",
+    icon: "oncology",
     specialtyKey: "spec.oncology",
     noteKey: "sys.oncology.note",
     conditionKeys: ["cond.cancer"],
@@ -708,7 +708,7 @@ const RAW_SYSTEMS = [
   {
     key: "nutrition",
     nameKey: "sys.nutrition",
-    emoji: "🥗",
+    icon: "nutrition",
     specialtyKey: "spec.nutrition",
     noteKey: "sys.nutrition.note",
     conditionKeys: ["cond.deficiency"],
