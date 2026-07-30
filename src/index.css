@@ -3,19 +3,13 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: #DEDED8;
+  background: #DCDCD6;
   /*
-    ONE family for both languages.
-
-    The previous stack put -apple-system first with Pretendard behind it, which
-    meant Latin rendered in SF and Hangul fell through to Apple SD Gothic Neo —
-    two faces with different x-heights, different weight curves and different
-    optical centres, mixed inside single sentences. Pretendard's Latin is drawn
-    on Inter's skeleton and its Hangul is designed to sit against it, so one
-    family now covers the whole product and renders identically on every
-    platform instead of changing face per device.
+    ONE family for both languages — Wanted Sans, which draws Latin and Hangul
+    together and so keeps one x-height, one weight curve and one optical centre
+    inside a sentence that mixes them.
   */
-  font-family: 'Pretendard Variable', Pretendard, -apple-system,
+  font-family: 'Wanted Sans Variable', 'Wanted Sans', Pretendard, -apple-system,
     BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -79,7 +73,7 @@ button { font-family: inherit; color: inherit; }
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: #F1F1EE;
+  background: #EDEDEA;
   --safe-top: 0px;
   --safe-bottom: 0px;
 }
@@ -107,7 +101,7 @@ button { font-family: inherit; color: inherit; }
     padding: 0;
     border-radius: 0;
     box-shadow: none;
-    background: #F1F1EE;
+    background: #EDEDEA;
   }
   .screen {
     width: 100%;

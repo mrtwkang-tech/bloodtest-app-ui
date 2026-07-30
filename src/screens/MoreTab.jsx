@@ -105,7 +105,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
         </div>
         <p
           style={{
-            ...T.monoSm,
+            ...T.caption,
             color: "rgba(255,255,255,.78)",
             margin: "7px 0 0",
             lineHeight: 1.7,
@@ -219,7 +219,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
           type="button"
           pressScale={0.95}
           style={{
-            ...T.monoSm,
+            ...T.caption,
             color: C.faint,
             margin: "12px auto 0",
             display: "block",

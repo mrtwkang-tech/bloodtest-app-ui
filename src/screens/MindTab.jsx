@@ -29,7 +29,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
           {t("mind.title")}
         </h1>
-        <div style={{ ...T.monoSm, color: C.faint, marginTop: 5 }}>
+        <div style={{ ...T.caption, color: C.faint, marginTop: 5 }}>
           {t("mind.subtitle")}
         </div>
         <SessionChips sel={sel} onPick={onPickSession} />
@@ -56,7 +56,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
               background: C.accent,
             }}
           />
-          <span style={{ ...T.monoSm, color: C.ink2 }}>
+          <span style={{ ...T.caption, color: C.ink2 }}>
             {t("mind.newResult")}
           </span>
         </div>
@@ -145,7 +145,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
               for a two-word label and unreadable for a paragraph. */}
           <span
             style={{
-              ...T.monoSm,
+              ...T.caption,
               color: C.faint,
               flex: 1,
               lineHeight: 1.65,
@@ -160,7 +160,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       <SectionTitle value={t("mind.index")}>{t("mind.scales")}</SectionTitle>
       <p
         style={{
-          ...T.monoSm,
+          ...T.caption,
           color: C.faint,
           margin: "-2px 2px 10px",
           textWrap: "pretty",
@@ -239,7 +239,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         </p>
         <p
           style={{
-            ...T.monoSm,
+            ...T.caption,
             color: C.faint,
             margin: "12px 0 0",
             paddingTop: 11,

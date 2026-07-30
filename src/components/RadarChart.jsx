@@ -1,6 +1,6 @@
 import { Card, SectionLabel } from "./primitives";
 import { AXES, SCALE_META } from "../data/scales";
-import { C, EASE, STATUS_COLOR, T } from "../tokens";
+import { C, EASE, STATUS_LAMP, T } from "../tokens";
 import { useT } from "../i18n";
 
 const CX = 150;
@@ -108,7 +108,7 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
         {/* You. */}
         <polygon
           points={poly(values)}
-          fill="rgba(63,99,41,.13)"
+          fill="rgba(67,56,202,.10)"
           stroke={C.accent}
           strokeWidth="1.75"
           strokeLinejoin="round"
@@ -127,7 +127,7 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
               cx={x}
               cy={y}
               r="3.4"
-              fill={STATUS_COLOR[statuses[i]]}
+              fill={STATUS_LAMP[statuses[i]]}
               stroke={C.surface}
               strokeWidth="1.6"
               style={{ transition: `all 560ms ${EASE}` }}
@@ -171,7 +171,7 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
 
       <div
         style={{
-          ...T.monoSm,
+          ...T.caption,
           color: C.faint,
           textAlign: "center",
           paddingTop: 10,

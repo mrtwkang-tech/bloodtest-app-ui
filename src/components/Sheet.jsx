@@ -37,6 +37,10 @@ export default function Sheet({
   const height = () => sheetRef.current?.offsetHeight || 800;
 
   const onPointerDown = (e) => {
+    // The close button lives inside the grab area. Capturing the pointer here
+    // would retarget the whole gesture to the header, so the button never gets
+    // its click and the sheet could not be dismissed by tapping ✕.
+    if (e.target.closest("button")) return;
     // Only the grab area starts a drag; the body needs to scroll.
     grab.current = { startY: e.clientY, baseY: y };
     setDragging(true);

@@ -17,7 +17,7 @@ export default function InfoDoc({ doc, onClose }) {
             {s.p && (
               <p
                 style={{
-                  ...T.monoSm,
+                  ...T.caption,
                   color: C.body,
                   margin: "7px 0 0",
                   lineHeight: 1.8,
@@ -37,7 +37,7 @@ export default function InfoDoc({ doc, onClose }) {
                     style={{
                       display: "flex",
                       gap: 8,
-                      ...T.monoSm,
+                      ...T.caption,
                       color: C.body,
                       lineHeight: 1.75,
                       marginTop: 6,

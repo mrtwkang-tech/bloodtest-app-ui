@@ -9,7 +9,6 @@ import {
   T,
   backlight,
   fadeUp,
-  tint,
 } from "../tokens";
 import { PLANS } from "../data/sessions";
 import { TOTAL_MARKERS } from "../data/body";
@@ -71,7 +70,7 @@ export default function StoreTab({ plan, onPickPlan }) {
           </div>
           <p
             style={{
-              ...T.monoSm,
+              ...T.caption,
               color: C.muted,
               margin: "7px 0 0",
               textWrap: "pretty",
@@ -201,7 +200,7 @@ export default function StoreTab({ plan, onPickPlan }) {
             >
               ✓
             </span>
-            <span style={{ ...T.monoSm, color: C.body }}>{t(k, COUNTS)}</span>
+            <span style={{ ...T.caption, color: C.body }}>{t(k, COUNTS)}</span>
           </div>
         ))}
       </Card>
@@ -213,8 +212,8 @@ export default function StoreTab({ plan, onPickPlan }) {
         style={{
           display: "block",
           width: "100%",
-          background: `linear-gradient(180deg, ${tint("#ffffff", 0.16)} 0%, transparent 52%), ${C.accent}`,
-          boxShadow: `inset 0 1px 0 rgba(255,255,255,.22), ${backlight(C.accent)}`,
+          background: C.accent,
+          boxShadow: backlight(C.accent),
           color: C.onAccent,
           borderRadius: R.card,
           padding: 17,

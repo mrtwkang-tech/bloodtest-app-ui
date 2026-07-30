@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Pressable from "./Pressable";
-import { C, CARET, EASE, INSET, R, T } from "../tokens";
+import { C, CARET, EASE, R, T } from "../tokens";
 
 /**
  * Height-animated disclosure.
@@ -69,18 +69,17 @@ export function DisclosureButton({ open, label, hint, onClick, style }) {
         padding: "9px 11px",
         borderRadius: R.control,
         background: C.surfaceSunken,
-        boxShadow: INSET,
         border: "none",
         cursor: "pointer",
         textAlign: "left",
         ...style,
       }}
     >
-      <span style={{ ...T.monoSm, color: C.body, flex: 1 }}>{label}</span>
+      <span style={{ ...T.caption, color: C.body, flex: 1 }}>{label}</span>
       {hint && <span style={{ ...T.micro, color: C.faintest }}>{hint}</span>}
       <span
         style={{
-          ...T.monoSm,
+          ...T.caption,
           ...CARET,
           color: C.faint,
           transform: open

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, SectionLabel, Status, Badge } from "./primitives";
 import { Collapse, DisclosureButton } from "./Collapse";
 import Pressable from "./Pressable";
-import { C, EASE, INSET, LEVEL_COLOR, R, T, tint } from "../tokens";
+import { C, EASE, LEVEL_COLOR, LEVEL_LAMP, R, T } from "../tokens";
 import { formatValue } from "../data/body";
 import {
   COMPOSITION,
@@ -45,7 +45,7 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
             marginTop: 10,
           }}
         >
-          <Status color={DEVICE.connected ? C.optimal : C.faintest}>
+          <Status color={DEVICE.connected ? C.optimalLamp : C.faintest}>
             {DEVICE.connected ? t("ib.connected") : t("ib.notConnected")}
           </Status>
           <span style={{ marginLeft: "auto" }}>
@@ -151,7 +151,7 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
                   >
                     <span
                       style={{
-                        ...T.monoSm,
+                        ...T.caption,
                         color: C.body,
                         width: 74,
                         flex: "none",
@@ -165,7 +165,6 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
                         height: 5,
                         borderRadius: 2.5,
                         background: C.surfaceSunken,
-                        boxShadow: INSET,
                         position: "relative",
                       }}
                     >
@@ -175,7 +174,7 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
                           position: "absolute",
                           inset: "0 auto 0 0",
                           width: `${Math.min(100, (v / 120) * 100)}%`,
-                          background: `linear-gradient(180deg, ${tint("#ffffff", 0.3)} 0%, transparent 70%), ${v >= 95 ? C.optimal : C.watch}`,
+                          background: v >= 95 ? C.optimalLamp : C.watchLamp,
                           borderRadius: 2.5,
                           transition: `width 520ms ${EASE}`,
                         }}
@@ -233,7 +232,7 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
             </Badge>
             <span
               style={{
-                ...T.monoSm,
+                ...T.caption,
                 color: C.faintest,
                 flex: 1,
                 lineHeight: 1.6,
@@ -307,7 +306,7 @@ function Row({ name, value, unit, tag }) {
     <div
       style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}
     >
-      <span style={{ ...T.monoSm, color: C.ink }}>{name}</span>
+      <span style={{ ...T.caption, color: C.ink }}>{name}</span>
       <span style={{ ...T.micro, color: C.faintest }}>{tag}</span>
       <span
         style={{ marginLeft: "auto", ...T.num, fontSize: 12, color: C.body }}

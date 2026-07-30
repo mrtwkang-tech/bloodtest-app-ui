@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
 import { Dot } from "./primitives";
-import { C, DIVIDER, EASE, INSET, STATUS_COLOR, T, tint } from "../tokens";
+import { C, DIVIDER, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { scaleDrivers } from "../data/scales";
 import { useT } from "../i18n";
@@ -21,6 +21,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const color = STATUS_COLOR[status];
+  const lamp = STATUS_LAMP[status];
   const drivers = scaleDrivers(meta, roundIndex);
   const lead = drivers[0];
 
@@ -61,7 +62,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
         >
           {index}
         </span>
-        <span style={{ ...T.monoSm, color, paddingBottom: 2 }}>
+        <span style={{ ...T.caption, color, paddingBottom: 2 }}>
           {t(`status.${status}`)}
         </span>
         <span
@@ -76,7 +77,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
         </span>
       </div>
 
-      <Ruler index={index} color={color} />
+      <Ruler index={index} lamp={lamp} />
 
       {/* The mechanism, not the number: this is the part a reader can use.
           The plain name leads; the locus follows in mono so the claim stays
@@ -116,7 +117,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
         )}
         <p
           style={{
-            ...T.monoSm,
+            ...T.caption,
             color: C.muted,
             margin: "6px 0 0",
             textWrap: "pretty",
@@ -148,7 +149,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
                   style={{ display: "flex", alignItems: "baseline", gap: 8 }}
                 >
                   <Dot
-                    color={d.pushesUp ? C.watch : C.optimal}
+                    color={d.pushesUp ? C.watchLamp : C.optimalLamp}
                     size={5}
                     style={{ transform: "translateY(-2px)" }}
                   />
@@ -200,7 +201,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
                 </div>
                 <p
                   style={{
-                    ...T.monoSm,
+                    ...T.caption,
                     color: C.faint,
                     margin: "5px 0 0 13px",
                     lineHeight: 1.6,
@@ -217,7 +218,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
 
       <p
         style={{
-          ...T.monoSm,
+          ...T.caption,
           color: C.muted,
           margin: "11px 0 0",
           paddingTop: 10,
@@ -236,7 +237,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
  * value, the peer average and referral threshold are marked on the axis, and
  * the ticks let you read a position instead of estimating one.
  */
-function Ruler({ index, color }) {
+function Ruler({ index, lamp }) {
   return (
     <div style={{ marginTop: 13 }}>
       <div
@@ -245,7 +246,6 @@ function Ruler({ index, color }) {
           height: 6,
           borderRadius: 3,
           background: C.surfaceSunken,
-          boxShadow: INSET,
         }}
       >
         <div
@@ -253,11 +253,8 @@ function Ruler({ index, color }) {
             position: "absolute",
             inset: "0 auto 0 0",
             width: `${index}%`,
-            // Lit along the top edge and casting its own colour into the
-            // trough, so the fill sits in the track rather than on it.
-            background: `linear-gradient(180deg, ${tint("#ffffff", 0.32)} 0%, transparent 68%), ${color}`,
+            background: lamp,
             borderRadius: 3,
-            boxShadow: `0 0 8px ${tint(color, 0.45)}`,
             transition: `width 520ms ${EASE}, background 240ms ${EASE}`,
           }}
         />

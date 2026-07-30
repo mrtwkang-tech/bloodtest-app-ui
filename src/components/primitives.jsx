@@ -5,28 +5,22 @@ import {
   CARET,
   DIVIDER,
   EASE,
-  INSET,
   R,
   SURFACE,
   T,
-  backlight,
   dot,
   fadeUp,
-  tint,
 } from "../tokens";
 
 /**
- * Surface card: lit top edge, shaded foot, one soft ambient cast.
- *
- * `glow` tints the upper-right of the panel with a status hue, which is how a
- * card carrying a warning announces itself without being wrapped in a coloured
- * border or a tinted block.
+ * Surface card: white, on a slightly deeper ground. No border, no bevel, no
+ * shadow — the value step is the separation, the way a grouped list works.
  */
-export function Card({ children, style, delay, glow, ...rest }) {
+export function Card({ children, style, delay, ...rest }) {
   return (
     <section
       style={{
-        background: glow ? `${glow}, ${SURFACE}` : SURFACE,
+        background: SURFACE,
         borderRadius: R.card,
         boxShadow: CARD,
         ...(delay != null ? fadeUp(delay) : null),
@@ -40,10 +34,10 @@ export function Card({ children, style, delay, glow, ...rest }) {
 }
 
 /**
- * A status dot, area-compensated against square neighbours and lit with its
- * own colour so it reads as an indicator lamp rather than a printed circle.
+ * A status dot, area-compensated against square neighbours. `lit` adds a
+ * halo ring and is for the one mark on a screen that is calling for action.
  */
-export function Dot({ color, size = 6, lit = true, style }) {
+export function Dot({ color, size = 6, lit = false, style }) {
   return <span style={{ ...dot(size, color, lit), ...style }} />;
 }
 
@@ -105,7 +99,7 @@ export function Status({ color, children, mono = true, style }) {
       style={{ display: "inline-flex", alignItems: "center", gap: 6, ...style }}
     >
       <Dot color={color} />
-      <span style={{ ...(mono ? T.monoSm : T.label), color: C.body }}>
+      <span style={{ ...(mono ? T.caption : T.label), color: C.body }}>
         {children}
       </span>
     </span>
@@ -126,10 +120,8 @@ export function Badge({
         background: fill,
         color,
         borderRadius: R.control,
-        // Optical padding: uppercase sits high in its box, so the top pad is
-        // shaved and the bottom carries the difference.
+        // Uppercase sits high in its box, so the top pad is shaved.
         padding: "2.5px 7px 3.5px",
-        boxShadow: `inset 0 0 0 1px ${tint(color, 0.16)}, inset 0 1px 0 rgba(255,255,255,.6)`,
         whiteSpace: "nowrap",
         ...style,
       }}
@@ -148,7 +140,6 @@ export function Segmented({ items, value, onChange, style }) {
         gap: 2,
         background: C.surfaceSunken,
         borderRadius: R.control + 2,
-        boxShadow: INSET,
         padding: 2,
         ...style,
       }}
@@ -164,7 +155,7 @@ export function Segmented({ items, value, onChange, style }) {
             onClick={() => onChange(item.key)}
             pressScale={0.96}
             style={{
-              ...T.monoSm,
+              ...T.caption,
               border: "none",
               cursor: "pointer",
               borderRadius: R.control,
@@ -172,9 +163,7 @@ export function Segmented({ items, value, onChange, style }) {
               whiteSpace: "nowrap",
               background: on ? SURFACE : "transparent",
               color: on ? C.ink : C.faint,
-              boxShadow: on
-                ? "inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(23,24,26,.14), 0 4px 10px -6px rgba(23,24,26,.28)"
-                : "none",
+              boxShadow: on ? "0 1px 3px rgba(22,23,26,.14)" : "none",
               transition: `background 180ms ${EASE}, color 180ms ${EASE}`,
             }}
           >
@@ -185,9 +174,6 @@ export function Segmented({ items, value, onChange, style }) {
     </div>
   );
 }
-
-/** A selected chip casts its own colour, not a grey shadow. */
-const backlightAccent = backlight(C.accent, 0.9);
 
 /** Horizontal scrolling chip rail for switching subject. */
 export function ChipRail({ items, value, onChange, style }) {
@@ -222,25 +208,15 @@ export function ChipRail({ items, value, onChange, style }) {
               borderRadius: R.control,
               border: "none",
               cursor: "pointer",
-              background: on
-                ? `linear-gradient(180deg, ${tint("#ffffff", 0.16)} 0%, transparent 55%), ${C.accent}`
-                : SURFACE,
-              color: on ? C.onAccent : C.body,
-              boxShadow: on
-                ? `inset 0 1px 0 rgba(255,255,255,.22), ${backlightAccent}`
-                : CARD,
+              background: on ? C.ink : C.surface,
+              color: on ? "#fff" : C.body,
+              boxShadow: on ? "none" : `inset 0 0 0 1px ${C.hairline}`,
               whiteSpace: "nowrap",
-              ...T.monoSm,
+              ...T.caption,
             }}
           >
             {item.dot && (
-              <Dot
-                color={item.dot}
-                lit={!on}
-                style={
-                  on ? { boxShadow: "0 0 0 1.5px rgba(255,255,255,.45)" } : null
-                }
-              />
+              <Dot color={item.dot} />
             )}
             {item.label}
           </Pressable>
@@ -258,9 +234,9 @@ export function ChipRail({ items, value, onChange, style }) {
 export function CountStrip({ counts, labels }) {
   const { total, optimal, inRange, out } = counts;
   const seg = [
-    { n: optimal, color: C.optimal },
-    { n: inRange, color: C.inRange },
-    { n: out, color: C.alert },
+    { n: optimal, color: C.optimalLamp },
+    { n: inRange, color: C.inRangeLamp },
+    { n: out, color: C.alertLamp },
   ].filter((s) => s.n > 0);
 
   return (
@@ -275,18 +251,12 @@ export function CountStrip({ counts, labels }) {
           color={out > 0 ? C.alert : undefined}
         />
       </div>
-      {/* The bar sits in a shallow trough, and each segment is lit along its
-          top edge — so the proportions read as inlaid, not painted on. */}
       <div
         style={{
           display: "flex",
           gap: 2,
           marginTop: 13,
           height: 5,
-          borderRadius: 2.5,
-          background: C.surfaceSunken,
-          boxShadow: INSET,
-          padding: 0,
         }}
       >
         {seg.map((s, i) => (
@@ -294,9 +264,8 @@ export function CountStrip({ counts, labels }) {
             key={i}
             style={{
               flex: s.n,
-              background: `linear-gradient(180deg, ${tint("#ffffff", 0.34)} 0%, transparent 70%), ${s.color}`,
+              background: s.color,
               borderRadius: 2.5,
-              boxShadow: `0 0 6px ${tint(s.color, 0.4)}`,
               transition: `flex 520ms ${EASE}`,
             }}
           />
@@ -369,8 +338,6 @@ export function Sparkline({ series, color, width = 52, height = 20 }) {
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      {/* The head of the line is the live value: it gets the lamp. */}
-      <circle cx={last[0]} cy={last[1]} r="4" fill={color} opacity="0.22" />
       <circle cx={last[0]} cy={last[1]} r="2.1" fill={color} />
     </svg>
   );
@@ -422,7 +389,7 @@ export function DataRow({
         {sub && (
           <span
             style={{
-              ...T.monoSm,
+              ...T.caption,
               color: C.faint,
               display: "block",
               marginTop: 2,
@@ -450,39 +417,7 @@ export function DataRow({
   );
 }
 
-/**
- * Large tabular figure.
- *
- * The negative left margin is optical overhang: a digit's left sidebearing
- * pushes the glyph in from the text box, so at 58px the number would sit a
- * couple of pixels right of the label stacked above it. Pulling the box left
- * by a fraction of the size lines the two up to the eye.
- */
-export function Display({ children, color = C.ink, size = 52, glowColor }) {
-  return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      {glowColor && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            inset: `${-size * 0.3}px`,
-            background: `radial-gradient(closest-side, ${tint(glowColor, 0.2)}, transparent 72%)`,
-            pointerEvents: "none",
-          }}
-        />
-      )}
-      <div
-        style={{
-          ...T.display,
-          fontSize: size,
-          color,
-          position: "relative",
-          marginLeft: -size * 0.028,
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
+/** Large tabular figure. */
+export function Display({ children, color = C.ink, size = 52 }) {
+  return <div style={{ ...T.display, fontSize: size, color }}>{children}</div>;
 }

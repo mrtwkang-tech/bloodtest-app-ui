@@ -9,7 +9,7 @@ import StoreTab from "./screens/StoreTab";
 import InfoDoc from "./screens/InfoDoc";
 import ScanFlow from "./screens/ScanFlow";
 import AnalyzingFlow from "./screens/AnalyzingFlow";
-import { C, LEVEL_COLOR, STATUS_COLOR } from "./tokens";
+import { C, LEVEL_LAMP, STATUS_LAMP } from "./tokens";
 import { SESSIONS, bodySummary, mindSummary } from "./data/sessions";
 import { docByKey } from "./data/legal";
 import { useT } from "./i18n";
@@ -103,6 +103,7 @@ export default function App() {
                   <HomeTab
                     key="home"
                     onOpenSession={openSession}
+                    onGoTab={goTab}
                     onGoStore={() => setSheet("store")}
                   />
                 )}
@@ -134,8 +135,8 @@ export default function App() {
                 tab={tab}
                 onSelect={goTab}
                 onScan={() => setFlow("scan")}
-                mindDot={mind.warn ? STATUS_COLOR[mind.worst] : null}
-                bodyDot={body.flagged.length ? LEVEL_COLOR[body.worst] : null}
+                mindDot={mind.warn ? STATUS_LAMP[mind.worst] : null}
+                bodyDot={body.flagged.length ? LEVEL_LAMP[body.worst] : null}
                 scrollerRef={scrollerRef}
               />
             </div>

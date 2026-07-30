@@ -11,7 +11,16 @@ import {
   SectionTitle,
   Status,
 } from "../components/primitives";
-import { C, CARD, LEVEL_COLOR, LEVEL_TINT, R, T, fadeUp } from "../tokens";
+import {
+  C,
+  CARD,
+  LEVEL_COLOR,
+  LEVEL_LAMP,
+  LEVEL_TINT,
+  R,
+  T,
+  fadeUp,
+} from "../tokens";
 import {
   BODY_STATUS_KEY,
   formatValue,
@@ -51,7 +60,7 @@ export default function BodyTab({ sel, onPickSession }) {
       ...summary.zones.map(({ zone, level }) => ({
         key: zone.key,
         label: t(zone.nameKey),
-        dot: LEVEL_COLOR[level],
+        dot: LEVEL_LAMP[level],
       })),
     ],
     [summary.zones, t],
@@ -71,7 +80,7 @@ export default function BodyTab({ sel, onPickSession }) {
         <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
           {t("body.title")}
         </h1>
-        <div style={{ ...T.monoSm, color: C.faint, marginTop: 5 }}>
+        <div style={{ ...T.caption, color: C.faint, marginTop: 5 }}>
           {t("body.subtitle")}
         </div>
         <SessionChips sel={sel} onPick={onPickSession} />
@@ -97,7 +106,7 @@ export default function BodyTab({ sel, onPickSession }) {
         />
         <div
           style={{
-            ...T.monoSm,
+            ...T.caption,
             color: C.faintest,
             textAlign: "center",
             padding: "0 18px",
@@ -164,7 +173,7 @@ export default function BodyTab({ sel, onPickSession }) {
 
       <p
         style={{
-          ...T.monoSm,
+          ...T.caption,
           color: C.faintest,
           margin: "13px 4px 0",
           textWrap: "pretty",
@@ -254,20 +263,20 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
           <span style={{ ...T.micro, color: C.faintest }}>
             {t("body.specialty")}
           </span>
-          <span style={{ ...T.monoSm, color: C.body }}>
+          <span style={{ ...T.caption, color: C.body }}>
             {t(zone.specialtyKey)}
           </span>
           <span style={{ marginLeft: "auto", ...T.micro, color: C.faintest }}>
             {t("body.markerCount", { n: zone.markers.length })}
           </span>
         </div>
-        <div style={{ ...T.monoSm, color: C.faint, marginTop: 6 }}>
+        <div style={{ ...T.caption, color: C.faint, marginTop: 6 }}>
           {zone.conditionKeys.map((k) => t(k)).join(" · ")}
         </div>
         {over.length > 0 && (
           <div
             style={{
-              ...T.monoSm,
+              ...T.caption,
               color: C.body,
               marginTop: 7,
               textWrap: "pretty",
@@ -328,7 +337,7 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             </div>
             <p
               style={{
-                ...T.monoSm,
+                ...T.caption,
                 color: C.body,
                 margin: "6px 0 0",
                 textWrap: "pretty",

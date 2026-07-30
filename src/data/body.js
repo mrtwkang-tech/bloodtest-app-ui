@@ -836,17 +836,17 @@ export function markerBand(marker) {
     const red = Math.max(0, ((marker.ref * 0.75) / marker.max) * 100);
     const amber = Math.max(0, (marker.ref / marker.max) * 100);
     return (
-      `linear-gradient(90deg,${C.alert} 0 ${red.toFixed(1)}%,` +
-      `${C.watch} ${red.toFixed(1)}% ${amber.toFixed(1)}%,` +
-      `${C.optimal} ${amber.toFixed(1)}% 100%)`
+      `linear-gradient(90deg,${C.alertLamp} 0 ${red.toFixed(1)}%,` +
+      `${C.watchLamp} ${red.toFixed(1)}% ${amber.toFixed(1)}%,` +
+      `${C.optimalLamp} ${amber.toFixed(1)}% 100%)`
     );
   }
   const green = Math.min(100, (marker.ref / marker.max) * 100);
   const amber = Math.min(100, ((marker.ref * 1.25) / marker.max) * 100);
   return (
-    `linear-gradient(90deg,${C.optimal} 0 ${green.toFixed(1)}%,` +
-    `${C.watch} ${green.toFixed(1)}% ${amber.toFixed(1)}%,` +
-    `${C.alert} ${amber.toFixed(1)}% 100%)`
+    `linear-gradient(90deg,${C.optimalLamp} 0 ${green.toFixed(1)}%,` +
+    `${C.watchLamp} ${green.toFixed(1)}% ${amber.toFixed(1)}%,` +
+    `${C.alertLamp} ${amber.toFixed(1)}% 100%)`
   );
 }
 
