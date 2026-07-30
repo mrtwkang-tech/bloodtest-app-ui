@@ -613,8 +613,6 @@ export const en = {
   "biz.privacyEmail": "Privacy contact",
   "common.close": "Close",
   "common.back": "Back",
-  "common.more": "Read more",
-  "common.less": "Less",
   "common.detail": "Details",
 };
 export const ko = {
@@ -1201,8 +1199,6 @@ export const ko = {
   "biz.privacyEmail": "개인정보 문의",
   "common.close": "닫기",
   "common.back": "뒤로",
-  "common.more": "더 보기",
-  "common.less": "접기",
   "common.detail": "자세히",
 };
 export const DICTS = { en, ko };

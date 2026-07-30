@@ -1,219 +1,47 @@
 import * as THREE from "three";
+import { J } from "./figure";
+import {
+  LEVEL,
+  capsule,
+  chain,
+  cm,
+  domeEnd,
+  domeStart,
+  ellipse,
+  ellipsoid,
+  dTheta,
+  groove,
+  grooveAt,
+  onSpine,
+  smooth,
+  sweep,
+  tube,
+} from "./geometry";
+
+export { J, buildBody, makeBodyMaterial } from "./figure";
 
 /**
- * A procedural anatomy.
+ * The ten organ systems, one per specialty panel.
  *
- * Built from primitives and curves rather than a loaded model: the app ships
- * no binary assets, works offline, and every organ stays individually
- * addressable so a system can light exactly its own structures.
+ * REFERENCE. The proportions, levels and lobar structure here were taken from
+ * the open anatomy atlases — BodyParts3D (DBCLS, CC BY-SA 2.1 JP), which is
+ * segmented from a real MRI, and Z-Anatomy, which is built on it. They were
+ * used as a reference and not as an asset: BodyParts3D is a 930 MB corpus of
+ * STL under a share-alike licence, and this app deliberately ships no binary
+ * geometry, so every surface below is generated at runtime from the two
+ * primitives in `geometry.js` with its dimensions written in centimetres.
  *
- * The figure is driven by a joint map rather than a stack of floating
- * capsules. Limbs are tapered bones drawn between named joints, with a
- * sphere at each articulation, so the elbow, knee and wrist read as places
- * the body actually bends instead of as seams between two pills.
- *
- * Units are metres-ish; the figure is about 1.8 tall, centred on the origin.
+ * WHAT "ACCURATE" MEANS AT THIS SIZE. The figure is 340 px tall on a phone, so
+ * a liver is about 30 px across. At that size an organ is recognised by its
+ * silhouette and by two or three landmarks, not by its surface. So the effort
+ * goes into the things that survive being small — the obliquity of the heart,
+ * the wedge of the liver and its oblique inferior border, the bean of the
+ * kidney with its hilum facing the midline, five lung lobes with the fissures
+ * between them, the downward slope of the ribs, the colon's haustra — and not
+ * into detail that would be sub-pixel. Where a structure is famous enough that
+ * a reader would notice its absence (the splenic notch, the cardiac notch, the
+ * appendix, the three arch branches) it is there even when it is small.
  */
-
-const SEG = 20;
-
-/** Named articulations. Everything else is derived from these. */
-export const J = {
-  crown: [0, 1.045, 0],
-  skull: [0, 0.955, 0],
-  jaw: [0, 0.885, 0.015],
-  neck: [0, 0.845, 0],
-  c7: [0, 0.775, -0.01],
-  t6: [0, 0.6, -0.005],
-  l1: [0, 0.44, 0],
-  l5: [0, 0.28, 0],
-  pelvis: [0, 0.2, 0],
-
-  shoulderL: [-0.175, 0.735, 0],
-  shoulderR: [0.175, 0.735, 0],
-  elbowL: [-0.225, 0.5, 0.005],
-  elbowR: [0.225, 0.5, 0.005],
-  wristL: [-0.255, 0.265, 0.02],
-  wristR: [0.255, 0.265, 0.02],
-  handL: [-0.263, 0.18, 0.028],
-  handR: [0.263, 0.18, 0.028],
-
-  hipL: [-0.082, 0.185, 0],
-  hipR: [0.082, 0.185, 0],
-  kneeL: [-0.088, -0.145, 0.012],
-  kneeR: [0.088, -0.145, 0.012],
-  ankleL: [-0.092, -0.475, -0.005],
-  ankleR: [0.092, -0.475, -0.005],
-  toeL: [-0.092, -0.525, 0.075],
-  toeR: [0.092, -0.525, 0.075],
-};
-
-const v3 = (a) => new THREE.Vector3(a[0], a[1], a[2]);
-
-/** Frosted-mannequin surface — light passes through so organs read inside. */
-export function makeBodyMaterial() {
-  return new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    roughness: 0.58,
-    metalness: 0,
-    transmission: 0.5,
-    thickness: 0.6,
-    ior: 1.24,
-    transparent: true,
-    opacity: 0.5,
-    depthWrite: false,
-    clearcoat: 0.45,
-    clearcoatRoughness: 0.55,
-  });
-}
-
-/** A tapered bone spanning two joints. */
-function bone(mat, a, b, rA, rB = rA) {
-  const va = v3(a);
-  const vb = v3(b);
-  const dir = new THREE.Vector3().subVectors(vb, va);
-  const len = dir.length();
-  const geo = new THREE.CylinderGeometry(rB, rA, len, SEG, 1, false);
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.copy(va).addScaledVector(dir, 0.5);
-  mesh.quaternion.setFromUnitVectors(
-    new THREE.Vector3(0, 1, 0),
-    dir.clone().normalize(),
-  );
-  return mesh;
-}
-
-/** A sphere at an articulation, so the limb reads as hinged rather than fused. */
-function joint(mat, p, r, squash = 1) {
-  const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, SEG, 14), mat);
-  mesh.position.copy(v3(p));
-  mesh.scale.set(1, squash, 1);
-  return mesh;
-}
-
-/**
- * Torso lofted through ellipse rings keyed to the spine joints. A capsule
- * reads as a pill; the shoulder-to-waist-to-hip taper is what makes the
- * figure read as a person.
- */
-function torsoGeometry() {
-  const rings = [
-    { y: 0.755, rx: 0.155, rz: 0.088 },
-    { y: 0.715, rx: 0.183, rz: 0.103 },
-    { y: 0.63, rx: 0.176, rz: 0.108 },
-    { y: 0.53, rx: 0.158, rz: 0.1 },
-    { y: 0.43, rx: 0.139, rz: 0.093 },
-    { y: 0.34, rx: 0.133, rz: 0.092 },
-    { y: 0.25, rx: 0.152, rz: 0.101 },
-    { y: 0.17, rx: 0.158, rz: 0.104 },
-    { y: 0.12, rx: 0.143, rz: 0.098 },
-  ];
-  const radial = 30;
-  const positions = [];
-  const indices = [];
-
-  rings.forEach((ring) => {
-    for (let i = 0; i < radial; i++) {
-      const a = (i / radial) * Math.PI * 2;
-      // Slight front/back asymmetry: chest forward, back flatter.
-      const z = Math.sin(a) * ring.rz * (Math.sin(a) > 0 ? 1.06 : 0.92);
-      positions.push(Math.cos(a) * ring.rx, ring.y, z);
-    }
-  });
-
-  for (let r = 0; r < rings.length - 1; r++) {
-    for (let i = 0; i < radial; i++) {
-      const a = r * radial + i;
-      const b = r * radial + ((i + 1) % radial);
-      const c = (r + 1) * radial + i;
-      const d = (r + 1) * radial + ((i + 1) % radial);
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-
-  const topC = positions.length / 3;
-  positions.push(0, rings[0].y + 0.02, 0);
-  for (let i = 0; i < radial; i++) indices.push(topC, i, (i + 1) % radial);
-
-  const botC = positions.length / 3;
-  const last = (rings.length - 1) * radial;
-  positions.push(0, rings[rings.length - 1].y - 0.03, 0);
-  for (let i = 0; i < radial; i++)
-    indices.push(botC, last + ((i + 1) % radial), last + i);
-
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-/** The translucent figure, articulated at every major joint. */
-export function buildBody() {
-  const mat = makeBodyMaterial();
-  const group = new THREE.Group();
-  const parts = [];
-  const push = (m) => {
-    group.add(m);
-    parts.push(m);
-    return m;
-  };
-
-  // Head and neck.
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.101, SEG, 18), mat);
-  head.position.set(0, 0.958, 0.004);
-  head.scale.set(0.94, 1.2, 1.02);
-  push(head);
-  const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.062, SEG, 14), mat);
-  jaw.position.set(0, 0.888, 0.022);
-  jaw.scale.set(0.96, 0.78, 1.0);
-  push(jaw);
-  push(bone(mat, J.neck, J.c7, 0.038, 0.052));
-
-  push(new THREE.Mesh(torsoGeometry(), mat));
-
-  // Clavicles tie the arms into the chest instead of leaving them floating.
-  push(bone(mat, [0, 0.752, 0.03], J.shoulderL, 0.016, 0.026));
-  push(bone(mat, [0, 0.752, 0.03], J.shoulderR, 0.016, 0.026));
-
-  // Arms: shoulder → elbow → wrist → hand, with a cap at each hinge.
-  [
-    ["L", -1],
-    ["R", 1],
-  ].forEach(([s]) => {
-    push(joint(mat, J[`shoulder${s}`], 0.049));
-    push(bone(mat, J[`shoulder${s}`], J[`elbow${s}`], 0.042, 0.033));
-    push(joint(mat, J[`elbow${s}`], 0.034));
-    push(bone(mat, J[`elbow${s}`], J[`wrist${s}`], 0.032, 0.023));
-    push(joint(mat, J[`wrist${s}`], 0.023));
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.032, 16, 12), mat);
-    hand.position.copy(v3(J[`hand${s}`]));
-    hand.scale.set(0.72, 1.35, 0.42);
-    push(hand);
-  });
-
-  // Pelvis, then legs: hip → knee → ankle → foot.
-  const pelvis = new THREE.Mesh(new THREE.SphereGeometry(0.105, SEG, 14), mat);
-  pelvis.position.set(0, 0.185, 0);
-  pelvis.scale.set(1.42, 0.62, 0.94);
-  push(pelvis);
-
-  [["L"], ["R"]].forEach(([s]) => {
-    push(joint(mat, J[`hip${s}`], 0.055));
-    push(bone(mat, J[`hip${s}`], J[`knee${s}`], 0.062, 0.044));
-    push(joint(mat, J[`knee${s}`], 0.046));
-    push(bone(mat, J[`knee${s}`], J[`ankle${s}`], 0.043, 0.029));
-    push(joint(mat, J[`ankle${s}`], 0.028));
-    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 12), mat);
-    foot.position.copy(v3(J[`toe${s}`]));
-    foot.scale.set(0.62, 0.38, 1.5);
-    push(foot);
-  });
-
-  return { group, material: mat, parts };
-}
-
-/* ------------------------------------------------------------------ organs */
 
 function organMaterial(color) {
   return new THREE.MeshStandardMaterial({
@@ -228,332 +56,1382 @@ function organMaterial(color) {
   });
 }
 
-function blob(mat, p, r, scale, rot = 0) {
-  const m = new THREE.Mesh(new THREE.SphereGeometry(r, 22, 16), mat);
-  m.position.set(p[0], p[1], p[2]);
-  m.scale.set(scale[0], scale[1], scale[2]);
-  m.rotation.z = rot;
-  return m;
-}
+const round = (th, r) => ellipse(th, r, r);
 
-function tube(mat, pts, radius, group) {
-  const curve = new THREE.CatmullRomCurve3(pts.map((p) => v3(p)));
-  const m = new THREE.Mesh(
-    new THREE.TubeGeometry(curve, 42, radius, 8, false),
-    mat,
-  );
-  group.add(m);
-  return m;
-}
+/* ------------------------------------------------------------------- neuro */
 
-/** Brain with a lobed surface, brainstem, and the cord down the spine. */
+/** Brain, cerebellum, brainstem, cord and the two great peripheral nerves. */
 function buildNeuro(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
 
-  const geo = new THREE.SphereGeometry(0.079, 40, 30);
-  const pos = geo.attributes.position;
-  const v = new THREE.Vector3();
-  for (let i = 0; i < pos.count; i++) {
-    v.fromBufferAttribute(pos, i);
-    const gyri =
-      Math.sin(v.x * 48) * Math.cos(v.z * 42) * 0.0034 +
-      Math.sin(v.y * 36) * 0.0021;
-    const midline = 1 - Math.exp(-Math.abs(v.x) * 28) * 0.17;
-    v.multiplyScalar(1 + gyri);
-    v.x *= midline;
-    v.y *= v.y < 0 ? 0.8 : 1;
-    v.z *= 1.13;
-    pos.setXYZ(i, v.x, v.y, v.z);
-  }
-  geo.computeVertexNormals();
-  const brain = new THREE.Mesh(geo, mat);
-  brain.position.set(0, 0.972, 0.004);
-  group.add(brain);
+  // Cerebrum: 16 × 14 × 9.5 cm, sitting on the floor of the skull rather than
+  // centred in it. Three features carry a brain at thumbnail size — the
+  // longitudinal fissure, the temporal lobe slung below the Sylvian fissure,
+  // and gyri that run in tracts. An isotropic bump map instead of tracts reads
+  // as damage, not as convolution.
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.969, 0.004],
+      [cm(6.9), cm(4.6), cm(8.1)],
+      (v, d) => {
+        const taper =
+          1 - 0.24 * Math.max(0, d.z) ** 2 - 0.16 * Math.max(0, -d.z) ** 2;
+        v.x *= taper;
+        // Sylvian fissure runs anteroinferior to posterosuperior; the temporal
+        // lobe hangs below it, and only on the lateral surface.
+        const syl = d.y + 0.34 * d.z + 0.08;
+        v.y -=
+          cm(1.7) *
+          Math.exp(-((syl / 0.36) ** 2)) *
+          Math.min(1, Math.abs(d.x) * 2.4);
+        // Deep above, fused below at the corpus callosum.
+        v.x *=
+          1 - 0.38 * smooth(-0.1, 0.4, d.y) * Math.exp(-Math.abs(d.x) / 0.17);
+        if (v.y < 0) v.y *= 0.8;
+        const g = Math.sin(d.x * 23 + d.z * 8) * Math.cos(d.y * 15 + d.z * 11);
+        v.multiplyScalar(1 + g * 0.021);
+      },
+      54,
+    ),
+  );
 
-  // Cerebellum.
-  group.add(blob(mat, [0, 0.912, -0.045], 0.034, [1.25, 0.66, 0.86]));
-  // Brainstem into the cord, then the cord down to L1.
-  tube(mat, [[0, 0.925, -0.012], J.neck, J.c7, J.t6, J.l1], 0.011, group);
-  // A few nerve roots so "nerves" is visible, not just "brain".
-  [0.66, 0.54, 0.42].forEach((y, i) => {
-    const w = 0.075 + i * 0.012;
-    tube(
+  // Cerebellum. Its folia are finer and far more regular than cerebral gyri;
+  // that difference is how the two are told apart in a plate.
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.917, -0.052],
+      [cm(5.2), cm(2.4), cm(2.9)],
+      (v, d) => {
+        v.x *= 1 - 0.22 * Math.exp(-Math.abs(d.x) / 0.2);
+        v.multiplyScalar(1 + Math.sin(d.y * 40) * 0.028);
+        if (v.y > 0) v.y *= 0.82;
+      },
+      32,
+    ),
+  );
+
+  // Brainstem: midbrain, then the pons bulging forward, then the medulla
+  // narrowing into the cord.
+  group.add(
+    sweep(
       mat,
       [
-        [0, y, -0.01],
-        [-w * 0.6, y - 0.01, 0],
-        [-w, y - 0.03, 0.01],
+        [0, 0.949, -0.004],
+        [0, 0.934, -0.003],
+        [0, 0.919, -0.008],
+        [0, 0.901, -0.013],
+        [0, 0.886, -0.016],
       ],
-      0.0045,
-      group,
+      (t, th) => {
+        const pons = Math.exp(-(((t - 0.42) / 0.22) ** 2));
+        const r = cm(1.15) * (1 - 0.28 * t) + cm(0.55) * pons;
+        return ellipse(th, r, r * (1 + 0.4 * pons));
+      },
+      { stations: 26, radial: 14 },
+    ),
+  );
+
+  // Spinal cord, in the canal behind the vertebral bodies. Two enlargements
+  // where the limb plexuses take off, and then it STOPS at L1 as the conus —
+  // running it to the sacrum is the commonest error in a spine drawing.
+  group.add(
+    sweep(
+      mat,
+      [0.884, 0.83, 0.775, 0.7, 0.6, 0.52, 0.47, 0.442].map((y) =>
+        onSpine(y, -cm(1.9)),
+      ),
+      (t, th) => {
+        const cerv = Math.exp(-(((t - 0.18) / 0.13) ** 2));
+        const lumb = Math.exp(-(((t - 0.8) / 0.1) ** 2));
+        const r =
+          (cm(0.55) + cm(0.18) * (cerv + lumb)) *
+          (1 - 0.85 * smooth(0.9, 1, t));
+        return ellipse(th, r * 1.3, r);
+      },
+      { stations: 44, radial: 12 },
+    ),
+  );
+
+  // Cauda equina — the roots that carry on below the conus.
+  for (let i = -2; i <= 2; i++) {
+    group.add(
+      tube(
+        mat,
+        [
+          onSpine(0.44, -cm(1.9), i * cm(0.22)),
+          onSpine(0.38, -cm(1.6), i * cm(0.7)),
+          onSpine(0.302, -cm(1.1), i * cm(0.85)),
+        ],
+        cm(0.11),
+        { radial: 6, stations: 14, caps: false },
+      ),
     );
-    tube(
-      mat,
-      [
-        [0, y, -0.01],
-        [w * 0.6, y - 0.01, 0],
-        [w, y - 0.03, 0.01],
-      ],
-      0.0045,
-      group,
+  }
+
+  // Segmental nerve roots, so the system reads as nerves and not only brain.
+  for (let i = 0; i < 12; i++) {
+    const y = 0.792 - i * 0.036;
+    const root = onSpine(y, -cm(1.5));
+    [-1, 1].forEach((k) => {
+      group.add(
+        tube(
+          mat,
+          [
+            root,
+            [k * cm(2.4), y - cm(0.5), root[2] + cm(0.9)],
+            [k * cm(5.6), y - cm(1.9), root[2] + cm(2.8)],
+          ],
+          cm(0.15),
+          { radial: 6, stations: 12, caps: false },
+        ),
+      );
+    });
+  }
+
+  [
+    ["L", 1],
+    ["R", -1],
+  ].forEach(([s, k]) => {
+    // Brachial plexus, converging into the arm.
+    group.add(
+      tube(
+        mat,
+        [
+          onSpine(0.772, -cm(1.3)),
+          [k * 0.06, 0.752, 0.006],
+          [k * 0.13, 0.741, 0.005],
+          J[`shoulder${s}`],
+          [k * 0.202, 0.618, 0.005],
+          J[`elbow${s}`],
+          [k * 0.242, 0.382, 0.013],
+          J[`wrist${s}`],
+        ],
+        cm(0.3),
+        { radial: 7, stations: 36, caps: false },
+      ),
+    );
+    // Sciatic — the largest nerve in the body, and the one a reader has heard
+    // of. It divides above the knee, so it is drawn in two runs.
+    group.add(
+      tube(
+        mat,
+        [
+          onSpine(0.3, -cm(1.1)),
+          [k * 0.05, 0.246, -cm(1.7)],
+          [k * 0.076, 0.198, -0.02],
+          [k * 0.088, 0.04, -0.012],
+          [k * 0.088, -0.104, -0.006],
+        ],
+        cm(0.4),
+        { radial: 7, stations: 26, caps: false },
+      ),
+    );
+    group.add(
+      tube(
+        mat,
+        [
+          [k * 0.088, -0.104, -0.006],
+          [k * 0.084, -0.2, 0.002],
+          [k * 0.09, -0.38, -0.004],
+          J[`ankle${s}`],
+        ],
+        cm(0.23),
+        { radial: 6, stations: 18, caps: false },
+      ),
     );
   });
 
   return { group, materials: [mat], focus: new THREE.Vector3(0, 0.95, 0) };
 }
 
-/** Heart, chambers, and the great-vessel tree. */
+/* ------------------------------------------------------------------ cardio */
+
+/** Heart, coronaries and the arterial tree. */
 function buildCardio(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
 
-  const heart = blob(mat, [-0.02, 0.6, 0.04], 0.056, [1, 1.18, 0.84], -0.2);
-  group.add(heart);
-  const apex = new THREE.Mesh(new THREE.ConeGeometry(0.046, 0.07, 22), mat);
-  apex.position.set(-0.038, 0.532, 0.04);
-  apex.rotation.z = 0.32;
-  group.add(apex);
-  // Atria, so the heart is not one lump.
-  group.add(blob(mat, [-0.048, 0.646, 0.03], 0.026, [1, 0.85, 0.9]));
-  group.add(blob(mat, [0.012, 0.648, 0.028], 0.024, [1, 0.85, 0.9]));
-
-  tube(
-    mat,
-    [
-      [-0.008, 0.625, 0.03],
-      [0.002, 0.702, 0.018],
-      [0.022, 0.732, -0.008],
-      [0.031, 0.684, -0.032],
-      [0.028, 0.52, -0.036],
-      [0.02, 0.36, -0.03],
-      [0.012, 0.215, -0.02],
-    ],
-    0.0135,
-    group,
-  );
-  tube(
-    mat,
-    [
-      [0.014, 0.722, -0.006],
-      [0.032, 0.8, 0.004],
-      [0.037, 0.888, 0.012],
-    ],
-    0.0078,
-    group,
-  );
-  tube(
-    mat,
-    [
-      [0.006, 0.722, -0.006],
-      [-0.026, 0.8, 0.004],
-      [-0.033, 0.888, 0.012],
-    ],
-    0.0078,
-    group,
-  );
-  tube(
-    mat,
-    [[0.022, 0.727, -0.005], [0.1, 0.732, 0], J.shoulderR, J.elbowR],
-    0.0062,
-    group,
-  );
-  tube(
-    mat,
-    [[0.0, 0.727, -0.005], [-0.1, 0.732, 0], J.shoulderL, J.elbowL],
-    0.0062,
-    group,
-  );
-  tube(
-    mat,
-    [[0.012, 0.215, -0.02], [0.05, 0.16, -0.01], J.hipR, J.kneeR],
-    0.0072,
-    group,
-  );
-  tube(
-    mat,
-    [[0.012, 0.215, -0.02], [-0.05, 0.16, -0.01], J.hipL, J.kneeL],
-    0.0072,
-    group,
+  // Everything that makes a heart read is its obliquity: the base high, right
+  // and posterior; the apex low, left and anterior in the 5th intercostal
+  // space at the midclavicular line. Drawn upright — which is what a scaled
+  // sphere forces — it stops being a heart and becomes a lump mid-chest.
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.028, 0.653, -0.01],
+        [-0.012, 0.631, 0.014],
+        [0.022, 0.607, 0.037],
+        [0.053, 0.583, 0.053],
+        [0.079, 0.558, 0.062],
+      ],
+      (t, th) => {
+        // Broadest a third of the way down, then rounding into the apex. A
+        // cone gives a point; the heart has none.
+        let k = Math.sin(Math.PI * (0.33 + 0.62 * t)) ** 0.62 * domeEnd(t, 0.2);
+        // Anterior interventricular groove — the line between the ventricles
+        // on the front of the heart, with the LAD lying in it.
+        k *= grooveAt(th, 0, 0.42, 0.13);
+        // Coronary sulcus, encircling between atria and ventricles.
+        k *= groove(t, 0.07, 0.055, 0.19);
+        return ellipse(th, cm(3.1) * k, cm(4.3) * k);
+      },
+      { stations: 42, radial: 26, seed: new THREE.Vector3(0, 0, 1) },
+    ),
   );
 
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.6, 0.05) };
-}
-
-/** Lungs with lobes, trachea and main bronchi. */
-function buildPulmonary(color) {
-  const group = new THREE.Group();
-  const mat = organMaterial(color);
-
-  // Right lung: three lobes. Left: two, notched for the heart.
-  group.add(blob(mat, [0.075, 0.685, 0.005], 0.049, [1, 0.72, 0.92]));
-  group.add(blob(mat, [0.082, 0.612, 0.008], 0.052, [1, 0.78, 0.95]));
-  group.add(blob(mat, [0.078, 0.535, 0.004], 0.047, [1, 0.8, 0.9]));
-  group.add(blob(mat, [-0.078, 0.685, 0.004], 0.047, [1, 0.72, 0.9]));
-  group.add(blob(mat, [-0.086, 0.588, 0.0], 0.05, [0.94, 0.95, 0.9]));
-
-  tube(
-    mat,
-    [
-      [0, 0.83, 0.012],
-      [0, 0.762, 0.008],
-      [0, 0.716, 0.006],
-    ],
-    0.011,
-    group,
+  // Atria. The left atrium is the most posterior chamber in the body — a fact
+  // worth being visibly true, since it is why it presses on the oesophagus.
+  group.add(
+    ellipsoid(
+      mat,
+      [-0.053, 0.661, 0.007],
+      [cm(2.4), cm(2.1), cm(2.2)],
+      null,
+      20,
+    ),
   );
-  tube(
-    mat,
-    [
-      [0, 0.716, 0.006],
-      [0.042, 0.688, 0.005],
-      [0.07, 0.664, 0.005],
-    ],
-    0.007,
-    group,
+  group.add(
+    ellipsoid(
+      mat,
+      [0.007, 0.665, -0.03],
+      [cm(2.5), cm(2.0), cm(2.0)],
+      null,
+      20,
+    ),
   );
-  tube(
-    mat,
-    [
-      [0, 0.716, 0.006],
-      [-0.042, 0.688, 0.005],
-      [-0.07, 0.664, 0.005],
-    ],
-    0.007,
-    group,
+  group.add(
+    ellipsoid(
+      mat,
+      [-0.057, 0.647, 0.031],
+      [cm(1.5), cm(0.9), cm(1.0)],
+      null,
+      14,
+    ),
+  );
+  group.add(
+    ellipsoid(
+      mat,
+      [0.031, 0.653, 0.023],
+      [cm(1.4), cm(0.8), cm(0.9)],
+      null,
+      14,
+    ),
   );
 
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.63, 0.04) };
-}
-
-/** Liver, gallbladder and bile duct. */
-function buildHepatic(color) {
-  const group = new THREE.Group();
-  const mat = organMaterial(color);
-  group.add(blob(mat, [0.052, 0.452, 0.03], 0.072, [1.28, 0.62, 0.78], -0.14));
-  group.add(blob(mat, [-0.028, 0.442, 0.028], 0.045, [1.05, 0.52, 0.7], 0.1));
-  group.add(blob(mat, [0.038, 0.402, 0.052], 0.019, [0.8, 1.25, 0.8]));
-  tube(
-    mat,
-    [
-      [0.038, 0.392, 0.05],
-      [0.022, 0.368, 0.038],
-      [0.006, 0.352, 0.022],
-    ],
-    0.005,
-    group,
+  // The coronaries, in the grooves cut for them above.
+  group.add(
+    tube(
+      mat,
+      [
+        [0.005, 0.639, 0.031],
+        [0.031, 0.613, 0.05],
+        [0.057, 0.587, 0.062],
+        [0.075, 0.564, 0.064],
+      ],
+      cm(0.2),
+      { radial: 6, stations: 18, caps: false },
+    ),
   );
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.43, 0.05) };
-}
+  group.add(
+    tube(
+      mat,
+      [
+        [0.005, 0.639, 0.031],
+        [0.037, 0.639, 0.007],
+        [0.045, 0.629, -0.021],
+      ],
+      cm(0.18),
+      { radial: 6, stations: 14, caps: false },
+    ),
+  );
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.015, 0.641, 0.03],
+        [-0.043, 0.633, 0.014],
+        [-0.051, 0.617, -0.014],
+      ],
+      cm(0.18),
+      { radial: 6, stations: 14, caps: false },
+    ),
+  );
 
-/** Kidneys, ureters and bladder. */
-function buildRenal(color) {
-  const group = new THREE.Group();
-  const mat = organMaterial(color);
-  [-1, 1].forEach((s) => {
+  // Aorta: root, arch, descending thoracic, through the hiatus at T12, down
+  // to the bifurcation at L4. Tapers 3 cm → 1.8 cm as it goes.
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.006, 0.637, 0.022],
+        [-0.019, 0.669, 0.013],
+        [-0.014, 0.701, -0.007],
+        [0.013, 0.703, -0.025],
+        [0.02, 0.665, -0.033],
+        [0.018, 0.6, -0.036],
+        [0.012, 0.51, -0.036],
+        [0.008, LEVEL.T12, -0.034],
+        [0.004, 0.4, -0.032],
+        [0, LEVEL.L4, -0.03],
+      ],
+      (t, th) => round(th, cm(1.5) - cm(0.6) * smooth(0, 1, t)),
+      { stations: 56, radial: 14 },
+    ),
+  );
+
+  // Three branches off the arch, in order: brachiocephalic (which then splits
+  // into right carotid and right subclavian), left common carotid, left
+  // subclavian. That order is the arch every plate draws.
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.017, 0.695, -0.003],
+        [-0.03, 0.72, 0.004],
+        [-0.034, 0.74, 0.007],
+      ],
+      cm(0.6),
+      { radial: 8, stations: 12 },
+    ),
+  );
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.034, 0.74, 0.007],
+        [-0.032, 0.8, 0.015],
+        [-0.03, 0.872, 0.019],
+      ],
+      cm(0.4),
+      { radial: 8, stations: 14 },
+    ),
+  );
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.002, 0.703, -0.013],
+        [0.014, 0.782, 0.007],
+        [0.028, 0.872, 0.019],
+      ],
+      cm(0.4),
+      { radial: 8, stations: 16 },
+    ),
+  );
+
+  [
+    ["L", 1],
+    ["R", -1],
+  ].forEach(([s, k]) => {
     group.add(
-      blob(
+      sweep(
         mat,
-        [s * 0.062, 0.395 + (s > 0 ? 0 : 0.012), -0.038],
-        0.031,
-        [0.72, 1.35, 0.78],
-        s * 0.12,
+        [
+          [k * 0.024, 0.727, -0.004],
+          [k * 0.1, 0.743, 0.004],
+          J[`shoulder${s}`],
+          [k * 0.202, 0.618, 0.006],
+          J[`elbow${s}`],
+          [k * 0.242, 0.382, 0.014],
+          J[`wrist${s}`],
+        ],
+        (t, th) => round(th, cm(0.62) - cm(0.36) * t),
+        { radial: 8, stations: 32, caps: false },
+      ),
+    );
+    group.add(
+      sweep(
+        mat,
+        [
+          [0, LEVEL.L4, -0.03],
+          [k * 0.03, 0.292, -0.026],
+          [k * 0.056, 0.246, -0.008],
+          J[`hip${s}`],
+          [k * 0.086, 0.022, 0.004],
+          J[`knee${s}`],
+          [k * 0.09, -0.3, -0.002],
+          J[`ankle${s}`],
+        ],
+        (t, th) => round(th, cm(0.85) - cm(0.55) * t),
+        { radial: 8, stations: 38, caps: false },
       ),
     );
   });
-  tube(
-    mat,
-    [
-      [0.06, 0.365, -0.036],
-      [0.05, 0.3, -0.026],
-      [0.026, 0.245, -0.014],
-    ],
-    0.0045,
-    group,
+
+  // Pulmonary trunk, crossing in front of the aorta and bifurcating.
+  group.add(
+    tube(
+      mat,
+      [
+        [0.025, 0.643, 0.041],
+        [0.012, 0.673, 0.025],
+        [0.002, 0.687, 0.004],
+      ],
+      cm(1.35),
+      { radial: 12, stations: 12 },
+    ),
   );
-  tube(
-    mat,
-    [
-      [-0.06, 0.377, -0.036],
-      [-0.05, 0.3, -0.026],
-      [-0.026, 0.245, -0.014],
-    ],
-    0.0045,
-    group,
+  group.add(
+    tube(
+      mat,
+      [
+        [0.002, 0.687, 0.004],
+        [-0.03, 0.679, -0.004],
+        [-0.056, 0.673, -0.006],
+      ],
+      cm(0.8),
+      { radial: 8, stations: 12 },
+    ),
   );
-  group.add(blob(mat, [0, 0.222, 0.005], 0.03, [1.1, 0.82, 0.92]));
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.35, 0.02) };
+  group.add(
+    tube(
+      mat,
+      [
+        [0.002, 0.687, 0.004],
+        [0.03, 0.685, -0.013],
+        [0.054, 0.679, -0.018],
+      ],
+      cm(0.8),
+      { radial: 8, stations: 12 },
+    ),
+  );
+
+  // Superior and inferior vena cava, the second entering through the
+  // diaphragm at T8.
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.03, 0.752, 0.006],
+        [-0.035, 0.702, 0.004],
+        [-0.043, 0.669, 0.004],
+      ],
+      cm(1.0),
+      { radial: 10, stations: 14 },
+    ),
+  );
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.012, 0.3, -0.028],
+        [-0.024, 0.36, -0.03],
+        [-0.03, LEVEL.L1, -0.03],
+        [-0.03, 0.52, -0.024],
+        [-0.032, LEVEL.T8, -0.016],
+        [-0.04, 0.63, -0.004],
+        [-0.047, 0.655, 0.0],
+      ],
+      (t, th) => round(th, cm(0.9) + cm(0.35) * t),
+      { stations: 30, radial: 10 },
+    ),
+  );
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.61, 0.03) };
 }
 
-/** Thyroid, adrenals and pancreas — the endocrine trio. */
+/* --------------------------------------------------------------- pulmonary */
+
+/**
+ * Five lobes and the airway.
+ *
+ * The lobes are grooved rather than split. A fissure is a line at this size,
+ * and a groove costs one term in the profile where five separate solids would
+ * cost five meshes and a gap that reads as damage.
+ *
+ * With seed +z the frame is the same on both sides: θ = 0 anterior, π/2 left,
+ * π posterior, 3π/2 right. So "medial" and "lateral" are opposite angles on
+ * opposite lungs, which is written out below rather than mirrored, because a
+ * mirrored mesh turns its faces inside out.
+ */
+function buildPulmonary(color) {
+  const group = new THREE.Group();
+  const mat = organMaterial(color);
+  const seed = new THREE.Vector3(0, 0, 1);
+
+  // Apices rise a good 2 cm above the clavicle, into the root of the neck.
+  // Bases sit on the diaphragm, the right higher because the liver is under
+  // it — the reason the two lungs are not the same size.
+  const shape = (t) =>
+    (0.36 + 0.64 * smooth(-0.05, 0.5, t)) * domeStart(t, 0.11) * domeEnd(t, 0.1);
+
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.036, 0.783, -0.004],
+        [-0.062, 0.731, 0.005],
+        [-0.08, 0.671, 0.008],
+        [-0.089, 0.611, 0.008],
+        [-0.088, 0.566, 0.004],
+      ],
+      (t, th) => {
+        let k = shape(t);
+        // Hilum: the root of the lung, a dent in the medial surface. The right
+        // lung sits at −x, so its medial side faces +x, which is 3π/2 in this
+        // frame — anterior is 0 and π/2 points at −x.
+        k *= grooveAt(
+          th,
+          (3 * Math.PI) / 2,
+          0.6,
+          0.4 * Math.exp(-(((t - 0.44) / 0.2) ** 2)),
+        );
+        // Oblique fissure — posterior and high, sweeping round the LATERAL
+        // surface to end anteroinferiorly at the 6th costal cartilage. On this
+        // side lateral is π/2, so the sweep runs π → 0.
+        const ob = Math.PI * (1 - smooth(0.18, 0.96, t));
+        k *= grooveAt(th, ob, 0.15, 0.11);
+        // Horizontal fissure, anterolateral only, cutting off the middle lobe.
+        // The right lung is the only one with three.
+        const front = Math.exp(-((dTheta(th, Math.PI / 4) / 1.1) ** 2));
+        k *= groove(t, 0.44, 0.028, 0.11 * front);
+        return ellipse(th, cm(6.4) * k, cm(7.4) * k);
+      },
+      { stations: 46, radial: 30, seed },
+    ),
+  );
+
+  group.add(
+    sweep(
+      mat,
+      [
+        [0.036, 0.783, -0.004],
+        [0.062, 0.731, 0.005],
+        [0.079, 0.671, 0.008],
+        [0.086, 0.611, 0.007],
+        [0.085, 0.552, 0.003],
+      ],
+      (t, th) => {
+        let k = shape(t);
+        k *= grooveAt(
+          th,
+          Math.PI / 2,
+          0.6,
+          0.4 * Math.exp(-(((t - 0.44) / 0.2) ** 2)),
+        );
+        // The same fissure, running the other way round: lateral on this side
+        // is 3π/2, so the sweep runs π → 2π. There is no horizontal fissure —
+        // the left lung has two lobes, not three.
+        const ob = Math.PI * (1 + smooth(0.18, 0.96, t));
+        k *= grooveAt(th, ob, 0.15, 0.11);
+        // Cardiac notch: the bite the heart takes out of the anteromedial
+        // border, with the lingula below it. This is why the left lung is the
+        // smaller of the two, and it has to be on the side the heart is.
+        const notch =
+          Math.exp(-(((t - 0.6) / 0.19) ** 2)) *
+          Math.exp(-((dTheta(th, Math.PI / 4) / 0.7) ** 2));
+        k *= 1 - 0.46 * notch;
+        return ellipse(th, cm(6.2) * k, cm(7.0) * k);
+      },
+      { stations: 46, radial: 30, seed },
+    ),
+  );
+
+  // Trachea, ridged with its cartilage rings, ending at the carina at T4.
+  group.add(
+    sweep(
+      mat,
+      [
+        [0, 0.802, 0.02],
+        [0, 0.741, 0.012],
+        [0, 0.697, 0.004],
+        [0, LEVEL.T4, 0.0],
+      ],
+      (t, th) => {
+        const r = cm(1.05) * (1 + 0.085 * Math.sin(t * 44));
+        return ellipse(th, r, r * 0.92);
+      },
+      { stations: 48, radial: 12 },
+    ),
+  );
+
+  // Main bronchi. The right is wider and much more vertical than the left,
+  // which is why an inhaled object goes right — the asymmetry is the reason
+  // to draw them at all.
+  group.add(
+    tube(
+      mat,
+      [
+        [0, LEVEL.T4, 0.0],
+        [-0.026, 0.646, 0.002],
+        [-0.045, 0.632, 0.004],
+      ],
+      cm(0.7),
+      { radial: 8, stations: 12 },
+    ),
+  );
+  group.add(
+    tube(
+      mat,
+      [
+        [0, LEVEL.T4, 0.0],
+        [0.03, 0.654, 0.001],
+        [0.057, 0.647, 0.001],
+      ],
+      cm(0.55),
+      { radial: 8, stations: 12 },
+    ),
+  );
+
+  // Lobar bronchi: three on the right, two on the left.
+  [
+    [
+      [-0.045, 0.632, 0.004],
+      [-0.062, 0.665, 0.006],
+      [-0.072, 0.686, 0.006],
+    ],
+    [
+      [-0.045, 0.632, 0.004],
+      [-0.068, 0.622, 0.014],
+      [-0.082, 0.607, 0.02],
+    ],
+    [
+      [-0.045, 0.632, 0.004],
+      [-0.066, 0.6, -0.002],
+      [-0.079, 0.575, -0.006],
+    ],
+    [
+      [0.057, 0.647, 0.001],
+      [0.07, 0.672, 0.004],
+      [0.078, 0.694, 0.004],
+    ],
+    [
+      [0.057, 0.647, 0.001],
+      [0.072, 0.612, -0.001],
+      [0.08, 0.583, -0.004],
+    ],
+  ].forEach((pts) =>
+    group.add(tube(mat, pts, cm(0.4), { radial: 6, stations: 12 })),
+  );
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.66, 0.03) };
+}
+
+/* ----------------------------------------------------------------- hepatic */
+
+/** Liver, gallbladder, biliary tree and portal vein. */
+function buildHepatic(color) {
+  const group = new THREE.Group();
+  const mat = organMaterial(color);
+
+  // 24 cm across, 15 cm tall on the right, 12 cm front to back. The outline
+  // that identifies it is a wedge: deep on the right, tapering to a thin
+  // tongue that crosses the midline, with a straight oblique inferior border
+  // running up to the left. A symmetric blob has none of that.
+  group.add(
+    ellipsoid(
+      mat,
+      [-0.014, 0.474, 0.022],
+      [cm(12.2), cm(8.2), cm(6.4)],
+      (v, d) => {
+        // The right lobe carries the bulk; the left crosses the midline as a
+        // thinner tongue and ends in a blunt edge, not a spike.
+        const s = smooth(-1.02, 0.28, -d.x);
+        v.y *= 0.46 + 0.54 * s;
+        v.z *= 0.6 + 0.4 * s;
+        // The inferior surface is cut flat along a plane that rises to the
+        // left. This is the liver's signature, and the thing a scaled sphere
+        // can never have: a domed top and a straight oblique lower border
+        // meeting along a sharp edge.
+        const floor = -cm(5.2) + cm(3.7) * (1 - s);
+        if (v.y < floor) v.y = floor - (floor - v.y) * 0.14;
+        // Scooped behind, where it wraps the vertebral column and carries the
+        // groove for the inferior vena cava.
+        v.z +=
+          cm(2.6) * Math.exp(-(((d.x + 0.06) / 0.32) ** 2)) * Math.max(0, -d.z);
+        // Falciform ligament, dividing the lobes across the anterosuperior
+        // surface.
+        v.multiplyScalar(
+          1 -
+            0.13 *
+              Math.exp(-(((d.x - 0.14) / 0.09) ** 2)) *
+              Math.max(0, d.z * 0.6 + d.y * 0.8),
+        );
+      },
+      46,
+    ),
+  );
+
+  // Gallbladder, in its fossa under the right lobe with the fundus projecting
+  // past the inferior border — which is where it can be felt.
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.059, 0.412, 0.052],
+        [-0.05, 0.428, 0.045],
+        [-0.04, 0.442, 0.034],
+        [-0.031, 0.452, 0.024],
+      ],
+      (t, th) =>
+        round(
+          th,
+          cm(1.75) * (1 - 0.7 * smooth(0.3, 1, t)) * domeStart(t, 0.24),
+        ),
+      { stations: 22, radial: 12 },
+    ),
+  );
+
+  // Cystic duct into the common bile duct, down behind the duodenum to the
+  // head of the pancreas.
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.031, 0.452, 0.024],
+        [-0.022, 0.44, 0.008],
+        [-0.026, 0.418, -0.004],
+        [-0.032, 0.398, -0.012],
+      ],
+      cm(0.28),
+      { radial: 6, stations: 16 },
+    ),
+  );
+  // Portal vein, arriving at the porta hepatis from the confluence below.
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.012, 0.386, -0.014],
+        [-0.014, 0.412, -0.006],
+        [-0.014, 0.44, 0.006],
+      ],
+      cm(0.6),
+      { radial: 8, stations: 14 },
+    ),
+  );
+
+  return {
+    group,
+    materials: [mat],
+    focus: new THREE.Vector3(-0.01, 0.46, 0.04),
+  };
+}
+
+/* ------------------------------------------------------------------- renal */
+
+/** Kidneys, adrenal-free: ureters and bladder. */
+function buildRenal(color) {
+  const group = new THREE.Group();
+  const mat = organMaterial(color);
+
+  // 11 × 6 × 3 cm, retroperitoneal, long axis tilted so the upper pole sits
+  // closer to the midline. The right is lower than the left because the liver
+  // is above it. The hilum is a notch in the medial border — seeding the
+  // frame medially is what puts it there instead of wherever the maths lands.
+  const kidney = (upper, lower, medial) =>
+    sweep(
+      mat,
+      [
+        upper,
+        [
+          (upper[0] + lower[0]) / 2,
+          (upper[1] + lower[1]) / 2,
+          (upper[2] + lower[2]) / 2 + cm(0.3),
+        ],
+        lower,
+      ],
+      (t, th) => {
+        // Full through the middle, domed at both poles — the shape stays a
+        // bean rather than becoming a lemon.
+        const k =
+          capsule(t, 3.6, 0.4) *
+          grooveAt(th, 0, 0.55, 0.48 * Math.exp(-(((t - 0.5) / 0.3) ** 2)));
+        return ellipse(th, cm(3.0) * k, cm(2.2) * k);
+      },
+      { stations: 34, radial: 22, seed: medial },
+    );
+
+  group.add(
+    kidney(
+      [-0.048, 0.452, -0.05],
+      [-0.068, 0.358, -0.043],
+      new THREE.Vector3(1, 0, 0.4),
+    ),
+  );
+  group.add(
+    kidney(
+      [0.048, 0.468, -0.05],
+      [0.068, 0.374, -0.043],
+      new THREE.Vector3(-1, 0, 0.4),
+    ),
+  );
+
+  // Ureters: down over the psoas, crossing the pelvic brim at the iliac
+  // bifurcation, then back to the bladder.
+  [1, -1].forEach((k) => {
+    group.add(
+      tube(
+        mat,
+        [
+          [k * 0.044, 0.404 + (k < 0 ? 0 : 0.016), -0.044],
+          [k * 0.046, 0.35, -0.036],
+          [k * 0.05, 0.3, -0.028],
+          [k * 0.042, 0.252, -0.016],
+          [k * 0.02, 0.216, -0.004],
+        ],
+        cm(0.28),
+        { radial: 6, stations: 22 },
+      ),
+    );
+  });
+
+  // Bladder, behind the pubic symphysis. Flattened above when empty.
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.202, 0.021],
+      [cm(4.4), cm(3.5), cm(3.6)],
+      (v, d) => {
+        if (v.y > 0) v.y *= 0.7 + 0.3 * Math.abs(d.x);
+      },
+      24,
+    ),
+  );
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.36, 0) };
+}
+
+/* --------------------------------------------------------------- endocrine */
+
+/** Pituitary, thyroid, parathyroids, adrenals and pancreas. */
 function buildEndocrine(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
-  // Thyroid lobes either side of the trachea.
-  group.add(blob(mat, [-0.022, 0.812, 0.03], 0.019, [0.78, 1.3, 0.78], 0.2));
-  group.add(blob(mat, [0.022, 0.812, 0.03], 0.019, [0.78, 1.3, 0.78], -0.2));
-  tube(
-    mat,
-    [
-      [-0.016, 0.8, 0.034],
-      [0, 0.798, 0.036],
-      [0.016, 0.8, 0.034],
-    ],
-    0.005,
-    group,
+
+  // The master gland, in the sella under the brain. Small enough to be almost
+  // a dot, but an endocrine plate without it is missing its subject.
+  group.add(
+    ellipsoid(mat, [0, 0.928, 0.006], [cm(0.7), cm(0.5), cm(0.6)], null, 12),
   );
-  // Adrenals, capping the kidneys.
-  group.add(blob(mat, [0.06, 0.432, -0.038], 0.016, [1.1, 0.62, 0.9]));
-  group.add(blob(mat, [-0.06, 0.444, -0.038], 0.016, [1.1, 0.62, 0.9]));
-  // Pancreas.
-  const p = new THREE.Mesh(new THREE.CapsuleGeometry(0.019, 0.11, 6, 16), mat);
-  p.rotation.z = Math.PI / 2 - 0.22;
-  p.position.set(-0.012, 0.372, -0.005);
-  group.add(p);
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.55, 0.03) };
+
+  // Thyroid: two lobes flanking the trachea, joined by an isthmus across the
+  // second to fourth rings. Each lobe tapers upward — the shape is a shield,
+  // which is what the name means.
+  [1, -1].forEach((k) => {
+    group.add(
+      sweep(
+        mat,
+        [
+          [k * 0.02, 0.762, 0.016],
+          [k * 0.022, 0.785, 0.017],
+          [k * 0.018, 0.812, 0.017],
+        ],
+        (t, th) => {
+          const r = cm(1.1) * (1 - 0.55 * smooth(0.45, 1, t));
+          return ellipse(th, r, r * 0.85);
+        },
+        { stations: 18, radial: 12 },
+      ),
+    );
+    // Parathyroids, on the back of each lobe — four in all.
+    [0.774, 0.802].forEach((y) => {
+      group.add(
+        ellipsoid(
+          mat,
+          [k * 0.021, y, 0.009],
+          [cm(0.35), cm(0.5), cm(0.25)],
+          null,
+          10,
+        ),
+      );
+    });
+  });
+  group.add(
+    tube(
+      mat,
+      [
+        [0.016, 0.774, 0.023],
+        [0, 0.773, 0.026],
+        [-0.016, 0.774, 0.023],
+      ],
+      cm(0.5),
+      { radial: 8, stations: 12 },
+    ),
+  );
+
+  // Adrenals, capping the kidneys: the right pyramidal, the left crescentic
+  // and slung down the medial border rather than sitting on top.
+  group.add(
+    ellipsoid(
+      mat,
+      [-0.05, 0.468, -0.048],
+      [cm(1.6), cm(1.0), cm(0.9)],
+      (v, d) => {
+        v.x *= 1 - 0.4 * Math.max(0, d.y);
+        v.z *= 1 - 0.35 * Math.max(0, d.y);
+      },
+      18,
+    ),
+  );
+  group.add(
+    ellipsoid(
+      mat,
+      [0.046, 0.484, -0.048],
+      [cm(1.8), cm(1.1), cm(0.9)],
+      (v, d) => {
+        v.y -= cm(0.5) * Math.max(0, d.x);
+      },
+      18,
+    ),
+  );
+
+  // Pancreas: head in the C of the duodenum, neck at the transpyloric plane,
+  // body crossing the midline and rising to a tail at the splenic hilum. It
+  // is 15 cm long and prism-shaped, not a sausage.
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.041, 0.395, -0.012],
+        [-0.022, 0.409, -0.014],
+        [-0.004, LEVEL.L1 - 0.018, -0.017],
+        [0.032, 0.432, -0.024],
+        [0.062, 0.444, -0.031],
+        [0.081, 0.452, -0.036],
+      ],
+      (t, th) => {
+        const bulk =
+          (1 - 0.55 * smooth(0.12, 1, t)) * (1 - 0.3 * smooth(0.86, 1, t));
+        const r = cm(1.7) * bulk;
+        // Flattened front to back, with a soft ridge along the top.
+        return ellipse(th, r, r * (0.62 + 0.2 * Math.abs(Math.sin(th))));
+      },
+      { stations: 34, radial: 16 },
+    ),
+  );
+  // Uncinate process, hooking behind the mesenteric vessels.
+  group.add(
+    ellipsoid(mat, [-0.03, 0.386, -0.02], [cm(1.5), cm(0.9), cm(1.0)], null, 14),
+  );
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.56, 0) };
 }
 
-/** Marrow through the axial skeleton and long bones, plus the spleen. */
+/* -------------------------------------------------------------- hematology */
+
+/**
+ * The marrow-bearing skeleton, plus the spleen.
+ *
+ * Ribs by table rather than by formula. The two facts that make a rib cage
+ * read as one are that the ribs slope down from spine to sternum — steeply in
+ * the middle of the cage, barely at all at the top — and that the cage is
+ * widest around ribs 7 to 9 and narrows at both ends. A formula smooth enough
+ * to be worth writing gets the second and loses the first.
+ */
+const RIBS = [
+  // half-width, fall from vertebral to sternal end, and where the front ends
+  { wide: cm(5.4), fall: cm(1.4), front: "sternum" },
+  { wide: cm(8.4), fall: cm(2.6), front: "sternum" },
+  { wide: cm(10.6), fall: cm(3.8), front: "sternum" },
+  { wide: cm(12.0), fall: cm(4.9), front: "sternum" },
+  { wide: cm(13.0), fall: cm(6.0), front: "sternum" },
+  { wide: cm(13.6), fall: cm(7.1), front: "sternum" },
+  { wide: cm(13.9), fall: cm(8.2), front: "sternum" },
+  { wide: cm(13.8), fall: cm(8.4), front: "margin" },
+  { wide: cm(13.2), fall: cm(8.0), front: "margin" },
+  { wide: cm(12.0), fall: cm(7.2), front: "margin" },
+  { wide: cm(9.6), fall: cm(3.0), front: "float" },
+  { wide: cm(6.8), fall: cm(2.2), front: "float" },
+];
+
 function buildHematology(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
-  tube(mat, [J.c7, J.t6, J.l1, J.l5], 0.017, group);
-  // Ribs read as marrow-bearing bone.
-  [0.7, 0.655, 0.61, 0.565].forEach((y, i) => {
-    const w = 0.13 + i * 0.008;
-    tube(
-      mat,
-      [
-        [0, y, -0.02],
-        [-w * 0.75, y - 0.008, 0.04],
-        [-w * 0.35, y - 0.03, 0.085],
-      ],
-      0.0055,
-      group,
+
+  // Vertebral bodies, drum-shaped, growing as they descend — with the discs
+  // between them and a spinous process pointing down and back.
+  const levels = [
+    LEVEL.C1,
+    0.862,
+    0.846,
+    0.83,
+    0.815,
+    0.795,
+    LEVEL.C7,
+    LEVEL.T1,
+    LEVEL.T2,
+    LEVEL.T3,
+    LEVEL.T4,
+    LEVEL.T5,
+    LEVEL.T6,
+    LEVEL.T7,
+    LEVEL.T8,
+    LEVEL.T9,
+    LEVEL.T10,
+    LEVEL.T11,
+    LEVEL.T12,
+    LEVEL.L1,
+    LEVEL.L2,
+    LEVEL.L3,
+    LEVEL.L4,
+    LEVEL.L5,
+  ];
+  levels.forEach((y, i) => {
+    // Each body is sized to the gap below it, so the column closes up instead
+    // of reading as a string of beads — and it widens as it descends, because
+    // a lumbar body carries the whole trunk and a cervical one carries a head.
+    const gap = i < levels.length - 1 ? y - levels[i + 1] : 0.04;
+    const r = cm(1.3) + cm(1.5) * (i / levels.length);
+    const c = onSpine(y);
+    group.add(
+      ellipsoid(
+        mat,
+        c,
+        [r, gap * 0.42, r * 0.78],
+        // Drum-shaped. Pushing the sides back out to full width holds them
+        // there right up to the flat end plates, instead of letting the body
+        // round off into a bead the way an ellipsoid would.
+        (v, d) => {
+          const k = 1 / Math.max(0.64, Math.sqrt(1 - d.y * d.y));
+          v.x *= k;
+          v.z *= k;
+        },
+        16,
+      ),
     );
-    tube(
-      mat,
-      [
-        [0, y, -0.02],
-        [w * 0.75, y - 0.008, 0.04],
-        [w * 0.35, y - 0.03, 0.085],
-      ],
-      0.0055,
-      group,
+    group.add(
+      tube(
+        mat,
+        [
+          [0, y - cm(0.2), c[2] - r * 0.7],
+          [0, y - cm(1.1), c[2] - r * 0.7 - cm(3.2)],
+        ],
+        cm(0.4),
+        { radial: 6, stations: 6 },
+      ),
     );
   });
-  group.add(blob(mat, [-0.088, 0.472, -0.02], 0.028, [0.86, 1.15, 0.66], 0.2)); // spleen
-  tube(mat, [J.hipL, J.kneeL], 0.013, group);
-  tube(mat, [J.hipR, J.kneeR], 0.013, group);
-  tube(mat, [J.shoulderL, J.elbowL], 0.01, group);
-  tube(mat, [J.shoulderR, J.elbowR], 0.01, group);
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.5, 0) };
+  // Sacrum.
+  group.add(
+    ellipsoid(
+      mat,
+      onSpine(0.252, -cm(0.5)),
+      [cm(4.6), cm(3.4), cm(1.6)],
+      (v, d) => {
+        v.x *= 1 - 0.45 * smooth(0, -1, d.y);
+      },
+      20,
+    ),
+  );
+
+  // Sternum: manubrium, body, xiphoid.
+  group.add(
+    sweep(
+      mat,
+      [
+        [0, 0.758, cm(7.4)],
+        [0, 0.716, cm(8.4)],
+        [0, 0.66, cm(8.6)],
+        [0, 0.606, cm(8.0)],
+        [0, 0.586, cm(7.2)],
+      ],
+      (t, th) => {
+        // Manubrium wide, body narrower, xiphoid a point. Flat front to back:
+        // it is a plate, and it is what the ribs run to.
+        const w = cm(2.8) - cm(1.8) * smooth(0.1, 1, t);
+        return ellipse(th, w, cm(0.5));
+      },
+      { stations: 22, radial: 12, seed: new THREE.Vector3(-1, 0, 0) },
+    ),
+  );
+
+  RIBS.forEach((rib, i) => {
+    const yBack = LEVEL.T1 - (i / 11) * (LEVEL.T1 - LEVEL.T12);
+    const yFront = yBack - rib.fall;
+    [1, -1].forEach((k) => {
+      const pts = [
+        [k * cm(1.6), yBack, -cm(2.2)],
+        // The rib angle: ribs run BACKWARDS before they turn, and the angle is
+        // the most posterior point of the whole trunk.
+        [k * cm(5.0), yBack - rib.fall * 0.12, -cm(6.4)],
+        [k * rib.wide, yBack - rib.fall * 0.42, -cm(1.4)],
+        [k * rib.wide * 0.82, yFront + rib.fall * 0.26, cm(3.4)],
+      ];
+      if (rib.front === "sternum") {
+        pts.push([k * cm(2.4), yFront, cm(7.2)]);
+      } else if (rib.front === "margin") {
+        // Ribs 8–10 do not reach the sternum: their cartilages turn up and
+        // join the seventh, and the line they make is the costal margin.
+        pts.push([k * cm(7.6 - (i - 7) * 0.8), yFront + cm(1.4), cm(5.6)]);
+      }
+      group.add(
+        sweep(
+          mat,
+          pts,
+          (t, th) => ellipse(th, cm(0.55) * (1 - 0.25 * t), cm(0.3)),
+          {
+            stations: 26,
+            radial: 8,
+            seed: new THREE.Vector3(0, 1, 0),
+          },
+        ),
+      );
+    });
+  });
+
+  // Costal cartilages, closing ribs 8–10 onto the seventh.
+  [1, -1].forEach((k) => {
+    group.add(
+      tube(
+        mat,
+        [
+          [k * cm(7.6), LEVEL.T8 - cm(6.6), cm(5.6)],
+          [k * cm(4.6), 0.532, cm(6.8)],
+          [k * cm(2.4), 0.548, cm(7.2)],
+        ],
+        cm(0.34),
+        { radial: 6, stations: 14, caps: false },
+      ),
+    );
+  });
+
+  // Pelvis. Drawn as a ring rather than as two lumps: the iliac wings flare
+  // up and out from the sacrum, and the pubic rami close it in front. The
+  // bowl, and the gap left inside the rami, are what make it read as a pelvis.
+  [1, -1].forEach((k) => {
+    group.add(
+      ellipsoid(
+        mat,
+        [k * 0.058, 0.228, -0.008],
+        [cm(1.5), cm(5.6), cm(6.2)],
+        (v, d) => {
+          v.x += k * cm(3.6) * Math.max(0, d.y) ** 1.4;
+          v.z -= cm(1.8) * Math.max(0, -d.y);
+          v.y *= 1 - 0.34 * Math.max(0, -d.z);
+        },
+        24,
+      ),
+    );
+    group.add(
+      tube(
+        mat,
+        [
+          [k * 0.05, 0.194, 0.012],
+          [k * 0.034, 0.182, 0.042],
+          [k * 0.007, 0.176, 0.052],
+        ],
+        cm(0.85),
+        { radial: 8, stations: 14 },
+      ),
+    );
+    group.add(
+      tube(
+        mat,
+        [
+          [k * 0.007, 0.176, 0.052],
+          [k * 0.03, 0.154, 0.03],
+          [k * 0.047, 0.166, 0.002],
+        ],
+        cm(0.75),
+        { radial: 8, stations: 14 },
+      ),
+    );
+  });
+
+  // Long bones. Marrow is in the axial skeleton and the proximal long bones,
+  // which is exactly what a haematology panel is sampling.
+  [
+    ["L", 1],
+    ["R", -1],
+  ].forEach(([s, k]) => {
+    group.add(
+      sweep(
+        mat,
+        [J[`hip${s}`], [k * 0.086, 0.02, 0.006], J[`knee${s}`]],
+        (t, th) =>
+          round(
+            th,
+            cm(1.6) +
+              cm(1.1) *
+                (Math.exp(-((t / 0.12) ** 2)) +
+                  Math.exp(-(((1 - t) / 0.12) ** 2))),
+          ),
+        { stations: 24, radial: 12 },
+      ),
+    );
+    group.add(
+      sweep(
+        mat,
+        [J[`shoulder${s}`], [k * 0.2, 0.618, 0.003], J[`elbow${s}`]],
+        (t, th) =>
+          round(
+            th,
+            cm(1.1) +
+              cm(0.8) *
+                (Math.exp(-((t / 0.14) ** 2)) +
+                  Math.exp(-(((1 - t) / 0.14) ** 2))),
+          ),
+        { stations: 22, radial: 12 },
+      ),
+    );
+  });
+
+  // Calvaria — the diploë between its tables is marrow too.
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.962, 0.002],
+      [cm(7.6), cm(8.2), cm(8.6)],
+      (v, d) => {
+        if (v.y < 0) v.y *= 0.4;
+      },
+      26,
+    ),
+  );
+
+  // Spleen, between ribs 9 and 11 on the left, its long axis along the tenth.
+  // The notched anterior border is its signature, and it is what a surgeon
+  // palpates for.
+  group.add(
+    ellipsoid(
+      mat,
+      [0.108, 0.505, -0.026],
+      [cm(3.4), cm(5.6), cm(2.2)],
+      (v, d) => {
+        v.y += cm(2.2) * d.x;
+        v.multiplyScalar(
+          1 - 0.16 * Math.exp(-(((d.y - 0.2) / 0.16) ** 2)) * Math.max(0, d.z),
+        );
+        v.multiplyScalar(
+          1 - 0.16 * Math.exp(-(((d.y + 0.25) / 0.16) ** 2)) * Math.max(0, d.z),
+        );
+      },
+      26,
+    ),
+  );
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.55, 0) };
 }
 
-/** Joints and lymph nodes — what a rheumatology panel is actually about. */
+/* ------------------------------------------------------------------ immune */
+
+/** Lymphatics, thymus and the joints a rheumatology panel is about. */
 function buildImmune(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
+
+  // Thymus, behind the manubrium. Large in the young, fatty later — but it is
+  // where T cells are selected, so it belongs in this plate.
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.706, 0.056],
+      [cm(2.2), cm(2.9), cm(1.0)],
+      (v, d) => {
+        v.x *= 1 - 0.4 * Math.exp(-Math.abs(d.x) / 0.25);
+      },
+      20,
+    ),
+  );
+
+  // Node chains, each along the vessel it follows.
+  [1, -1].forEach((k) => {
+    chain(
+      mat,
+      group,
+      [
+        [k * 0.03, 0.86, 0.016],
+        [k * 0.036, 0.8, 0.01],
+        [k * 0.04, 0.762, 0.006],
+      ],
+      5,
+      cm(0.6),
+    ); // deep cervical
+    chain(
+      mat,
+      group,
+      [
+        [k * 0.09, 0.744, 0.004],
+        [k * 0.13, 0.73, 0.002],
+        [k * 0.16, 0.71, 0.0],
+      ],
+      4,
+      cm(0.7),
+    ); // axillary
+    chain(
+      mat,
+      group,
+      [
+        [k * 0.02, 0.69, -0.01],
+        [k * 0.03, 0.665, -0.014],
+        [k * 0.036, 0.64, -0.016],
+      ],
+      3,
+      cm(0.5),
+    ); // hilar
+    chain(
+      mat,
+      group,
+      [
+        [k * 0.022, 0.44, -0.03],
+        [k * 0.024, 0.38, -0.03],
+        [k * 0.026, 0.33, -0.028],
+      ],
+      4,
+      cm(0.55),
+    ); // para-aortic
+    chain(
+      mat,
+      group,
+      [
+        [k * 0.05, 0.29, -0.012],
+        [k * 0.062, 0.25, 0.004],
+        [k * 0.07, 0.216, 0.018],
+      ],
+      4,
+      cm(0.6),
+    ); // iliac + inguinal
+  });
+  // Mesenteric nodes, the largest collection in the body.
+  chain(
+    mat,
+    group,
+    [
+      [0.01, 0.372, -0.008],
+      [-0.012, 0.34, 0.0],
+      [-0.026, 0.306, 0.008],
+    ],
+    4,
+    cm(0.55),
+  );
+
+  // Thoracic duct: from the cisterna chyli at L2, up through the aortic
+  // hiatus to the right of the aorta, crossing to the left at T5 and emptying
+  // into the left subclavian vein. Almost never drawn, and the single most
+  // "textbook" structure in the lymphatic system.
+  group.add(
+    ellipsoid(
+      mat,
+      [-0.014, LEVEL.L2, -0.038],
+      [cm(0.9), cm(1.6), cm(0.7)],
+      null,
+      12,
+    ),
+  );
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.014, LEVEL.L2, -0.038],
+        [-0.012, LEVEL.T12, -0.04],
+        [-0.01, LEVEL.T8, -0.042],
+        [-0.002, LEVEL.T5, -0.042],
+        [0.014, 0.69, -0.032],
+        [0.026, 0.728, -0.018],
+      ],
+      cm(0.25),
+      { radial: 6, stations: 26 },
+    ),
+  );
+
+  // The joints. Rheumatoid disease is symmetrical and small-joint first — it
+  // takes the knuckles before the knees — so the hand is drawn out rather
+  // than left as the single blob the mannequin has.
   [
     "shoulderL",
     "shoulderR",
@@ -568,61 +1446,195 @@ function buildImmune(color) {
     "ankleL",
     "ankleR",
   ].forEach((k) => {
-    group.add(blob(mat, J[k], 0.03, [1, 1, 1]));
+    group.add(ellipsoid(mat, J[k], [cm(2.8), cm(2.2), cm(2.8)], null, 16));
   });
-  // Cervical, axillary and inguinal node clusters.
   [
-    [-0.045, 0.79, 0.02],
-    [0.045, 0.79, 0.02],
-    [-0.155, 0.7, 0.01],
-    [0.155, 0.7, 0.01],
-    [-0.07, 0.215, 0.03],
-    [0.07, 0.215, 0.03],
-  ].forEach((p) => {
-    group.add(blob(mat, p, 0.013, [1, 1, 1]));
+    ["L", 1],
+    ["R", -1],
+  ].forEach(([s, k]) => {
+    const w = J[`wrist${s}`];
+    for (let i = 0; i < 4; i++) {
+      const spread = (i - 1.5) * cm(1.5);
+      group.add(
+        ellipsoid(
+          mat,
+          [w[0] + k * cm(0.6), w[1] - cm(6.5), w[2] + spread],
+          [cm(0.7), cm(0.7), cm(0.7)],
+          null,
+          10,
+        ),
+      );
+      group.add(
+        ellipsoid(
+          mat,
+          [w[0] + k * cm(0.8), w[1] - cm(9.5), w[2] + spread * 1.1],
+          [cm(0.55), cm(0.55), cm(0.55)],
+          null,
+          10,
+        ),
+      );
+    }
   });
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.45, 0) };
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.5, 0) };
 }
 
-/** Stomach, small bowel and colon — where nutrients are actually absorbed. */
+/* --------------------------------------------------------------- nutrition */
+
+/** Oesophagus to rectum — where nutrients are actually absorbed. */
 function buildNutrition(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
-  group.add(blob(mat, [-0.045, 0.418, 0.022], 0.04, [1.05, 0.85, 0.72], 0.35));
-  // Colon frame.
-  tube(
-    mat,
-    [
-      [0.072, 0.29, 0.018],
-      [0.078, 0.375, 0.02],
-      [0.05, 0.408, 0.022],
-      [0, 0.415, 0.024],
-      [-0.05, 0.405, 0.022],
-      [-0.076, 0.36, 0.02],
-      [-0.07, 0.285, 0.018],
-      [-0.02, 0.258, 0.016],
-    ],
-    0.0125,
-    group,
-  );
-  // Small bowel coils.
-  for (let i = 0; i < 4; i++) {
-    const y = 0.355 - i * 0.028;
-    const w = 0.048 - i * 0.004;
-    const s = i % 2 ? -1 : 1;
+
+  // Oesophagus, behind the trachea and slightly left, through the hiatus at
+  // T10.
+  group.add(
     tube(
       mat,
       [
-        [-w * s, y, 0.03],
-        [0, y - 0.012, 0.038],
-        [w * s, y - 0.024, 0.03],
+        [0, 0.8, 0.006],
+        [0, 0.72, -0.006],
+        [0.006, 0.62, -0.016],
+        [0.014, LEVEL.T10, -0.014],
+        [0.02, 0.498, -0.008],
       ],
-      0.0088,
-      group,
-    );
+      cm(0.9),
+      { radial: 10, stations: 26 },
+    ),
+  );
+
+  // Stomach. A J: cardia at the hiatus, fundus rising left under the
+  // diaphragm, body descending, then the antrum turning right to the pylorus
+  // at the transpyloric plane. Swept along that path, the greater curvature
+  // falls out of the geometry — it is simply the outside of the bend.
+  group.add(
+    sweep(
+      mat,
+      [
+        [0.022, 0.5, -0.006],
+        [0.045, 0.517, 0.004],
+        [0.056, 0.492, 0.016],
+        [0.052, 0.455, 0.024],
+        [0.032, 0.428, 0.03],
+        [0.004, 0.424, 0.026],
+        [-0.016, 0.436, 0.014],
+        [-0.026, LEVEL.L1, 0.004],
+      ],
+      (t, th) => {
+        const bulk =
+          smooth(0, 0.16, t) * (1 - smooth(0.62, 0.98, t) * 0.78) * 0.9 + 0.1;
+        const r = cm(4.6) * bulk;
+        // Rugae — the longitudinal folds of the lining, visible through the
+        // wall as a gentle corrugation.
+        return ellipse(th, r * (1 + 0.045 * Math.sin(th * 7)), r * 0.86);
+      },
+      { stations: 44, radial: 20 },
+    ),
+  );
+
+  // Duodenum, the C-loop that wraps the head of the pancreas.
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.026, LEVEL.L1, 0.004],
+        [-0.048, 0.432, -0.002],
+        [-0.058, 0.404, -0.01],
+        [-0.054, 0.372, -0.014],
+        [-0.03, 0.358, -0.016],
+        [-0.0, 0.362, -0.018],
+        [0.018, 0.386, -0.016],
+        [0.024, 0.404, -0.012],
+      ],
+      (t, th) => round(th, cm(1.5)),
+      { stations: 34, radial: 12, caps: false },
+    ),
+  );
+
+  // Jejunum and ileum: six metres, packed into the central abdomen in gentle
+  // festoons. Real bowel lies in loops that fold back on themselves; a random
+  // walk reads as spaghetti, so the path is authored as descending U-turns
+  // and narrows as it goes, jejunum to ileum.
+  const coils = [];
+  for (let i = 0; i <= 36; i++) {
+    const t = i / 36;
+    const turn = t * Math.PI * 5.2;
+    // Loops of unequal reach and depth. Evenly-sized ones read as a stack of
+    // identical sausages; real bowel hangs in festoons, some loops running
+    // right across the abdomen and others barely leaving the midline.
+    const wob = 0.74 + 0.26 * Math.sin(t * 11.3 + 1.7);
+    const width = cm(6.8) * wob * (1 - 0.14 * t);
+    coils.push([
+      -(Math.sin(turn) * width - cm(0.6) + cm(3.2) * t),
+      0.408 - t * 0.122 + Math.cos(turn * 0.5) * cm(1.2) + Math.sin(t * 17) * cm(0.6),
+      0.03 - Math.cos(turn) * cm(1.9) - cm(0.5) * t,
+    ]);
   }
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.36, 0.05) };
+  group.add(
+    sweep(
+      mat,
+      coils,
+      // Jejunum is wider than ileum, and it narrows the whole way down.
+      (t, th) => round(th, (cm(1.55) - cm(0.5) * t) * (1 + 0.06 * Math.sin(t * 61))),
+      { stations: 220, radial: 10, caps: false },
+    ),
+  );
+
+  // Colon. The frame around the small bowel: caecum low right, up the right
+  // flank, across (sagging in the middle), down the left flank — with the
+  // splenic flexure HIGHER than the hepatic, because the liver sits on one
+  // side and not the other — then the sigmoid into the pelvis.
+  group.add(
+    sweep(
+      mat,
+      [
+        [-0.084, 0.256, 0.012],
+        [-0.096, 0.304, 0.012],
+        [-0.104, 0.372, 0.012],
+        [-0.1, 0.428, 0.008],
+        [-0.062, 0.44, 0.014],
+        [-0.01, 0.404, 0.028],
+        [0.042, 0.396, 0.026],
+        [0.086, 0.436, 0.012],
+        [0.1, 0.4, 0.004],
+        [0.104, 0.33, 0.006],
+        [0.09, 0.276, 0.008],
+        [0.05, 0.246, 0.006],
+        [0.014, 0.234, -0.004],
+        [0, 0.216, -0.018],
+        [0, 0.186, -0.022],
+      ],
+      (t, th) => {
+        const r = cm(3.1) - cm(1.4) * smooth(0, 0.92, t);
+        // Haustra and the three taeniae coli. The sacculation is what makes a
+        // colon a colon rather than a wide loop of small bowel, and it is one
+        // ripple in t times one in θ.
+        const sac = 1 + 0.11 * Math.sin(t * 76) * (1 - smooth(0.86, 1, t));
+        const tae = 1 + 0.055 * Math.cos(th * 3);
+        return round(th, r * sac * tae);
+      },
+      { stations: 130, radial: 16 },
+    ),
+  );
+
+  // Appendix, off the caecum.
+  group.add(
+    tube(
+      mat,
+      [
+        [-0.08, 0.245, 0.016],
+        [-0.07, 0.232, 0.022],
+        [-0.056, 0.226, 0.024],
+      ],
+      cm(0.4),
+      { radial: 6, stations: 12 },
+    ),
+  );
+
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.37, 0.03) };
 }
+
+/* ---------------------------------------------------------------- systemic */
 
 /**
  * Whole-body shell. Cancer has no single organ, so the systemic view is the
@@ -649,16 +1661,16 @@ export function buildOrgans(bodyParts) {
   // with ten systems, "which organ am I looking at" has to survive being
   // answered by colour alone.
   return {
-    neuro: buildNeuro(0x7c5cd6),      // violet
-    cardio: buildCardio(0xdc3f3f),    // red
+    neuro: buildNeuro(0x7c5cd6), // violet
+    cardio: buildCardio(0xdc3f3f), // red
     endocrine: buildEndocrine(0xe8a01a), // amber
-    hepatic: buildHepatic(0xc2622a),  // burnt orange
-    renal: buildRenal(0x17a2a2),      // teal
+    hepatic: buildHepatic(0xc2622a), // burnt orange
+    renal: buildRenal(0x17a2a2), // teal
     hematology: buildHematology(0xd42a72), // magenta
-    pulmonary: buildPulmonary(0x2f8fd6),   // sky
-    immune: buildImmune(0x3fae55),    // green
+    pulmonary: buildPulmonary(0x2f8fd6), // sky
+    immune: buildImmune(0x3fae55), // green
     oncology: buildSystemic(0x5f6bd8, bodyParts), // indigo shell
-    nutrition: buildNutrition(0x9ec219),  // lime
+    nutrition: buildNutrition(0x9ec219), // lime
   };
 }
 

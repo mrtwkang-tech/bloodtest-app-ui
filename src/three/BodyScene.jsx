@@ -8,8 +8,16 @@ import {
 } from "../motion/physics";
 
 const ZONE_KEYS = [
-  "neuro", "cardio", "endocrine", "hepatic", "renal",
-  "hematology", "pulmonary", "immune", "oncology", "nutrition",
+  "neuro",
+  "cardio",
+  "endocrine",
+  "hepatic",
+  "renal",
+  "hematology",
+  "pulmonary",
+  "immune",
+  "oncology",
+  "nutrition",
 ];
 /** Cancer is the only system drawn as the whole figure. */
 const SHELL_KEYS = new Set(["oncology"]);
@@ -218,6 +226,12 @@ export default function BodyScene({
         const lit = s.intensity[k];
         organ.materials.forEach((m) => {
           m.opacity = lit * (SHELL_KEYS.has(k) ? 0.2 : 0.92);
+          // The organs are solids now rather than single blobs, so a lit one
+          // has to occlude its own back faces: without this a rib cage reads
+          // as a scribble and the gut as a knot. Only once it is opaque
+          // enough to be worth it — writing depth while still faint would
+          // punch holes in whatever is behind.
+          m.depthWrite = !SHELL_KEYS.has(k) && m.opacity > 0.55;
           m.emissiveIntensity = lit * 1.5 * pulse;
           m.color.copy(s.color[k]);
           m.emissive.copy(s.color[k]);

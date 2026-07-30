@@ -2,7 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { Collapse, DisclosureButton } from "../components/Collapse";
 import BodyScene from "../three/BodyScene";
 import Icon from "../components/Icon";
-import Clamp from "../components/Clamp";
 import NextStep from "../components/NextStep";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
@@ -175,7 +174,10 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         </>
       )}
 
-      <Card variant="group" style={{ overflow: "hidden", padding: 0, marginTop: 14 }}>
+      <Card
+        variant="group"
+        style={{ overflow: "hidden", padding: 0, marginTop: 14 }}
+      >
         <Pressable
           as="button"
           type="button"
@@ -326,16 +328,35 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             sentence and a personal one, and they already read that way. The
             second heading also rendered over nothing whenever a zone had no
             note of its own. */}
-        <div
-          style={{ paddingTop: 12, boxShadow: `inset 0 1px 0 ${C.hairline}` }}
+        {/* Both in full. These are two and three lines; clamping them to two
+            and offering "더 보기" charged a tap for text that was going to fit
+            anyway, and put a second expander directly above the one that opens
+            the markers — so the card had two "more" affordances meaning
+            different things. */}
+        <p
+          style={{
+            ...T.bodyText,
+            color: C.body,
+            margin: 0,
+            paddingTop: 12,
+            boxShadow: `inset 0 1px 0 ${C.hairline}`,
+            textWrap: "pretty",
+          }}
         >
-          <Clamp lines={2}>{t(zone.noteKey)}</Clamp>
-        </div>
+          {t(zone.noteKey)}
+        </p>
 
         {(note || over.length === 0) && (
-          <Clamp lines={2} tone={C.ink} style={{ marginTop: 10 }}>
+          <p
+            style={{
+              ...T.bodyText,
+              color: C.ink,
+              margin: "10px 0 0",
+              textWrap: "pretty",
+            }}
+          >
             {note || t("body.clearAll")}
-          </Clamp>
+          </p>
         )}
 
         {/* Out-of-range markers stay visible; the rest fold away. */}
