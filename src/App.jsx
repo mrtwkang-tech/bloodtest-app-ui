@@ -20,7 +20,7 @@ export default function App() {
   const t = useT();
   const [tab, setTab] = useState("home");
   const [sheet, setSheet] = useState(null); // null | 'store' | `doc:<key>`
-  const [plan, setPlan] = useState("quarter");
+  const [plan, setPlan] = useState("monthly");
   // The round lives here so switching between mind and body keeps the visit.
   const [sel, setSel] = useState(0);
 

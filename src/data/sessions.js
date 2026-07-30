@@ -100,8 +100,8 @@ const RAW = [
     },
     bodyAction: {
       hepatic: {
-        en: "Do not wait a full quarter. Repeat the liver panel and raise the trend with a clinician.",
-        ko: "분기를 다 기다리지 마세요. 간 패널을 재검하고 추이를 의료진과 상의하세요.",
+        en: "Do not wait for the next draw. Repeat the liver panel and raise the trend with a clinician.",
+        ko: "다음 채혈까지 기다리지 마세요. 간 패널을 재검하고 추이를 의료진과 상의하세요.",
       },
     },
     summary: {
@@ -166,7 +166,7 @@ const RAW = [
       ko: "모든 계열이 참고 범위 안입니다. 첫 회차에 올라와 있던 심혈관 지표는 완전히 정상화됐습니다.",
     },
     mindActivities: { en: ["Keep the pattern you have."], ko: ["지금 패턴을 유지하세요."] },
-    bodyActivities: { en: ["Stay on the quarterly cadence."], ko: ["분기 주기를 유지하세요."] },
+    bodyActivities: { en: ["Stay on the monthly cadence."], ko: ["월간 주기를 유지하세요."] },
     mind: {
       en: "The strongest round so far across all five pathways.",
       ko: "다섯 경로 모두 지금까지 중 가장 좋은 회차입니다.",
@@ -363,11 +363,44 @@ export const BODY_METRICS = [
   return { zone, mi, zoneKey: system.nameKey, marker: system.markers[mi] };
 });
 
+/**
+ * Plans. Prices are PER DRAW, and the ladder had been running backwards.
+ *
+ * It used to read: single 89,000 · monthly 79,000 · half 64,000 · quarterly
+ * 59,000. The customer buying twelve draws a year paid 20,000 more each than
+ * the one buying four — the highest-volume commitment carried nearly the worst
+ * unit price. That made sense while quarterly was the product's cadence and
+ * monthly was an upsell on top of it. It stopped making sense the moment the
+ * whole product moved to monthly: the plan everything is now built around, and
+ * the only one the sampling-window rule in `window.js` is valid for, was the
+ * expensive one.
+ *
+ * So the ladder is monotonic in commitment now — more draws, lower unit price —
+ * in even steps, which reads as a designed ladder rather than four numbers:
+ *
+ *   monthly   12/yr   59,000   ← recommended, and the cadence the product is
+ *   quarterly  4/yr   69,000     designed for
+ *   half       2/yr   79,000
+ *   single     1      89,000
+ */
 export const PLANS = {
   monthly: {
     labelKey: "store.monthly",
     noteKey: "store.monthlyNote",
     ctaKey: "store.ctaMonthly",
+    price: 59000,
+    badge: true,
+  },
+  quarter: {
+    labelKey: "store.quarter",
+    noteKey: "store.quarterNote",
+    ctaKey: "store.ctaQuarter",
+    price: 69000,
+  },
+  half: {
+    labelKey: "store.half",
+    noteKey: "store.halfNote",
+    ctaKey: "store.ctaHalf",
     price: 79000,
   },
   single: {
@@ -375,19 +408,6 @@ export const PLANS = {
     noteKey: "store.singleNote",
     ctaKey: "store.ctaSingle",
     price: 89000,
-  },
-  quarter: {
-    labelKey: "store.quarter",
-    noteKey: "store.quarterNote",
-    ctaKey: "store.ctaQuarter",
-    price: 59000,
-    badge: true,
-  },
-  half: {
-    labelKey: "store.half",
-    noteKey: "store.halfNote",
-    ctaKey: "store.ctaHalf",
-    price: 64000,
   },
 };
 

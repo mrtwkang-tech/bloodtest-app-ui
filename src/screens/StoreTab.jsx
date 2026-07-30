@@ -20,7 +20,8 @@ const COUNTS = { n: TOTAL_MARKERS, e: EPIGEN.markers.length };
 
 // Monthly first among the subscriptions: it is the tightest cadence, and
 // the trajectory signals are the reason a tighter cadence is worth buying.
-const PLAN_KEYS = ["single", "monthly", "quarter", "half"];
+// Ordered by cadence, which is now also cheapest-first.
+const PLAN_KEYS = ["monthly", "quarter", "half", "single"];
 const INCLUDED_KEYS = [
   "store.incl1",
   "store.incl2",

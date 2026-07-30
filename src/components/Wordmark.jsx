@@ -111,7 +111,7 @@ export default function Wordmark({ size = 20, color = C.ink }) {
           fontVariationSettings: `'opsz' ${Math.round(size * 1.2)}, 'SOFT' 30, 'WONK' 0`,
         }}
       >
-        pedia
+        Pedia
       </span>
     </span>
   );

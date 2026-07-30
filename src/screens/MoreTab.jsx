@@ -71,7 +71,7 @@ export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
           </div>
           <div style={{ ...T.micro, color: C.faint, marginTop: 2 }}>
             {PROFILE.age} · D-{PROFILE.nextInDays} · ₩
-            {PLANS.quarter.price.toLocaleString()}
+            {PLANS.monthly.price.toLocaleString()}
           </div>
         </div>
         {/* Language: a visible two-state control, not a buried setting. */}
@@ -154,7 +154,7 @@ export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
 
       <SectionTitle>{t("more.account")}</SectionTitle>
       <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={40}>
-        <MenuRow label={t("more.subscription")} value={t("store.quarter")} />
+        <MenuRow label={t("more.subscription")} value={t("store.monthly")} />
         <MenuRow label={t("more.address")} />
         <MenuRow label={t("more.notifications")} value={t("more.on")} />
         <MenuRow

@@ -1,5 +1,5 @@
 import SessionChips from "./SessionChips";
-import Wordmark from "./Wordmark";
+import Wordmark, { Mark } from "./Wordmark";
 import { C, DIVIDER, T, fadeUp } from "../tokens";
 
 /**
@@ -19,10 +19,16 @@ import { C, DIVIDER, T, fadeUp } from "../tokens";
  * screen keeps its heading for orientation and for screen readers, but it now
  * costs one line instead of three.
  *
- * HOME IS THE EXCEPTION and takes the wordmark instead of a title. "홈" as a
- * heading would be the emptiest word in the product, and the front page is
- * where a name belongs. The heading stays in the markup as an aria-label so
- * the document still has one.
+ * THE MARK IS ON EVERY SCREEN, the logotype only on home. A brand that appears
+ * on one screen out of five is a decoration; one that holds the same corner
+ * everywhere is chrome, and chrome is what makes a set of pages feel like an
+ * application. Home has no title to carry — "홈" would be the emptiest word in
+ * the product — so it is the screen where the name gets said in full.
+ *
+ * The hairline between mark and title is doing real work. Without it the drop
+ * sits directly against "마음" and reads as that screen's icon, which is a
+ * live risk in a product whose every other glyph IS an organ icon. The rule,
+ * and the mark being a step lighter than the title, keep it as chrome.
  */
 export default function Masthead({
   title,
@@ -51,11 +57,32 @@ export default function Masthead({
           margin: 0,
           flex: 1,
           minWidth: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: 9,
           color: C.ink,
           ...(brand ? { lineHeight: 1 } : T.title2),
         }}
       >
-        {brand ? <Wordmark /> : title}
+        {brand ? (
+          <Wordmark />
+        ) : (
+          <>
+            <span style={{ color: C.faint, display: "flex", flex: "none" }}>
+              <Mark size={21} />
+            </span>
+            <span
+              aria-hidden="true"
+              style={{
+                width: 1,
+                height: 15,
+                flex: "none",
+                background: C.hairlineStrong,
+              }}
+            />
+            <span style={{ minWidth: 0 }}>{title}</span>
+          </>
+        )}
       </h1>
       {sel != null && onPickSession && (
         <SessionChips sel={sel} onPick={onPickSession} />
