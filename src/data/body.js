@@ -1,4 +1,5 @@
 import { C } from "../tokens";
+import { stampWindow } from "./window";
 
 /**
  * Body screening, organised the way a referral is: one system per medical
@@ -18,7 +19,10 @@ import { C } from "../tokens";
  * haemoglobin and the vitamins are 'low'. Everything downstream reads `dir`.
  */
 
-export const ROUNDS = 6;
+// Twelve monthly draws. Was six quarterly ones — the interval is what makes
+// most of the methylation panel unreadable month to month, which is the whole
+// subject of data/window.js.
+export const ROUNDS = 12;
 
 /** FNV-1a, so a marker's series depends only on its name. */
 function hash(str) {
@@ -48,7 +52,10 @@ function walk(name, base, spread) {
 export function withSeries(system) {
   return {
     ...system,
-    markers: system.markers.map((m) => {
+    markers: system.markers.map((raw) => {
+      // Every marker carries how long its value took to form, from the one
+      // table in window.js, so nothing downstream has to look it up.
+      const m = stampWindow(raw);
       const demo = m.demo ?? walk(`${system.key}:${m.name}`, m.base, m.spread);
       if (demo.length !== ROUNDS) {
         throw new Error(
@@ -133,7 +140,19 @@ const RAW_SYSTEMS = [
         ref: 30,
         max: 80,
         dp: 1,
-        demo: [34.6, 30.2, 28.1, 29.4, 31.6, 33.2],
+        demo: [34.6, 32.5, 30.2, 29.6, 28.3, 28.3, 28.9, 30.3, 30.6, 31.3, 32.2, 33.2],
+      },
+      {
+        // The raw material. Kyn/Trp says how much is being diverted; this says
+        // how much there was to divert.
+        name: "Free tryptophan",
+        unit: "μmol/L",
+        ref: 8,
+        max: 20,
+        dp: 1,
+        dir: "low",
+        base: 10.6,
+        spread: 1.3,
       },
       {
         name: "BDNF",
@@ -142,7 +161,7 @@ const RAW_SYSTEMS = [
         max: 45,
         dp: 1,
         dir: "low",
-        demo: [17.2, 20.8, 22.4, 21.6, 20.2, 19.1],
+        demo: [17.2, 19, 20.3, 21.4, 22, 21.9, 21.9, 21.5, 20.6, 20.5, 19.8, 19.1],
       },
       {
         name: "6-sulfatoxymelatonin",
@@ -151,7 +170,7 @@ const RAW_SYSTEMS = [
         max: 40,
         dp: 1,
         dir: "low",
-        demo: [9.4, 12.6, 14.2, 13.8, 13.1, 12.8],
+        demo: [9.4, 11.1, 12.6, 13, 14.3, 13.9, 13.8, 14, 13.4, 13.4, 13.2, 12.8],
       },
     ],
   },
@@ -169,7 +188,7 @@ const RAW_SYSTEMS = [
         ref: 1.0,
         max: 5,
         dp: 1,
-        demo: [1.2, 0.9, 0.8, 0.7, 0.8, 0.7],
+        demo: [1.2, 1, 0.9, 0.9, 0.8, 0.7, 0.7, 0.7, 0.8, 0.8, 0.7, 0.7],
       },
       {
         name: "LDL-C",
@@ -177,7 +196,7 @@ const RAW_SYSTEMS = [
         ref: 130,
         max: 200,
         dp: 0,
-        demo: [142, 131, 121, 114, 110, 108],
+        demo: [142, 138, 132, 129, 120, 119, 113, 115, 109, 111, 109, 108],
       },
       {
         name: "HDL-C",
@@ -186,7 +205,7 @@ const RAW_SYSTEMS = [
         max: 100,
         dp: 0,
         dir: "low",
-        demo: [44, 48, 52, 54, 54, 55],
+        demo: [44, 47, 47, 49, 51, 52, 54, 54, 54, 55, 55, 55],
       },
       {
         name: "Triglycerides",
@@ -194,7 +213,7 @@ const RAW_SYSTEMS = [
         ref: 150,
         max: 300,
         dp: 0,
-        demo: [162, 148, 134, 126, 123, 121],
+        demo: [162, 153, 148, 145, 135, 130, 127, 126, 122, 123, 119, 121],
       },
       {
         name: "ApoB",
@@ -202,7 +221,7 @@ const RAW_SYSTEMS = [
         ref: 90,
         max: 160,
         dp: 0,
-        demo: [104, 95, 86, 85, 84, 84],
+        demo: [104, 98, 96, 93, 89, 85, 85, 85, 85, 84, 83, 84],
       },
       {
         name: "Lp(a)",
@@ -256,7 +275,7 @@ const RAW_SYSTEMS = [
         ref: 5.7,
         max: 9,
         dp: 1,
-        demo: [5.4, 5.4, 5.5, 5.6, 5.7, 5.9],
+        demo: [5.4, 5.4, 5.4, 5.4, 5.5, 5.6, 5.6, 5.6, 5.7, 5.7, 5.8, 5.9],
       },
       {
         name: "Fasting glucose",
@@ -264,7 +283,7 @@ const RAW_SYSTEMS = [
         ref: 100,
         max: 180,
         dp: 0,
-        demo: [92, 93, 94, 98, 101, 104],
+        demo: [92, 93, 93, 93, 93, 95, 97, 98, 100, 101, 102, 104],
       },
       {
         name: "Fasting insulin",
@@ -272,7 +291,53 @@ const RAW_SYSTEMS = [
         ref: 12,
         max: 30,
         dp: 1,
-        demo: [7.8, 7.9, 8.1, 8.6, 9.1, 9.6],
+        demo: [7.8, 7.7, 7.8, 8, 7.9, 8.2, 8.3, 8.7, 8.8, 9.1, 9.4, 9.6],
+      },
+      {
+        // Two to three weeks of glucose, against HbA1c's hundred. Same
+        // question, a window this cadence can actually see move.
+        name: "Fructosamine",
+        unit: "μmol/L",
+        ref: 285,
+        max: 400,
+        dp: 0,
+        demo: [248, 253, 257, 262, 268, 272, 278, 284, 283, 289, 294, 299],
+      },
+      {
+        // The catabolic/anabolic balance. A ratio rather than either hormone
+        // alone: both move with the hour of the draw, and dividing cancels
+        // some of that shared variance.
+        name: "Cortisol:DHEA-S",
+        unit: "",
+        ref: 0.075,
+        max: 0.16,
+        dp: 3,
+        requiresFixedTime: true,
+        base: 0.058,
+        spread: 0.009,
+      },
+      {
+        // Rise in the 30 minutes after waking — a phase marker, not a level.
+        name: "Cortisol awakening response",
+        unit: "nmol/L",
+        ref: 5,
+        max: 20,
+        dp: 1,
+        dir: "low",
+        requiresFixedTime: true,
+        base: 7.4,
+        spread: 1.5,
+      },
+      {
+        // Cellular stress and mitochondrial dysfunction; tracks fatigue better
+        // than anything else that comes out of a tube.
+        name: "GDF-15",
+        unit: "pg/mL",
+        ref: 1200,
+        max: 3000,
+        dp: 0,
+        base: 720,
+        spread: 95,
       },
       {
         name: "HOMA-IR",
@@ -308,7 +373,7 @@ const RAW_SYSTEMS = [
         ref: 20,
         max: 35,
         dp: 1,
-        demo: [14.2, 13.9, 13.6, 14.8, 15.9, 16.8],
+        demo: [14.2, 13.9, 13.8, 13.7, 13.8, 14.1, 14.6, 15, 15.5, 16.2, 16.6, 16.8],
       },
       {
         name: "DHEA-S",
@@ -317,7 +382,7 @@ const RAW_SYSTEMS = [
         max: 450,
         dp: 0,
         dir: "low",
-        demo: [188, 205, 214, 202, 189, 176],
+        demo: [188, 195, 204, 206, 215, 214, 206, 200, 192, 187, 183, 176],
       },
     ],
   },
@@ -335,7 +400,7 @@ const RAW_SYSTEMS = [
         ref: 33,
         max: 120,
         dp: 0,
-        demo: [26, 29, 31, 34, 33, 38],
+        demo: [26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 37, 38],
       },
       {
         name: "AST",
@@ -343,7 +408,7 @@ const RAW_SYSTEMS = [
         ref: 32,
         max: 120,
         dp: 0,
-        demo: [22, 24, 25, 27, 29, 33],
+        demo: [22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33],
       },
       {
         name: "GGT",
@@ -351,7 +416,7 @@ const RAW_SYSTEMS = [
         ref: 40,
         max: 150,
         dp: 0,
-        demo: [27, 31, 36, 44, 53, 68],
+        demo: [27, 29, 31, 34, 37, 40, 44, 48, 53, 58, 63, 68],
       },
       {
         name: "ALP",
@@ -359,7 +424,7 @@ const RAW_SYSTEMS = [
         ref: 120,
         max: 300,
         dp: 0,
-        demo: [74, 78, 82, 91, 103, 118],
+        demo: [74, 76, 77, 78, 84, 86, 90, 93, 96, 105, 108, 118],
       },
       {
         name: "Total bilirubin",
@@ -367,7 +432,7 @@ const RAW_SYSTEMS = [
         ref: 1.2,
         max: 3,
         dp: 2,
-        demo: [0.66, 0.7, 0.72, 0.78, 0.86, 0.98],
+        demo: [0.66, 0.7, 0.72, 0.69, 0.7, 0.74, 0.75, 0.81, 0.83, 0.89, 0.93, 0.98],
       },
       {
         name: "Albumin",
@@ -376,7 +441,7 @@ const RAW_SYSTEMS = [
         max: 5.5,
         dp: 1,
         dir: "low",
-        demo: [4.5, 4.4, 4.4, 4.3, 4.1, 3.9],
+        demo: [4.5, 4.5, 4.4, 4.4, 4.4, 4.3, 4.3, 4.3, 4.2, 4.1, 4, 3.9],
       },
       {
         name: "FIB-4",
@@ -384,7 +449,7 @@ const RAW_SYSTEMS = [
         ref: 1.3,
         max: 4,
         dp: 2,
-        demo: [0.88, 0.95, 1.08, 1.22, 1.41, 1.68],
+        demo: [0.88, 0.94, 1.0, 1.06, 1.13, 1.2, 1.27, 1.34, 1.42, 1.5, 1.59, 1.68],
       },
     ],
   },
@@ -497,7 +562,7 @@ const RAW_SYSTEMS = [
         max: 450,
         dp: 0,
         dir: "low",
-        demo: [252, 246, 238, 221, 203, 178],
+        demo: [252, 245, 238, 231, 225, 219, 213, 207, 201, 195, 188, 178],
       },
       {
         name: "Ferritin",
@@ -632,6 +697,17 @@ const RAW_SYSTEMS = [
         spread: 0.77,
       },
       {
+        // Free from the CBC differential, and one of the cheapest usable
+        // inflammation signals there is.
+        name: "Neutrophil:lymphocyte",
+        unit: "",
+        ref: 2.5,
+        max: 6,
+        dp: 2,
+        base: 1.74,
+        spread: 0.28,
+      },
+      {
         name: "Complement C3",
         unit: "mg/dL",
         ref: 90,
@@ -657,7 +733,7 @@ const RAW_SYSTEMS = [
         ref: 10,
         max: 30,
         dp: 1,
-        demo: [4.8, 5.1, 5.4, 6.2, 7.1, 8.6],
+        demo: [4.8, 5.2, 5.1, 4.9, 5.4, 5.9, 6.2, 6.2, 7, 7.3, 7.9, 8.6],
       },
       {
         name: "CEA",
@@ -683,7 +759,7 @@ const RAW_SYSTEMS = [
         ref: 10,
         max: 40,
         dp: 1,
-        demo: [2.6, 2.9, 3.5, 5.1, 7.6, 11.4],
+        demo: [2.6, 3.0, 3.4, 3.9, 4.4, 5.0, 5.7, 6.5, 7.4, 8.5, 9.7, 11.1],
       },
       {
         name: "CA-125",
@@ -720,7 +796,7 @@ const RAW_SYSTEMS = [
         max: 80,
         dp: 1,
         dir: "low",
-        demo: [26.4, 29.1, 30.6, 31.4, 31.8, 31.2],
+        demo: [26.4, 27.5, 28.9, 29.8, 30.4, 31.2, 31.5, 31.3, 31.6, 31.8, 31.8, 31.2],
       },
       {
         name: "Vitamin B12",
@@ -731,6 +807,31 @@ const RAW_SYSTEMS = [
         dir: "low",
         base: 387.0,
         spread: 34.1,
+      },
+      {
+        // The fraction bound to transcobalamin — the part a cell can take up.
+        // Total B12 moves slowly and stays normal long after the usable pool
+        // has fallen.
+        name: "Active B12 (holoTC)",
+        unit: "pmol/L",
+        ref: 35,
+        max: 130,
+        dp: 0,
+        dir: "low",
+        base: 61,
+        spread: 8,
+      },
+      {
+        // Red cells live 120 days, so the omega-3 INDEX is a four-month
+        // window. The plasma fraction answers the same question in three weeks.
+        name: "Plasma omega-3",
+        unit: "%",
+        ref: 4.0,
+        max: 10,
+        dp: 2,
+        dir: "low",
+        base: 4.9,
+        spread: 0.55,
       },
       {
         name: "Folate",

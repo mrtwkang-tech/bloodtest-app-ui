@@ -22,19 +22,25 @@ import {
 /**
  * Six rounds, three months apart, newest first.
  *
- * Eighteen months is what makes the liver series legible: AFP, GGT and FIB-4
- * are each individually unremarkable for the first four draws, and it is only
- * the shape across all six that reads as anything. A cross-sectional test
- * would have returned "normal" five times.
+ * TWELVE monthly draws. A year is what makes the liver series legible: AFP,
+ * GGT and FIB-4 are each individually unremarkable for most of it, and only
+ * the shape across the whole run reads as anything. A cross-sectional test
+ * would have returned "normal" eleven times.
+ *
+ * NARRATIVE IS SPARSE ON PURPOSE. Six of the twelve carry only a date. At a
+ * monthly cadence most months genuinely have nothing to report, and writing a
+ * paragraph for each one would be manufacturing content — the same rule that
+ * keeps `NextStep` silent when there is no action. The screens fall back to
+ * the numbers, which are never missing.
  */
 const RAW = [
   {
-    round: 6, date: "07.03",
+    round: 12, date: "07.03",
     fullDate: { en: "3 July 2026", ko: "2026년 7월 3일" },
     bodyNote: {
       hepatic: {
-        en: "AFP has now crossed its reference range, having roughly doubled every round for a year. GGT and the fibrosis estimate rose with it while platelets fell — the combination that warrants imaging rather than another wait.",
-        ko: "AFP가 1년 동안 회차마다 거의 두 배씩 오르다 이번에 참고 범위를 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 함께 올라가고 혈소판은 떨어졌습니다. 한 번 더 기다릴 게 아니라 영상 검사가 필요한 조합입니다.",
+        en: "AFP has now crossed its reference range, after climbing at every one of twelve monthly draws — a little over fourfold across the year. GGT and the fibrosis estimate rose with it while platelets fell: the combination that warrants imaging rather than another wait.",
+        ko: "AFP가 12번의 월간 채혈에서 한 번도 빠짐없이 올랐고, 1년 사이 네 배가 넘었습니다. 이번에 참고 범위를 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 함께 올라가고 혈소판은 떨어졌습니다. 한 번 더 기다릴 게 아니라 영상 검사가 필요한 조합입니다.",
       },
       endocrine: {
         en: "Average blood sugar edged past the upper limit. Small on its own, but it has moved in the same direction for four rounds.",
@@ -72,13 +78,20 @@ const RAW = [
       ],
     },
     mind: {
-      en: "Steady on the mood and sleep pathways, with stress load climbing gently across the last three rounds. Nothing here needs action on its own.",
-      ko: "기분과 수면 경로는 안정적이고, 스트레스 부하만 최근 세 회차에 걸쳐 완만히 올라갔습니다. 단독으로 조치가 필요한 항목은 없습니다.",
+      en: "Inflammation and body clock are steady, with metabolic headroom easing gently across the last three rounds. Nothing here needs action on its own.",
+      ko: "염증과 생체리듬은 안정적이고, 대사 여력만 최근 세 회차에 걸쳐 완만히 내려갔습니다. 단독으로 조치가 필요한 항목은 없습니다.",
     },
   },
   {
-    round: 5, date: "04.02",
-    fullDate: { en: "2 April 2026", ko: "2026년 4월 2일" },
+    // A quiet month. Nothing here to write about, and saying so briefly is
+    // more honest than manufacturing a paragraph — see the sparse-narrative
+    // note above.
+    round: 11, date: "06.03",
+    fullDate: { en: "3 June 2026", ko: "2026년 6월 3일" },
+  },
+  {
+    round: 10, date: "05.03",
+    fullDate: { en: "3 May 2026", ko: "2026년 5월 3일" },
     bodyNote: {
       hepatic: {
         en: "The fibrosis estimate crossed its threshold this round. AFP is still inside range, but it has risen at every draw since the first.",
@@ -104,13 +117,20 @@ const RAW = [
       ko: ["한 회차 동안 음주를 완전히 끊고 GGT가 반응하는지 보세요."],
     },
     mind: {
-      en: "Mood and sleep are settled. Stress load has started to drift up.",
-      ko: "기분과 수면은 안정적입니다. 스트레스 부하가 올라가기 시작했습니다.",
+      en: "Inflammation and body clock are settled. Metabolic headroom has started to ease.",
+      ko: "염증과 생체리듬은 안정적입니다. 대사 여력이 내려가기 시작했습니다.",
     },
   },
   {
-    round: 4, date: "01.08",
-    fullDate: { en: "8 January 2026", ko: "2026년 1월 8일" },
+    // A quiet month. Nothing here to write about, and saying so briefly is
+    // more honest than manufacturing a paragraph — see the sparse-narrative
+    // note above.
+    round: 9, date: "04.03",
+    fullDate: { en: "3 April 2026", ko: "2026년 4월 3일" },
+  },
+  {
+    round: 8, date: "03.03",
+    fullDate: { en: "3 March 2026", ko: "2026년 3월 3일" },
     bodyNote: {
       hepatic: {
         en: "GGT crossed its reference range for the first time. On its own this is common and usually diet or alcohol.",
@@ -131,8 +151,15 @@ const RAW = [
     },
   },
   {
-    round: 3, date: "10.04",
-    fullDate: { en: "4 October 2025", ko: "2025년 10월 4일" },
+    // A quiet month. Nothing here to write about, and saying so briefly is
+    // more honest than manufacturing a paragraph — see the sparse-narrative
+    // note above.
+    round: 7, date: "02.03",
+    fullDate: { en: "3 February 2026", ko: "2026년 2월 3일" },
+  },
+  {
+    round: 6, date: "01.03",
+    fullDate: { en: "3 January 2026", ko: "2026년 1월 3일" },
     bodyNote: {}, bodyAction: {},
     summary: {
       en: "Every system is inside its reference range. The cardiovascular markers raised at the first draw have fully corrected.",
@@ -146,8 +173,15 @@ const RAW = [
     },
   },
   {
-    round: 2, date: "07.05",
-    fullDate: { en: "5 July 2025", ko: "2025년 7월 5일" },
+    // A quiet month. Nothing here to write about, and saying so briefly is
+    // more honest than manufacturing a paragraph — see the sparse-narrative
+    // note above.
+    round: 5, date: "12.03",
+    fullDate: { en: "3 December 2025", ko: "2025년 12월 3일" },
+  },
+  {
+    round: 4, date: "11.03",
+    fullDate: { en: "3 November 2025", ko: "2025년 11월 3일" },
     bodyNote: {}, bodyAction: {},
     summary: {
       en: "Lipids have come most of the way back and inflammation has settled. Nothing outside range.",
@@ -156,13 +190,20 @@ const RAW = [
     mindActivities: { en: ["Hold the sleep schedule."], ko: ["수면 스케줄을 유지하세요."] },
     bodyActivities: { en: ["Keep saturated fat where it is."], ko: ["포화지방 섭취를 지금 수준으로 유지하세요."] },
     mind: {
-      en: "Sleep and mood pathways both improved from the baseline round.",
-      ko: "수면과 기분 경로 모두 기준 회차보다 개선됐습니다.",
+      en: "Body clock and neural raw material both improved from the baseline round.",
+      ko: "생체리듬과 신경 재료 모두 기준 회차보다 개선됐습니다.",
     },
   },
   {
-    round: 1, date: "04.05",
-    fullDate: { en: "5 April 2025", ko: "2025년 4월 5일" },
+    // A quiet month. Nothing here to write about, and saying so briefly is
+    // more honest than manufacturing a paragraph — see the sparse-narrative
+    // note above.
+    round: 3, date: "10.03",
+    fullDate: { en: "3 October 2025", ko: "2025년 10월 3일" },
+  },
+  {
+    round: 2, date: "09.03",
+    fullDate: { en: "3 September 2025", ko: "2025년 9월 3일" },
     bodyNote: {
       cardio: {
         en: "Vessel inflammation and LDL went over the range together — a combination worth approaching from lifestyle first.",
@@ -196,9 +237,16 @@ const RAW = [
       ko: ["포화지방을 줄이고 주 150분 이상 유산소 활동을 확보하세요."],
     },
     mind: {
-      en: "Tension is high and recovery time is short. Build the rest structure first.",
-      ko: "긴장이 높고 회복 시간이 부족합니다. 휴식 구조를 먼저 만드세요.",
+      en: "Stress recovery is low. Build the rest structure first.",
+      ko: "스트레스 회복력이 낮습니다. 휴식 구조를 먼저 만드세요.",
     },
+  },
+  {
+    // A quiet month. Nothing here to write about, and saying so briefly is
+    // more honest than manufacturing a paragraph — see the sparse-narrative
+    // note above.
+    round: 1, date: "08.03",
+    fullDate: { en: "3 August 2025", ko: "2025년 8월 3일" },
   },
 ];
 

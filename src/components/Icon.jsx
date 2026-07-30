@@ -119,26 +119,30 @@ const P = {
     </>
   ),
 
-  /* ── Mind indices ──────────────────────────────────────────────────── */
+  /* ── Regulatory systems (the mind panel) ───────────────────────────── */
 
-  // Mood: sun breaking through cloud.
-  mood: (
+  // Neural raw material: a flask with a level in it. The axis asks whether
+  // there is anything left to build from, so the mark is a measure of supply
+  // rather than a face — no icon here depicts a feeling any more.
+  substrate: (
     <>
-      <circle cx="12" cy="12.6" r="3.7" />
-      <path d="M12 4.3v2.4M12 18.5v.6M18.3 6.3l-1.7 1.7M7.4 17.2l-1.7 1.7M20.6 12.6h-2.4M5.8 12.6H3.4M18.3 18.9l-1.7-1.7M7.4 8 5.7 6.3" />
+      <path d="M9.6 3.4v5.1L4.9 17a2.6 2.6 0 0 0 2.3 3.9h9.6a2.6 2.6 0 0 0 2.3-3.9l-4.7-8.5V3.4" />
+      <path d="M8.4 3.4h7.2" />
+      <path d="M6.3 14.4h11.4" />
     </>
   ),
 
-  // Tension: a rope drawn taut into a knot.
-  tension: (
+  // Inflammatory load: a flame, cool-drawn. Inflammation is the one axis whose
+  // folk metaphor is also its mechanism — something is switched on and burning.
+  inflammation: (
     <>
-      <path d="M2.6 12h3.6M17.8 12h3.6" />
-      <path d="M6.2 7.2c3.5 1.7 3.5 7.9 0 9.6 3.8-1.5 7.8-1.5 11.6 0-3.5-1.7-3.5-7.9 0-9.6-3.8 1.5-7.8 1.5-11.6 0Z" />
+      <path d="M12 3.2c3.4 3.5 6 6.3 6 9.8a6 6 0 0 1-12 0c0-1.6.6-3 1.7-4.5.5 1.3 1.3 2.1 2.3 2.4C10.6 8.4 11 5.6 12 3.2Z" />
+      <path d="M12 20.8a2.9 2.9 0 0 1-2.9-2.9c0-1.6 1.3-2.7 2.9-4.6 1.6 1.9 2.9 3 2.9 4.6a2.9 2.9 0 0 1-2.9 2.9Z" />
     </>
   ),
 
-  // Stress load: a weight resting on a surface that is bowing under it.
-  stress: (
+  // Stress recovery: a weight on a surface that is bowing, and springing back.
+  recovery: (
     <>
       <path d="M7.5 4.6h9l2.3 7.4H5.2L7.5 4.6Z" />
       <path d="M12 8.3V4.6" />
@@ -147,8 +151,8 @@ const P = {
     </>
   ),
 
-  // Sleep: crescent with two stars.
-  sleep: (
+  // Body-clock alignment: crescent with two stars. Phase, not duration.
+  circadian: (
     <>
       <path d="M19.4 14.2A8 8 0 0 1 9.1 4.3a8.4 8.4 0 1 0 10.3 9.9Z" />
       <path d="M16.4 3.2v2.6M15.1 4.5h2.6" />
@@ -156,8 +160,8 @@ const P = {
     </>
   ),
 
-  // Energy: a cell with charge inside it.
-  energy: (
+  // Metabolic headroom: a cell with charge inside it.
+  metabolic: (
     <>
       <rect x="2.8" y="7.2" width="15.2" height="9.6" rx="2.4" />
       <path d="M20.8 10.6v3.2" />

@@ -68,9 +68,10 @@ const RULES = [
      *
      * Hepatocellular carcinoma is caught late because the markers that move
      * first move slowly and from inside the normal range. AFP under 10 is
-     * "normal" — AFP that has doubled every quarter for a year, while GGT and
-     * the fibrosis estimate climb and platelets fall, is a surveillance
-     * finding. No single draw can see any of that.
+     * "normal" — AFP that has risen at every one of twelve monthly draws,
+     * while GGT and the fibrosis estimate climb and platelets fall, is a
+     * surveillance finding. No single draw can see any of that, and the
+     * monthly cadence is what makes twelve points available to fit.
      */
     evaluate(r) {
       const afp = seriesOf("oncology", "AFP");
@@ -86,8 +87,12 @@ const RULES = [
         (monotonic(fib.series, r, 4, true) ? 1 : 0) +
         (monotonic(plt.series, r, 4, false) ? 1 : 0);
 
-      // Needs a real climb plus at least two corroborating directions.
-      if (!(afpRising && afpRate >= 0.25 && supporting >= 2)) return null;
+      // Needs a real climb plus at least two corroborating directions. The
+      // threshold is PER ROUND, and a round is a month — roughly 8%/month is
+      // the same biology that read as 25%/quarter before the cadence changed.
+      // A constant that silently depends on the interval is the same class of
+      // bug data/window.js exists to prevent.
+      if (!(afpRising && afpRate >= 0.08 && supporting >= 2)) return null;
 
       const evidence = [afp, ggt, fib, plt, alb].map((e) => ({
         marker: e.marker,
@@ -157,13 +162,13 @@ const RULES = [
       const kyn = read(r, "neuro", "Kyn/Trp ratio");
       const bdnf = read(r, "neuro", "BDNF");
       const crp = read(r, "cardio", "hs-CRP");
-      const moodMeta = SCALE_META.find((s) => s.key === "mood");
-      const mood = scaleIndex(moodMeta, r);
+      const meta = SCALE_META.find((s) => s.key === "inflammation");
+      const load = scaleIndex(meta, r);
       // Tryptophan being pulled down the inflammatory branch, with plasticity
       // falling at the same time.
-      const hit = ratio(kyn) > 1.02 && ratio(bdnf) > 0.95 && mood >= 48;
+      const hit = ratio(kyn) > 1.02 && ratio(bdnf) > 0.95 && load >= 48;
       return hit
-        ? { severity: mood >= 60 ? 2 : 1, evidence: [kyn, bdnf, crp] }
+        ? { severity: load >= 60 ? 2 : 1, evidence: [kyn, bdnf, crp] }
         : null;
     },
   },

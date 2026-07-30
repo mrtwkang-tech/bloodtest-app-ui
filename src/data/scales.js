@@ -1,29 +1,34 @@
 import { valuesAt } from "./body";
 import { findMarker } from "./panels";
+import { indexWeight, sampling, SAMPLING } from "./window";
 
 /**
- * Mind indices, derived from markers that accumulate.
+ * Five regulatory systems, derived from the markers a monthly draw can read.
  *
- * This is a blood test, so a questionnaire score has no business being here —
- * the earlier PHQ-9 / GAD-7 numbers were values the panel cannot produce.
+ * WHY THESE ARE NOT CALLED MOOD, TENSION AND ENERGY ANY MORE.
  *
- * The second correction matters more. An earlier version of these indices ran
- * on morning cortisol, and morning cortisol cannot answer the question this
- * product asks. It varies two- to three-fold across a single day and moves
- * with the hour of the draw; two readings three months apart differ mostly
- * because the two mornings differed. A quarterly instrument has to be built on
- * markers whose value at the moment of the draw is a summary of the months
- * before it, not a snapshot of that morning.
+ * Those were names for subjective experience, attached to measurements of
+ * biology. A reader shown "mood 54" believes their mood has been measured. It
+ * has not, and it cannot be: mood is reachable only by self-report or by
+ * behaviour. What the draw measured was the state of the systems that regulate
+ * mood — inflammation, substrate availability, the stress axis. Those dispose
+ * an experience; they do not record one. Naming them after the feeling was a
+ * category error, and it also blurred the axes into each other: "tension" and
+ * "stress load" were both the HPA axis, and "sleep" measured circadian phase
+ * with no actigraphy anywhere near it.
  *
- * So every index below is anchored on integrating markers:
- *   · methylation marks, which accumulate and decay over weeks to months
- *     (see epigenetics.js — hypothetical assays, flagged as such everywhere)
- *   · HbA1c, ~3 months of glucose
- *   · the omega-3 index, ~4 months of membrane turnover
- *   · ferritin, haemoglobin, vitamin D, RBC magnesium — weeks to months
+ * So each axis is now named for the system it actually interrogates, and the
+ * product says what it is doing: it measures the body that carries a mind, not
+ * the mind.
  *
- * Where a fast-moving plasma marker still earns a place (Kyn/Trp, overnight
- * melatonin, DHEA-S) it carries a small weight and never leads an index.
+ * WHY THE MARKERS CHANGED.
+ *
+ * The draw is monthly. A marker whose value takes ninety days to form cannot
+ * report a month — consecutive draws share two thirds of their window and the
+ * resulting line is smooth because of the assay, not because of the person.
+ * See data/window.js. Every index below is built from markers whose window
+ * fits inside the interval; the slower ones are still shown, but they carry
+ * zero weight and are labelled as context.
  *
  * IMPORTANT: an index is a description of biological load along a pathway,
  * not a diagnosis of a mental illness. Every string that renders one says so.
@@ -42,117 +47,97 @@ const m = (system, marker, weight, mechanismKey) => ({
 /**
  * `drivers` name the markers behind each index by system key and marker name,
  * so a rename in body.js fails loudly instead of silently scoring nothing.
+ * Drivers whose window exceeds the interval stay in the list on purpose — they
+ * are worth reading, they are simply not worth scoring this month, and
+ * `window.js` is what decides which is which.
  */
 export const SCALE_META = [
   {
-    key: "mood",
-    axisKey: "scale.mood",
-    icon: "mood",
-    // The pathway label shown instead of a questionnaire code.
-    code: "composite",
-    drivers: [
-      m("epigen", "cfDNA sgACC (SST-CpG)", 1.8, "mech.cfMood"),
-      m("epigen", "SLC6A4 promoter", 1.5, "mech.slc6a4"),
-      m("epigen", "BDNF promoter IV", 1.4, "mech.bdnfMeth"),
-      m("epigen", "DNAm inflammation", 1.2, "mech.dnamInflam"),
-      m("nutrition", "Omega-3 index", 0.9, "mech.omega3"),
-      m("nutrition", "Vitamin D", 0.7, "mech.vitaminD"),
-      m("neuro", "Kyn/Trp ratio", 0.5, "mech.tryptophan"),
-    ],
-  },
-  {
-    key: "tension",
-    axisKey: "scale.tension",
-    icon: "tension",
-    code: "composite",
-    drivers: [
-      m("epigen", "cfDNA amygdala (GAD1-CpG)", 1.8, "mech.cfTension"),
-      m("epigen", "FKBP5 intron 7", 1.5, "mech.fkbp5"),
-      m("epigen", "NR3C1 exon 1F", 1.3, "mech.nr3c1"),
-      m("epigen", "COMT Val158 CpG", 1.0, "mech.comt"),
-      m("epigen", "OXTR −934 CpG", 0.8, "mech.oxtr"),
-      m("nutrition", "Magnesium", 0.7, "mech.magnesium"),
-      m("endocrine", "DHEA-S", 0.5, "mech.dhea"),
-    ],
-  },
-  {
-    key: "stress",
-    axisKey: "scale.stress",
-    icon: "stress",
+    // Not how much stress there was — whether the axis still switches off.
+    key: "recovery",
+    axisKey: "scale.recovery",
+    icon: "recovery",
     code: "composite",
     drivers: [
       m("epigen", "cfDNA PVN (CRH-CpG)", 1.8, "mech.cfStress"),
-      m("epigen", "DNAm cortisol (90d)", 1.6, "mech.cortisolLoad"),
-      m("epigen", "NR3C1 exon 1F", 1.3, "mech.nr3c1"),
-      m("endocrine", "HbA1c", 1.0, "mech.glucose"),
-      m("epigen", "DunedinPACE", 0.9, "mech.pace"),
+      m("endocrine", "Cortisol:DHEA-S", 1.6, "mech.cortDhea"),
+      m("endocrine", "DHEA-S", 1.2, "mech.dhea"),
+      m("epigen", "FKBP5 intron 7", 1.0, "mech.fkbp5"),
+      m("epigen", "DNAm cortisol (90d)", 0.8, "mech.cortisolLoad"),
+    ],
+  },
+  {
+    // The most reproducible biological correlate of depression there is.
+    key: "inflammation",
+    axisKey: "scale.inflammation",
+    icon: "inflammation",
+    code: "composite",
+    drivers: [
+      m("epigen", "cfDNA sgACC (SST-CpG)", 1.6, "mech.cfMood"),
+      m("cardio", "hs-CRP", 1.5, "mech.crp"),
+      m("immune", "IL-6", 1.2, "mech.il6"),
+      m("neuro", "Kyn/Trp ratio", 1.2, "mech.tryptophan"),
+      m("immune", "Neutrophil:lymphocyte", 0.9, "mech.nlr"),
       m("epigen", "DNAm inflammation", 0.8, "mech.dnamInflam"),
     ],
   },
   {
-    key: "sleep",
-    axisKey: "scale.sleep",
-    icon: "sleep",
+    // Whether there is anything to build a neurotransmitter out of.
+    key: "substrate",
+    axisKey: "scale.substrate",
+    icon: "substrate",
     code: "composite",
     drivers: [
-      m("epigen", "cfDNA SCN (VIP-CpG)", 1.8, "mech.cfSleep"),
-      m("epigen", "PER2/CLOCK index", 1.6, "mech.circadian"),
-      m("epigen", "DNAm cortisol (90d)", 0.9, "mech.cortisolLoad"),
-      m("neuro", "6-sulfatoxymelatonin", 0.8, "mech.melatonin"),
-      m("nutrition", "Magnesium", 0.6, "mech.magnesium"),
+      m("neuro", "Free tryptophan", 1.4, "mech.tryptophanPool"),
+      m("nutrition", "Active B12 (holoTC)", 1.2, "mech.holotc"),
+      m("hematology", "Ferritin", 1.1, "mech.iron"),
+      m("nutrition", "Folate", 1.0, "mech.folate"),
+      m("nutrition", "Vitamin D", 1.0, "mech.vitaminD"),
+      m("nutrition", "Plasma omega-3", 1.0, "mech.omega3Plasma"),
+      m("epigen", "BDNF promoter IV", 0.8, "mech.bdnfMeth"),
+      m("epigen", "SLC6A4 promoter", 0.8, "mech.slc6a4"),
     ],
   },
   {
-    key: "energy",
-    axisKey: "scale.energy",
-    icon: "energy",
+    // Phase, not duration. Nothing here knows how long you slept.
+    key: "circadian",
+    axisKey: "scale.circadian",
+    icon: "circadian",
     code: "composite",
     drivers: [
-      m("epigen", "cfDNA oligodendrocyte (MBP-CpG)", 1.8, "mech.cfEnergy"),
-      m("hematology", "Ferritin", 1.3, "mech.iron"),
-      m("hematology", "Haemoglobin", 1.2, "mech.oxygen"),
-      m("endocrine", "Free T4", 1.0, "mech.thyroid"),
-      m("epigen", "DunedinPACE", 0.9, "mech.pace"),
-      m("nutrition", "Vitamin B12", 0.8, "mech.b12"),
-      m("epigen", "DNAmTL", 0.7, "mech.telomere"),
-      m("epigen", "DNAm inflammation", 0.7, "mech.dnamInflam"),
+      m("epigen", "cfDNA SCN (VIP-CpG)", 1.6, "mech.cfSleep"),
+      m("epigen", "PER2/CLOCK index", 1.5, "mech.circadian"),
+      m("neuro", "6-sulfatoxymelatonin", 1.5, "mech.melatonin"),
+      m("endocrine", "Cortisol awakening response", 1.4, "mech.car"),
+    ],
+  },
+  {
+    // Fuel and oxygen for the most expensive organ in the body.
+    key: "metabolic",
+    axisKey: "scale.metabolic",
+    icon: "metabolic",
+    code: "composite",
+    drivers: [
+      m("epigen", "cfDNA oligodendrocyte (MBP-CpG)", 1.6, "mech.cfEnergy"),
+      m("endocrine", "Fructosamine", 1.4, "mech.fructosamine"),
+      m("endocrine", "GDF-15", 1.2, "mech.gdf15"),
+      m("endocrine", "Free T4", 1.1, "mech.thyroid"),
+      m("hematology", "Haemoglobin", 1.1, "mech.oxygen"),
+      m("endocrine", "TSH", 0.9, "mech.tsh"),
+      m("epigen", "DunedinPACE", 0.7, "mech.pace"),
+      m("epigen", "DNAmTL", 0.6, "mech.telomere"),
     ],
   },
 ];
 
-/** True when an index is built mostly on markers that integrate over months. */
-export function cumulativeShare(meta) {
+/** What share of an index's weight comes from markers this cadence can read. */
+export function readableShare(meta) {
   const total = meta.drivers.reduce((n, d) => n + d.weight, 0);
-  const slow = meta.drivers
-    .filter((d) => integrates(d.system, d.marker))
+  const usable = meta.drivers
+    .filter((d) => indexWeight(findMarker(d.system, d.marker).marker))
     .reduce((n, d) => n + d.weight, 0);
-  return slow / total;
+  return usable / total;
 }
-
-/**
- * Does this marker summarise a span of time, or report the moment of the draw?
- *
- * Most of the methylation panel integrates over months. The cell-free DNA
- * markers do not — cfDNA clears in hours — so they are excluded here even
- * though they sit in the same panel. Asking `system === "epigen"` was the
- * shortcut that would have quietly mislabelled them.
- */
-function integrates(system, markerName) {
-  if (SLOW_BLOOD.has(markerName)) return true;
-  if (system !== "epigen") return false;
-  return !findMarker(system, markerName).marker.snapshot;
-}
-
-/** Blood markers whose value is already an average over weeks or months. */
-const SLOW_BLOOD = new Set([
-  "HbA1c",
-  "Omega-3 index",
-  "Ferritin",
-  "Haemoglobin",
-  "Vitamin D",
-  "Vitamin B12",
-  "Magnesium",
-]);
 
 /**
  * One marker's contribution, 0–1.
@@ -176,9 +161,14 @@ export function scaleIndex(meta, roundIndex) {
   let weight = 0;
   meta.drivers.forEach((d) => {
     const { panel, index, marker } = findMarker(d.system, d.marker);
+    // A marker whose window outruns the interval contributes nothing. At full
+    // weight it would anchor the score to a value that barely moves, damping
+    // exactly the monthly change the index exists to show — and invisibly.
+    const w = d.weight * indexWeight(marker);
+    if (!w) return;
     const value = valuesAt(panel, roundIndex)[index];
-    sum += markerLoad(marker, value) * d.weight;
-    weight += d.weight;
+    sum += markerLoad(marker, value) * w;
+    weight += w;
   });
   return Math.min(99, Math.max(1, Math.round((sum / weight) * 100)));
 }
@@ -200,8 +190,10 @@ export function scaleDrivers(meta, roundIndex) {
         systemKey: panel.key,
         systemNameKey: panel.nameKey,
         mechanismKey: d.mechanismKey,
-        // Methylation markers integrate; plasma markers mostly do not.
-        cumulative: integrates(d.system, d.marker),
+        // 'independent' | 'overlapping' | 'context' — drives both the sheet's
+        // grouping and whether this counted toward the score.
+        sampling: sampling(marker),
+        counted: indexWeight(marker) > 0,
         // Contribution to the index, so the ordering reflects the weighting.
         contribution: load * d.weight,
         pushesUp: load > 0.5,

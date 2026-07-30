@@ -107,24 +107,45 @@ export default function TrendChart({
         ))}
       </svg>
 
+      {/* Twelve monthly draws will not fit twelve values and twelve labels
+          across 340px — at that density the numbers collide and the labels
+          wrap mid-word. Past eight points only the selected round and the two
+          ends are named, and every other value is printed. The line already
+          carries the shape; this row exists to anchor it. */}
       <div style={{ display: "flex", marginTop: 5 }}>
-        {series.map((v, i) => (
-          <div key={labels[i]} style={{ flex: 1, textAlign: "center" }}>
-            <div
-              style={{
-                ...T.num,
-                fontSize: 13,
-                fontWeight: 600,
-                color: tr.selX === i ? C.ink : C.faintest,
-              }}
-            >
-              {formatValue(v)}
+        {series.map((v, i) => {
+          const dense = series.length > 8;
+          const showValue =
+            !dense || i === tr.selX || i === 0 || i === series.length - 1 || i % 2 === 1;
+          const showLabel =
+            !dense || i === tr.selX || i === 0 || i === series.length - 1;
+          return (
+            <div key={labels[i]} style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
+              <div
+                style={{
+                  ...T.num,
+                  fontSize: dense ? 11 : 13,
+                  fontWeight: 600,
+                  color: tr.selX === i ? C.ink : C.faintest,
+                  opacity: showValue ? 1 : 0,
+                }}
+              >
+                {formatValue(v)}
+              </div>
+              <div
+                style={{
+                  ...T.micro,
+                  color: C.faintest,
+                  marginTop: 2,
+                  whiteSpace: "nowrap",
+                  opacity: showLabel ? 1 : 0,
+                }}
+              >
+                {labels[i]}
+              </div>
             </div>
-            <div style={{ ...T.micro, color: C.faintest, marginTop: 2 }}>
-              {labels[i]}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {options && (

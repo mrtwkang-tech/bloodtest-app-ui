@@ -31,6 +31,7 @@ const PLAIN = {
   S100B: "pn.s100b",
   "Kyn/Trp ratio": "pn.kyntrp",
   BDNF: "pn.bdnf",
+  "Free tryptophan": "pn.tryptophan",
   "6-sulfatoxymelatonin": "pn.melatonin",
 
   // Heart and vessels
@@ -46,6 +47,10 @@ const PLAIN = {
 
   // Hormones and metabolism
   HbA1c: "pn.hba1c",
+  Fructosamine: "pn.fructosamine",
+  "Cortisol:DHEA-S": "pn.cortDhea",
+  "Cortisol awakening response": "pn.car",
+  "GDF-15": "pn.gdf15",
   "Fasting glucose": "pn.glucose",
   "Fasting insulin": "pn.insulin",
   "HOMA-IR": "pn.homair",
@@ -81,6 +86,7 @@ const PLAIN = {
 
   // Lungs and allergy
   Eosinophils: "pn.eosinophils",
+  "Neutrophil:lymphocyte": "pn.nlr",
   "Total IgE": "pn.ige",
   "α1-antitrypsin": "pn.a1at",
   "SpO₂": "pn.spo2",
@@ -105,6 +111,8 @@ const PLAIN = {
   // Nutrition
   "Vitamin D": "pn.vitd",
   "Vitamin B12": "pn.b12",
+  "Active B12 (holoTC)": "pn.holotc",
+  "Plasma omega-3": "pn.omega3p",
   Folate: "pn.folate",
   Iron: "pn.iron",
   Magnesium: "pn.magnesium",

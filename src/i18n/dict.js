@@ -109,8 +109,7 @@ export const en = {
   "round.newer": "Later round",
   // Mind
   "mind.title": "Mind",
-  "mind.subtitle":
-    "Five readings — what has built up, and what is happening now",
+  "mind.subtitle": "The five systems that hold a mind up",
   "mind.summary": "Summary",
   "mind.allGood": "All five scales are in range",
   "mind.someGood": ({ ok }) => `${ok} of 5 scales in range`,
@@ -133,21 +132,51 @@ export const en = {
     "This is a screening result, not a diagnosis. If things stay hard, contact a clinician or a crisis line.",
   // Scales
   // Mind indices — derived from blood, not a questionnaire
-  "scale.mood": "Mood",
-  "scale.tension": "Tension",
-  "scale.stress": "Stress load",
-  "scale.sleep": "Sleep",
-  "scale.energy": "Energy",
-  "scale.mood.base":
-    "How far your serotonin and plasticity genes have been dialled down, and the raw material left to work with.",
-  "scale.tension.base":
-    "How worn the brake on your stress response is, after the months behind you.",
-  "scale.stress.base":
-    "Accumulated stress-hormone exposure, read from the marks it left rather than from this morning's level.",
-  "scale.sleep.base":
-    "How far your body clock has drifted — measured over weeks, not from one night's sleep.",
-  "scale.energy.base":
-    "Whether your blood can actually deliver oxygen and fuel to working cells.",
+  "scale.recovery": "Stress recovery",
+  "scale.inflammation": "Inflammatory load",
+  "scale.substrate": "Neural raw material",
+  "scale.circadian": "Body-clock alignment",
+  "scale.metabolic": "Metabolic headroom",
+  "scale.recovery.base":
+    "Whether the stress axis still switches off, not how much stress there was.",
+  "scale.inflammation.base":
+    "How switched-on the immune system is — the most reproducible biological correlate of low mood there is.",
+  "scale.substrate.base":
+    "Whether the raw material for neurotransmitters and nerve growth is there to use.",
+  "scale.circadian.base":
+    "How closely your body clock is running with the outside day. Timing, not duration — nothing here knows how long you slept.",
+  "scale.metabolic.base":
+    "Fuel and oxygen for the most expensive organ you own.",
+  "win.now": "this draw",
+  "win.days": "a few days",
+  "win.weeks": "2–3 weeks",
+  "win.month": "about a month",
+  "win.months": "several months",
+  "win.year": "about a year",
+  "mind.counted": "Counted this month",
+  "mind.contextGroup": "Too slow to read a month from",
+  "mind.contextNote":
+    "These take longer to form than the gap between draws, so this month cannot be read from them. Shown for where you stand overall.",
+  "mech.cortDhea":
+    "The balance between the hormone that breaks tissue down and the one that builds it back. A ratio, because both move with the hour of the draw and dividing cancels some of that.",
+  "mech.crp": "The general-purpose inflammation signal. Days, not months.",
+  "mech.il6": "An upstream inflammatory messenger that acts directly on the brain.",
+  "mech.nlr":
+    "The balance of two white cell types, straight off the differential. Rises with sustained stress and inflammation.",
+  "mech.tryptophanPool":
+    "The raw material itself. The Kyn/Trp ratio says how much is being diverted; this says how much there was to divert.",
+  "mech.holotc":
+    "The fraction of B12 a cell can actually take up. Total B12 stays normal long after the usable pool has fallen.",
+  "mech.folate": "Needed to build and recycle neurotransmitters.",
+  "mech.omega3Plasma":
+    "The plasma fraction, which answers in three weeks what the red-cell index takes four months to say.",
+  "mech.car":
+    "The rise in the half hour after waking. A phase marker — it says where your clock is, not how high your cortisol runs.",
+  "mech.fructosamine":
+    "Two to three weeks of blood sugar, where HbA1c is a hundred days. Same question, a window a monthly draw can see move.",
+  "mech.gdf15":
+    "Rises when cells are under metabolic strain. Tracks fatigue better than anything else that comes out of a tube.",
+  "mech.tsh": "The signal the brain sends when it wants more thyroid hormone.",
   // The methylation panel — plain names, technical loci, and what each one
   // integrates over. The window is the reason each marker is here.
   "sys.epigen": "Methylation panel",
@@ -182,6 +211,14 @@ export const en = {
   "pn.bnp": "Strain on the heart",
   "pn.troponin": "Heart-muscle damage",
   "pn.hba1c": "Three-month average blood sugar",
+  "pn.fructosamine": "Three-week average blood sugar",
+  "pn.cortDhea": "Stress hormone balance",
+  "pn.car": "Morning clock signal",
+  "pn.gdf15": "Cellular strain",
+  "pn.nlr": "White-cell balance",
+  "pn.tryptophan": "Mood raw material",
+  "pn.holotc": "Usable vitamin B12",
+  "pn.omega3p": "Omega-3 in plasma",
   "pn.glucose": "Fasting blood sugar",
   "pn.insulin": "Fasting insulin",
   "pn.homair": "How poorly insulin is working",
@@ -232,7 +269,6 @@ export const en = {
   "pn.magnesium": "Magnesium",
   "pn.zinc": "Zinc",
   "pn.omega3": "Omega-3 index",
-  "epi.window.now": "what is happening now",
   "epi.cfMood": "Mood-circuit activity",
   "epi.cfTension": "Threat-circuit activity",
   "epi.cfStress": "Stress-switch activity",
@@ -248,16 +284,9 @@ export const en = {
     "Fragments from the pacemaker cells that set the body clock. They turn over faster when the clock is being pushed against.",
   "mech.cfEnergy":
     "Fragments from the cells that maintain the brain's insulation. Keeping it in repair is expensive, and it is the first upkeep a tired brain lets slide.",
-  "epi.window.weeks": "averages ~3 weeks",
-  "epi.window.90d": "averages ~90 days",
-  "epi.window.months": "averages 2–4 months",
-  "epi.window.year": "averages ~1 year",
-  "epi.window": "Averaging window",
   "epi.badge": "Research panel",
   "epi.hypothetical":
     "These assays are hypothetical. The loci are real and studied in stress biology; the tests and reference values are not clinically validated.",
-  "mind.cumulativeTag": "cumulative",
-  "mind.snapshotTag": "snapshot",
   "mech.cortisolLoad":
     "The mark that months of stress hormone left on your genes. Unlike a blood cortisol, it cannot be moved by one bad morning.",
   "mech.nr3c1":
@@ -323,7 +352,7 @@ export const en = {
   "mind.vsPeer.aboveAvg": "A little above the peer average",
   "mind.vsPeer.high": "Clearly above the peer average",
   "mind.cadenceNote":
-    "Each reading looks at two things at once: what has built up over the past months, and what that part of you is doing right now.",
+    "None of these is a measure of how you feel — feelings are not in blood. They are the state of the systems that regulate how you feel.",
   "mind.notDiagnosis":
     "These indices describe biological load along a pathway. They are not a diagnosis of any mental health condition.",
   "mind.showMarkers": "Show markers",
@@ -687,7 +716,7 @@ export const ko = {
   "round.older": "이전 회차",
   "round.newer": "다음 회차",
   "mind.title": "마음",
-  "mind.subtitle": "몸에 쌓인 흔적과 지금 벌어지는 일로 읽은 다섯 가지",
+  "mind.subtitle": "마음을 떠받치는 다섯 가지 조절계",
   "mind.summary": "종합",
   "mind.allGood": "5개 척도 모두 정상 범위",
   "mind.someGood": ({ ok }) => `5개 중 ${ok}개 정상 범위`,
@@ -709,21 +738,51 @@ export const ko = {
   "mind.crisis":
     "선별검사 결과이며 의학적 진단이 아닙니다. 힘든 상태가 이어진다면 정신건강상담전화 1577-0199 또는 의료기관을 이용하세요.",
   // 마음 지수 — 설문이 아니라 혈액에서 유도
-  "scale.mood": "기분",
-  "scale.tension": "긴장",
-  "scale.stress": "스트레스 부하",
-  "scale.sleep": "수면",
-  "scale.energy": "에너지",
-  "scale.mood.base":
-    "세로토닌과 가소성 유전자가 얼마나 잠겼는지, 그리고 쓸 재료가 얼마나 남았는지를 봅니다.",
-  "scale.tension.base":
-    "지나온 몇 달을 거치며 스트레스 반응의 브레이크가 얼마나 닳았는지를 봅니다.",
-  "scale.stress.base":
-    "오늘 아침 수치가 아니라, 누적된 스트레스 호르몬 노출이 남긴 흔적을 읽습니다.",
-  "scale.sleep.base":
-    "생체시계가 얼마나 어긋났는지를 봅니다. 하룻밤이 아니라 몇 주치입니다.",
-  "scale.energy.base":
-    "혈액이 실제로 산소와 연료를 세포까지 나르고 있는지를 봅니다.",
+  "scale.recovery": "스트레스 회복력",
+  "scale.inflammation": "염증 부담",
+  "scale.substrate": "신경 재료",
+  "scale.circadian": "생체리듬 정렬",
+  "scale.metabolic": "대사 여력",
+  "scale.recovery.base":
+    "스트레스를 얼마나 받았는지가 아니라, 켜진 스트레스 축이 다시 꺼지는지를 봅니다.",
+  "scale.inflammation.base":
+    "면역계가 얼마나 켜져 있는지를 봅니다. 기분 저하와 가장 재현성 높은 생물학적 상관입니다.",
+  "scale.substrate.base":
+    "신경전달물질과 신경 성장에 쓸 원료가 남아 있는지를 봅니다.",
+  "scale.circadian.base":
+    "몸의 시계가 바깥 낮밤과 얼마나 맞는지를 봅니다. 얼마나 잤는지가 아니라 언제 자는지입니다 — 여기 있는 어떤 검사도 수면 시간을 알지 못합니다.",
+  "scale.metabolic.base":
+    "몸에서 가장 비싼 장기가 쓸 연료와 산소가 있는지를 봅니다.",
+  "win.now": "이번 채혈",
+  "win.days": "며칠",
+  "win.weeks": "2~3주",
+  "win.month": "약 한 달",
+  "win.months": "여러 달",
+  "win.year": "약 1년",
+  "mind.counted": "이번 달에 반영된 항목",
+  "mind.contextGroup": "이번 달 변화를 읽을 수 없는 항목",
+  "mind.contextNote":
+    "값이 만들어지는 데 채혈 간격보다 오래 걸립니다. 그래서 이번 달만 떼어 읽을 수 없고, 지금 어디쯤인지를 보는 용도로만 씁니다.",
+  "mech.cortDhea":
+    "조직을 분해하는 호르몬과 다시 쌓는 호르몬의 균형입니다. 둘 다 채혈 시각에 따라 움직이기 때문에, 나눠서 그 영향을 일부 상쇄한 비율로 봅니다.",
+  "mech.crp": "가장 널리 쓰이는 염증 신호입니다. 몇 달이 아니라 며칠 단위로 움직입니다.",
+  "mech.il6": "뇌에 직접 작용하는 상류 염증 전달물질입니다.",
+  "mech.nlr":
+    "백혈구 두 종류의 균형입니다. 혈액검사에서 그냥 나오고, 스트레스와 염증이 이어지면 올라갑니다.",
+  "mech.tryptophanPool":
+    "재료 그 자체입니다. Kyn/Trp 비가 얼마나 새는지를 본다면, 이건 샐 재료가 얼마나 있었는지를 봅니다.",
+  "mech.holotc":
+    "세포가 실제로 가져다 쓸 수 있는 B12 분획입니다. 총 B12는 쓸 수 있는 양이 떨어진 뒤에도 한참 정상으로 나옵니다.",
+  "mech.folate": "신경전달물질을 만들고 재활용하는 데 필요합니다.",
+  "mech.omega3Plasma":
+    "혈장 분획입니다. 적혈구 지수가 넉 달 걸려 말하는 것을 3주 만에 말합니다.",
+  "mech.car":
+    "기상 후 30분 동안의 상승폭입니다. 코르티솔이 얼마나 높은지가 아니라 시계가 어디에 있는지를 알려주는 위상 지표입니다.",
+  "mech.fructosamine":
+    "2~3주치 혈당입니다. 당화혈색소가 100일인 것과 달리, 한 달에 한 번 재도 움직임이 보이는 창입니다.",
+  "mech.gdf15":
+    "세포가 대사적으로 힘들 때 올라갑니다. 채혈로 나오는 것 중 피로를 가장 잘 따라갑니다.",
+  "mech.tsh": "갑상선 호르몬이 더 필요할 때 뇌가 보내는 신호입니다.",
   // 메틸화 패널
   "sys.epigen": "메틸화 패널",
   "spec.epigen": "정신건강의학과 · 진단검사의학과",
@@ -757,6 +816,14 @@ export const ko = {
   "pn.bnp": "심장이 받는 부담",
   "pn.troponin": "심장근육 손상",
   "pn.hba1c": "3개월 평균 혈당",
+  "pn.fructosamine": "3주 평균 혈당",
+  "pn.cortDhea": "스트레스 호르몬 균형",
+  "pn.car": "아침 시계 신호",
+  "pn.gdf15": "세포가 받는 부담",
+  "pn.nlr": "백혈구 균형",
+  "pn.tryptophan": "기분의 원료",
+  "pn.holotc": "쓸 수 있는 비타민 B12",
+  "pn.omega3p": "혈장 오메가-3",
   "pn.glucose": "공복 혈당",
   "pn.insulin": "공복 인슐린",
   "pn.homair": "인슐린이 잘 안 듣는 정도",
@@ -807,7 +874,6 @@ export const ko = {
   "pn.magnesium": "마그네슘",
   "pn.zinc": "아연",
   "pn.omega3": "오메가-3 지수",
-  "epi.window.now": "지금 벌어지는 일",
   "epi.cfMood": "기분 회로가 쓰인 정도",
   "epi.cfTension": "경계 회로가 쓰인 정도",
   "epi.cfStress": "스트레스 스위치가 쓰인 정도",
@@ -823,16 +889,9 @@ export const ko = {
     "생체시계의 박자를 만드는 세포에서 나온 조각입니다. 시계를 거슬러 살면 이 세포들이 더 빨리 교체됩니다.",
   "mech.cfEnergy":
     "뇌의 신경 절연을 정비하는 세포에서 나온 조각입니다. 정비에는 에너지가 많이 들고, 지친 뇌가 가장 먼저 미루는 일이기도 합니다.",
-  "epi.window.weeks": "약 3주 평균",
-  "epi.window.90d": "약 90일 평균",
-  "epi.window.months": "2~4개월 평균",
-  "epi.window.year": "약 1년 평균",
-  "epi.window": "평균 구간",
   "epi.badge": "연구 패널",
   "epi.hypothetical":
     "이 검사들은 가정입니다. 유전자 자리는 실재하지만 검사법과 기준치는 임상 검증된 것이 아닙니다.",
-  "mind.cumulativeTag": "누적",
-  "mind.snapshotTag": "순간값",
   "mech.cortisolLoad":
     "몇 달치 스트레스 호르몬이 유전자에 남긴 흔적입니다. 혈중 코르티솔과 달리 하루 컨디션으로는 움직이지 않습니다.",
   "mech.nr3c1":
@@ -894,7 +953,7 @@ export const ko = {
   "mind.vsPeer.aboveAvg": "또래보다 조금 높습니다",
   "mind.vsPeer.high": "또래보다 뚜렷하게 높습니다",
   "mind.cadenceNote":
-    "각 항목은 두 가지를 함께 봅니다. 지난 몇 달 몸에 쌓인 흔적과, 지금 그 부위에서 벌어지고 있는 일입니다.",
+    "여기 있는 어떤 항목도 기분을 재지 않습니다. 기분은 피에 없습니다. 재는 것은 기분을 조절하는 몸의 상태입니다.",
   "mind.notDiagnosis":
     "이 지수는 특정 경로의 생물학적 부하를 설명합니다. 정신질환의 진단이 아닙니다.",
   "mind.showMarkers": "수치 보기",

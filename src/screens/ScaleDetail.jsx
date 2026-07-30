@@ -5,6 +5,7 @@ import { C, DIVIDER_TOP, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { plainKeyOf } from "../data/plainNames";
 import { SCALE_META, scaleDrivers } from "../data/scales";
+import { windowKeyOf } from "../data/window";
 import { SESSIONS } from "../data/sessions";
 import { useT } from "../i18n";
 
@@ -29,6 +30,11 @@ export default function ScaleDetail({ scaleKey, sel }) {
   const index = session.indices[i];
   const status = session.status[i];
   const drivers = scaleDrivers(meta, session.roundIndex);
+  // The window rule, made visible. A marker slower than the interval is still
+  // worth reading — it just cannot say what changed this month, and the sheet
+  // is the place to be honest about which is which.
+  const counted = drivers.filter((d) => d.counted);
+  const context = drivers.filter((d) => !d.counted);
 
   return (
     <div>
@@ -97,15 +103,21 @@ export default function ScaleDetail({ scaleKey, sel }) {
         {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
       </p>
 
+      {context.length > 0 && (
+        <div style={{ ...T.label, color: C.faint, marginTop: 20 }}>
+          {t("mind.counted")}
+        </div>
+      )}
+
       <div
         style={{
           display: "flex",
           flexDirection: "column",
           gap: 14,
-          marginTop: 18,
+          marginTop: context.length > 0 ? 10 : 18,
         }}
       >
-        {drivers.map((d) => (
+        {counted.map((d) => (
           <div key={d.marker.name}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
               <Dot
@@ -149,13 +161,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
             >
               <span>{d.marker.name}</span>
               <span style={{ opacity: 0.45 }}>·</span>
-              <span>
-                {d.marker.windowKey
-                  ? t(d.marker.windowKey)
-                  : d.cumulative
-                    ? t("mind.cumulativeTag")
-                    : t("mind.snapshotTag")}
-              </span>
+              <span>{t(windowKeyOf(d.marker))}</span>
             </div>
             <Clamp lines={2} tone={C.faint} style={{ margin: "5px 0 0 13px" }}>
               {t(d.mechanismKey)}
@@ -163,6 +169,69 @@ export default function ScaleDetail({ scaleKey, sel }) {
           </div>
         ))}
       </div>
+
+      {context.length > 0 && (
+        <div style={{ marginTop: 22, paddingTop: 16, boxShadow: DIVIDER_TOP }}>
+          <div style={{ ...T.label, color: C.faint }}>
+            {t("mind.contextGroup")}
+          </div>
+          <p
+            style={{
+              ...T.caption,
+              color: C.faintest,
+              margin: "6px 0 0",
+              textWrap: "pretty",
+            }}
+          >
+            {t("mind.contextNote")}
+          </p>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+              marginTop: 14,
+            }}
+          >
+            {context.map((d) => (
+              <div key={d.marker.name}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                  <span style={{ ...T.label, color: C.muted }}>
+                    {plainKeyOf(d.marker)
+                      ? t(plainKeyOf(d.marker))
+                      : d.marker.name}
+                  </span>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      ...T.num,
+                      fontSize: 12,
+                      color: C.faint,
+                    }}
+                  >
+                    {formatValue(d.value, d.marker.dp)}
+                  </span>
+                  <span
+                    style={{
+                      ...T.unit,
+                      color: C.faintest,
+                      width: 56,
+                      textAlign: "right",
+                    }}
+                  >
+                    {d.marker.unit || "—"}
+                  </span>
+                </div>
+                <div
+                  style={{ ...T.micro, color: C.faintest, marginTop: 3 }}
+                >
+                  {d.marker.name} · {t(windowKeyOf(d.marker))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

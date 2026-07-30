@@ -30,7 +30,7 @@ export const COMPOSITION = [
     nameKey: "ib.weight",
     unit: "kg",
     dp: 1,
-    demo: [74.8, 75.1, 75.4, 75.0, 74.2, 72.6],
+    demo: [74.8, 74.8, 74.9, 75.2, 75.2, 75.2, 75.3, 74.7, 74.3, 74.1, 73.3, 72.6],
     band: null,
   },
   {
@@ -38,7 +38,7 @@ export const COMPOSITION = [
     nameKey: "ib.smm",
     unit: "kg",
     dp: 1,
-    demo: [33.1, 33.6, 34.0, 33.8, 33.2, 32.4],
+    demo: [33.1, 33.2, 33.5, 33.7, 33.9, 34, 33.8, 33.7, 33.4, 33, 32.7, 32.4],
     band: { low: 30, high: 38 },
     dir: "low",
   },
@@ -47,7 +47,7 @@ export const COMPOSITION = [
     nameKey: "ib.bodyFat",
     unit: "%",
     dp: 1,
-    demo: [23.4, 22.1, 20.8, 21.2, 21.8, 22.6],
+    demo: [23.4, 22.7, 22.2, 21.7, 21.1, 20.8, 21, 21.3, 21.4, 21.8, 22.2, 22.6],
     band: { low: 10, high: 20 },
     dir: "high",
   },
@@ -56,7 +56,7 @@ export const COMPOSITION = [
     nameKey: "ib.visceral",
     unit: "cm²",
     dp: 0,
-    demo: [96, 89, 82, 85, 88, 91],
+    demo: [96, 93, 90, 87, 83, 82, 83, 86, 86, 89, 89, 91],
     band: { low: 0, high: 100 },
     dir: "high",
   },
@@ -65,7 +65,7 @@ export const COMPOSITION = [
     nameKey: "ib.bmr",
     unit: "kcal",
     dp: 0,
-    demo: [1618, 1634, 1642, 1636, 1620, 1598],
+    demo: [1618, 1623, 1631, 1637, 1639, 1641, 1639, 1634, 1623, 1617, 1610, 1598],
     band: null,
   },
   {
@@ -73,7 +73,7 @@ export const COMPOSITION = [
     nameKey: "ib.ecwTbw",
     unit: "ratio",
     dp: 3,
-    demo: [0.379, 0.378, 0.379, 0.381, 0.384, 0.389],
+    demo: [0.379, 0.378, 0.378, 0.378, 0.379, 0.38, 0.38, 0.382, 0.383, 0.385, 0.387, 0.389],
     band: { low: 0.36, high: 0.39 },
     dir: "high",
   },
@@ -82,7 +82,7 @@ export const COMPOSITION = [
     nameKey: "ib.phaseAngle",
     unit: "°",
     dp: 1,
-    demo: [5.6, 5.7, 5.8, 5.7, 5.5, 5.2],
+    demo: [5.6, 5.6, 5.7, 5.8, 5.7, 5.8, 5.7, 5.6, 5.6, 5.5, 5.3, 5.2],
     band: { low: 5.0, high: 8.0 },
     dir: "low",
   },
@@ -90,11 +90,11 @@ export const COMPOSITION = [
 
 /** Segmental lean mass, as a percentage of the expected value for this body. */
 export const SEGMENTS = [
-  { key: "armL", nameKey: "ib.armL", demo: [92, 94, 96, 95, 94, 92] },
-  { key: "armR", nameKey: "ib.armR", demo: [95, 97, 99, 98, 97, 95] },
-  { key: "trunk", nameKey: "ib.trunk", demo: [101, 103, 104, 103, 102, 100] },
-  { key: "legL", nameKey: "ib.legL", demo: [97, 99, 100, 99, 98, 96] },
-  { key: "legR", nameKey: "ib.legR", demo: [98, 100, 101, 100, 100, 98] },
+  { key: "armL", nameKey: "ib.armL", demo: [92, 93, 94, 95, 95, 96, 96, 95, 94, 94, 93, 92] },
+  { key: "armR", nameKey: "ib.armR", demo: [95, 96, 97, 98, 99, 99, 98, 98, 97, 97, 96, 95] },
+  { key: "trunk", nameKey: "ib.trunk", demo: [101, 102, 103, 104, 104, 103, 103, 103, 103, 102, 101, 100] },
+  { key: "legL", nameKey: "ib.legL", demo: [97, 98, 99, 99, 100, 100, 99, 99, 98, 98, 97, 96] },
+  { key: "legR", nameKey: "ib.legR", demo: [98, 99, 100, 100, 101, 101, 100, 100, 100, 100, 99, 98] },
 ];
 
 export function compositionAt(roundIndex) {
