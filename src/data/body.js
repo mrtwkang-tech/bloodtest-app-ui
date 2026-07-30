@@ -4,18 +4,64 @@ import { C } from "../tokens";
  * Body screening, organised the way a referral is: one system per medical
  * specialty, so a flagged result maps to a clinic you can actually book.
  *
- * Each marker carries its own three-round demo series, so a value and the
- * reference it is judged against never drift apart in separate files.
+ * SIX rounds at three-month intervals. That span is the point of the product:
+ * a single draw can only ask "is this value in range?", while six of them from
+ * the same body can ask "which way is it moving, and how fast?". The liver
+ * series below is written to demonstrate exactly that — see ROUNDS.
  *
- * `dir` is the direction of harm. Most markers are 'high' (over the reference
- * is bad); HDL, eGFR, haemoglobin and the vitamins are 'low' (under the
- * reference is bad). Everything downstream reads `dir` rather than assuming.
+ * Markers either carry an explicit `demo` series (the ones that carry a
+ * narrative) or a `base`/`spread` pair, from which a deterministic walk fills
+ * six plausible readings. Deterministic so the demo does not shuffle on
+ * reload.
+ *
+ * `dir` is the direction of harm. Most markers are 'high'; HDL, eGFR,
+ * haemoglobin and the vitamins are 'low'. Everything downstream reads `dir`.
  */
+
+export const ROUNDS = 6;
+
+/** FNV-1a, so a marker's series depends only on its name. */
+function hash(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** A gently mean-reverting walk around `base`. */
+function walk(name, base, spread) {
+  let h = hash(name);
+  let v = base;
+  const out = [];
+  for (let i = 0; i < ROUNDS; i++) {
+    h = (Math.imul(h, 1103515245) + 12345) >>> 0;
+    const u = ((h >>> 16) & 0xffff) / 0xffff - 0.5;
+    v = base + (v - base) * 0.45 + u * spread;
+    out.push(v);
+  }
+  return out;
+}
+
+/** Fills in `demo` for any marker that only declared a base. */
+function withSeries(system) {
+  return {
+    ...system,
+    markers: system.markers.map((m) => {
+      const demo = m.demo ?? walk(`${system.key}:${m.name}`, m.base, m.spread);
+      if (demo.length !== ROUNDS) {
+        throw new Error(`${system.key}/${m.name}: expected ${ROUNDS} readings, got ${demo.length}`);
+      }
+      return { ...m, demo };
+    }),
+  };
+}
 
 /** Level 0/1/2 → i18n key. Colours live in tokens.js. */
 export const BODY_STATUS_KEY = ["body.clear", "body.watch", "body.consult"];
 
-export const SYSTEMS = [
+const RAW_SYSTEMS = [
   {
     key: "neuro",
     nameKey: "sys.neuro",
@@ -29,7 +75,7 @@ export const SYSTEMS = [
         ref: 0.4,
         max: 1.2,
         dp: 2,
-        demo: [0.21, 0.19, 0.18],
+        base: 0.1933, spread: 0.033,
       },
       {
         name: "NfL",
@@ -37,7 +83,7 @@ export const SYSTEMS = [
         ref: 15,
         max: 40,
         dp: 1,
-        demo: [10.4, 9.8, 9.2],
+        base: 9.8, spread: 1.32,
       },
       {
         name: "GFAP",
@@ -45,7 +91,7 @@ export const SYSTEMS = [
         ref: 130,
         max: 300,
         dp: 0,
-        demo: [88, 82, 78],
+        base: 82.6667, spread: 11.0,
       },
       {
         name: "Aβ42/40",
@@ -54,7 +100,7 @@ export const SYSTEMS = [
         max: 0.12,
         dp: 3,
         dir: "low",
-        demo: [0.081, 0.084, 0.086],
+        base: 0.0837, spread: 0.0055,
       },
       {
         name: "α-synuclein",
@@ -62,7 +108,7 @@ export const SYSTEMS = [
         ref: 1.6,
         max: 4,
         dp: 2,
-        demo: [0.9, 0.88, 0.91],
+        base: 0.8967, spread: 0.0592,
       },
       {
         name: "S100B",
@@ -70,7 +116,7 @@ export const SYSTEMS = [
         ref: 0.1,
         max: 0.3,
         dp: 2,
-        demo: [0.06, 0.06, 0.05],
+        base: 0.0567, spread: 0.011,
       },
       {
         name: "Kyn/Trp ratio",
@@ -78,7 +124,7 @@ export const SYSTEMS = [
         ref: 30,
         max: 80,
         dp: 1,
-        demo: [34.6, 28.1, 33.2],
+        demo: [34.6, 30.2, 28.1, 29.4, 31.6, 33.2],
       },
       {
         name: "BDNF",
@@ -87,7 +133,7 @@ export const SYSTEMS = [
         max: 45,
         dp: 1,
         dir: "low",
-        demo: [17.2, 22.4, 19.1],
+        demo: [17.2, 20.8, 22.4, 21.6, 20.2, 19.1],
       },
       {
         name: "6-sulfatoxymelatonin",
@@ -96,7 +142,7 @@ export const SYSTEMS = [
         max: 40,
         dp: 1,
         dir: "low",
-        demo: [9.4, 14.2, 12.8],
+        demo: [9.4, 12.6, 14.2, 13.8, 13.1, 12.8],
       },
     ],
   },
@@ -113,7 +159,7 @@ export const SYSTEMS = [
         ref: 1.0,
         max: 5,
         dp: 1,
-        demo: [1.2, 0.8, 0.7],
+        demo: [1.2, 0.9, 0.8, 0.7, 0.8, 0.7],
       },
       {
         name: "LDL-C",
@@ -121,7 +167,7 @@ export const SYSTEMS = [
         ref: 130,
         max: 200,
         dp: 0,
-        demo: [142, 121, 108],
+        demo: [142, 131, 121, 114, 110, 108],
       },
       {
         name: "HDL-C",
@@ -130,7 +176,7 @@ export const SYSTEMS = [
         max: 100,
         dp: 0,
         dir: "low",
-        demo: [44, 52, 55],
+        demo: [44, 48, 52, 54, 54, 55],
       },
       {
         name: "Triglycerides",
@@ -138,7 +184,7 @@ export const SYSTEMS = [
         ref: 150,
         max: 300,
         dp: 0,
-        demo: [162, 134, 121],
+        demo: [162, 148, 134, 126, 123, 121],
       },
       {
         name: "ApoB",
@@ -146,7 +192,7 @@ export const SYSTEMS = [
         ref: 90,
         max: 160,
         dp: 0,
-        demo: [104, 86, 84],
+        demo: [104, 95, 86, 85, 84, 84],
       },
       {
         name: "Lp(a)",
@@ -154,7 +200,7 @@ export const SYSTEMS = [
         ref: 50,
         max: 150,
         dp: 0,
-        demo: [26, 24, 22],
+        base: 24.0, spread: 4.4,
       },
       {
         name: "Homocysteine",
@@ -162,7 +208,7 @@ export const SYSTEMS = [
         ref: 15,
         max: 30,
         dp: 1,
-        demo: [10.2, 9.4, 9.1],
+        base: 9.5667, spread: 1.21,
       },
       {
         name: "NT-proBNP",
@@ -170,7 +216,7 @@ export const SYSTEMS = [
         ref: 125,
         max: 400,
         dp: 0,
-        demo: [48, 44, 41],
+        base: 44.3333, spread: 7.7,
       },
       {
         name: "Troponin-I",
@@ -178,7 +224,7 @@ export const SYSTEMS = [
         ref: 15,
         max: 50,
         dp: 1,
-        demo: [2.1, 1.9, 1.8],
+        base: 1.9333, spread: 0.33,
       },
     ],
   },
@@ -195,7 +241,7 @@ export const SYSTEMS = [
         ref: 5.7,
         max: 9,
         dp: 1,
-        demo: [5.4, 5.5, 5.9],
+        demo: [5.4, 5.4, 5.5, 5.6, 5.7, 5.9],
       },
       {
         name: "Fasting glucose",
@@ -203,7 +249,7 @@ export const SYSTEMS = [
         ref: 100,
         max: 180,
         dp: 0,
-        demo: [92, 94, 104],
+        demo: [92, 93, 94, 98, 101, 104],
       },
       {
         name: "Fasting insulin",
@@ -211,7 +257,7 @@ export const SYSTEMS = [
         ref: 12,
         max: 30,
         dp: 1,
-        demo: [7.8, 8.1, 9.6],
+        demo: [7.8, 7.9, 8.1, 8.6, 9.1, 9.6],
       },
       {
         name: "HOMA-IR",
@@ -219,7 +265,7 @@ export const SYSTEMS = [
         ref: 2.5,
         max: 6,
         dp: 1,
-        demo: [1.7, 1.8, 2.2],
+        base: 1.9, spread: 0.55,
       },
       {
         name: "TSH",
@@ -227,7 +273,7 @@ export const SYSTEMS = [
         ref: 4.0,
         max: 10,
         dp: 2,
-        demo: [2.1, 2.3, 2.4],
+        base: 2.2667, spread: 0.33,
       },
       {
         name: "Free T4",
@@ -236,7 +282,7 @@ export const SYSTEMS = [
         max: 2,
         dp: 2,
         dir: "low",
-        demo: [1.12, 1.09, 1.06],
+        base: 1.09, spread: 0.0719,
       },
       {
         name: "Cortisol (AM)",
@@ -244,7 +290,7 @@ export const SYSTEMS = [
         ref: 20,
         max: 35,
         dp: 1,
-        demo: [14.2, 13.6, 16.8],
+        demo: [14.2, 13.9, 13.6, 14.8, 15.9, 16.8],
       },
       {
         name: "DHEA-S",
@@ -253,7 +299,7 @@ export const SYSTEMS = [
         max: 450,
         dp: 0,
         dir: "low",
-        demo: [188, 214, 176],
+        demo: [188, 205, 214, 202, 189, 176],
       },
     ],
   },
@@ -270,7 +316,7 @@ export const SYSTEMS = [
         ref: 33,
         max: 120,
         dp: 0,
-        demo: [29, 26, 31],
+        demo: [26, 29, 31, 34, 33, 38],
       },
       {
         name: "AST",
@@ -278,7 +324,7 @@ export const SYSTEMS = [
         ref: 32,
         max: 120,
         dp: 0,
-        demo: [24, 22, 25],
+        demo: [22, 24, 25, 27, 29, 33],
       },
       {
         name: "GGT",
@@ -286,7 +332,7 @@ export const SYSTEMS = [
         ref: 40,
         max: 150,
         dp: 0,
-        demo: [31, 27, 34],
+        demo: [27, 31, 36, 44, 53, 68],
       },
       {
         name: "ALP",
@@ -294,7 +340,7 @@ export const SYSTEMS = [
         ref: 120,
         max: 300,
         dp: 0,
-        demo: [78, 74, 80],
+        demo: [74, 78, 82, 91, 103, 118],
       },
       {
         name: "Total bilirubin",
@@ -302,7 +348,7 @@ export const SYSTEMS = [
         ref: 1.2,
         max: 3,
         dp: 2,
-        demo: [0.7, 0.66, 0.72],
+        demo: [0.66, 0.7, 0.72, 0.78, 0.86, 0.98],
       },
       {
         name: "Albumin",
@@ -311,7 +357,7 @@ export const SYSTEMS = [
         max: 5.5,
         dp: 1,
         dir: "low",
-        demo: [4.4, 4.5, 4.4],
+        demo: [4.5, 4.4, 4.4, 4.3, 4.1, 3.9],
       },
       {
         name: "FIB-4",
@@ -319,7 +365,7 @@ export const SYSTEMS = [
         ref: 1.3,
         max: 4,
         dp: 2,
-        demo: [0.92, 0.88, 0.95],
+        demo: [0.88, 0.95, 1.08, 1.22, 1.41, 1.68],
       },
     ],
   },
@@ -336,7 +382,7 @@ export const SYSTEMS = [
         ref: 1.2,
         max: 3,
         dp: 2,
-        demo: [0.94, 0.91, 0.95],
+        base: 0.9333, spread: 0.0616,
       },
       {
         name: "eGFR",
@@ -345,7 +391,7 @@ export const SYSTEMS = [
         max: 140,
         dp: 0,
         dir: "low",
-        demo: [98, 101, 97],
+        base: 98.6667, spread: 6.512,
       },
       {
         name: "BUN",
@@ -353,7 +399,7 @@ export const SYSTEMS = [
         ref: 20,
         max: 50,
         dp: 0,
-        demo: [14, 13, 15],
+        base: 14.0, spread: 2.2,
       },
       {
         name: "Cystatin C",
@@ -361,7 +407,7 @@ export const SYSTEMS = [
         ref: 1.0,
         max: 2.5,
         dp: 2,
-        demo: [0.82, 0.79, 0.84],
+        base: 0.8167, spread: 0.055,
       },
       {
         name: "UACR",
@@ -369,7 +415,7 @@ export const SYSTEMS = [
         ref: 30,
         max: 120,
         dp: 0,
-        demo: [9, 8, 11],
+        base: 9.3333, spread: 3.3,
       },
       {
         name: "Uric acid",
@@ -377,7 +423,7 @@ export const SYSTEMS = [
         ref: 7.0,
         max: 12,
         dp: 1,
-        demo: [5.8, 5.5, 6.1],
+        base: 5.8, spread: 0.66,
       },
     ],
   },
@@ -395,7 +441,7 @@ export const SYSTEMS = [
         max: 18,
         dp: 1,
         dir: "low",
-        demo: [14.6, 14.9, 14.7],
+        base: 14.7333, spread: 0.9724,
       },
       {
         name: "Haematocrit",
@@ -404,7 +450,7 @@ export const SYSTEMS = [
         max: 55,
         dp: 1,
         dir: "low",
-        demo: [43.2, 44.1, 43.6],
+        base: 43.6333, spread: 2.8798,
       },
       {
         name: "WBC",
@@ -412,7 +458,7 @@ export const SYSTEMS = [
         ref: 10,
         max: 18,
         dp: 1,
-        demo: [6.2, 5.9, 6.4],
+        base: 6.1667, spread: 0.55,
       },
       {
         name: "Platelets",
@@ -421,7 +467,7 @@ export const SYSTEMS = [
         max: 450,
         dp: 0,
         dir: "low",
-        demo: [246, 252, 241],
+        demo: [252, 246, 238, 221, 203, 178],
       },
       {
         name: "Ferritin",
@@ -430,7 +476,7 @@ export const SYSTEMS = [
         max: 300,
         dp: 0,
         dir: "low",
-        demo: [88, 94, 82],
+        base: 88.0, spread: 13.2,
       },
       {
         name: "MCV",
@@ -439,7 +485,7 @@ export const SYSTEMS = [
         max: 100,
         dp: 1,
         dir: "low",
-        demo: [89.4, 90.1, 89.8],
+        base: 89.7667, spread: 5.9246,
       },
     ],
   },
@@ -456,7 +502,7 @@ export const SYSTEMS = [
         ref: 300,
         max: 900,
         dp: 0,
-        demo: [148, 132, 161],
+        base: 147.0, spread: 31.9,
       },
       {
         name: "Total IgE",
@@ -464,7 +510,7 @@ export const SYSTEMS = [
         ref: 100,
         max: 400,
         dp: 0,
-        demo: [42, 38, 47],
+        base: 42.3333, spread: 9.9,
       },
       {
         name: "α1-antitrypsin",
@@ -473,7 +519,7 @@ export const SYSTEMS = [
         max: 200,
         dp: 0,
         dir: "low",
-        demo: [128, 131, 126],
+        base: 128.3333, spread: 8.47,
       },
       {
         name: "SpO₂",
@@ -482,7 +528,7 @@ export const SYSTEMS = [
         max: 100,
         dp: 0,
         dir: "low",
-        demo: [98, 98, 97],
+        base: 97.6667, spread: 6.446,
       },
       {
         name: "KL-6",
@@ -490,7 +536,7 @@ export const SYSTEMS = [
         ref: 500,
         max: 1500,
         dp: 0,
-        demo: [212, 205, 219],
+        base: 212.0, spread: 15.4,
       },
     ],
   },
@@ -507,7 +553,7 @@ export const SYSTEMS = [
         ref: 20,
         max: 60,
         dp: 0,
-        demo: [11, 9, 12],
+        base: 10.6667, spread: 3.3,
       },
       {
         name: "Rheumatoid factor",
@@ -515,7 +561,7 @@ export const SYSTEMS = [
         ref: 14,
         max: 60,
         dp: 1,
-        demo: [4.2, 3.8, 4.5],
+        base: 4.1667, spread: 0.77,
       },
       {
         name: "Anti-CCP",
@@ -523,7 +569,7 @@ export const SYSTEMS = [
         ref: 20,
         max: 100,
         dp: 1,
-        demo: [2.1, 2.0, 2.3],
+        base: 2.1333, spread: 0.33,
       },
       {
         name: "ANA titre",
@@ -531,7 +577,7 @@ export const SYSTEMS = [
         ref: 80,
         max: 640,
         dp: 0,
-        demo: [40, 40, 40],
+        base: 40.0, spread: 2.64,
       },
       {
         name: "IL-6",
@@ -539,7 +585,7 @@ export const SYSTEMS = [
         ref: 7,
         max: 25,
         dp: 1,
-        demo: [2.4, 2.1, 2.8],
+        base: 2.4333, spread: 0.77,
       },
       {
         name: "Complement C3",
@@ -548,7 +594,7 @@ export const SYSTEMS = [
         max: 180,
         dp: 0,
         dir: "low",
-        demo: [112, 115, 110],
+        base: 112.3333, spread: 7.414,
       },
     ],
   },
@@ -565,7 +611,7 @@ export const SYSTEMS = [
         ref: 10,
         max: 30,
         dp: 1,
-        demo: [5.4, 4.8, 5.1],
+        demo: [4.8, 5.1, 5.4, 6.2, 7.1, 8.6],
       },
       {
         name: "CEA",
@@ -573,7 +619,7 @@ export const SYSTEMS = [
         ref: 5.0,
         max: 15,
         dp: 1,
-        demo: [2.0, 1.7, 1.8],
+        base: 1.8333, spread: 0.33,
       },
       {
         name: "CA19-9",
@@ -581,7 +627,7 @@ export const SYSTEMS = [
         ref: 37,
         max: 100,
         dp: 0,
-        demo: [12, 10, 11],
+        base: 11.0, spread: 2.2,
       },
       {
         name: "AFP",
@@ -589,7 +635,7 @@ export const SYSTEMS = [
         ref: 10,
         max: 40,
         dp: 1,
-        demo: [2.8, 2.6, 2.9],
+        demo: [2.6, 2.9, 3.5, 5.1, 7.6, 11.4],
       },
       {
         name: "CA-125",
@@ -597,7 +643,7 @@ export const SYSTEMS = [
         ref: 35,
         max: 120,
         dp: 0,
-        demo: [11, 10, 12],
+        base: 11.0, spread: 2.2,
       },
       {
         name: "PSA",
@@ -605,7 +651,7 @@ export const SYSTEMS = [
         ref: 4.0,
         max: 10,
         dp: 2,
-        demo: [0.72, 0.68, 0.74],
+        base: 0.7133, spread: 0.066,
       },
     ],
   },
@@ -623,7 +669,7 @@ export const SYSTEMS = [
         max: 80,
         dp: 1,
         dir: "low",
-        demo: [26.4, 30.6, 31.2],
+        demo: [26.4, 29.1, 30.6, 31.4, 31.8, 31.2],
       },
       {
         name: "Vitamin B12",
@@ -632,7 +678,7 @@ export const SYSTEMS = [
         max: 900,
         dp: 0,
         dir: "low",
-        demo: [388, 402, 371],
+        base: 387.0, spread: 34.1,
       },
       {
         name: "Folate",
@@ -641,7 +687,7 @@ export const SYSTEMS = [
         max: 20,
         dp: 1,
         dir: "low",
-        demo: [8.2, 8.6, 7.9],
+        base: 8.2333, spread: 0.77,
       },
       {
         name: "Iron",
@@ -650,7 +696,7 @@ export const SYSTEMS = [
         max: 170,
         dp: 0,
         dir: "low",
-        demo: [92, 96, 88],
+        base: 92.0, spread: 8.8,
       },
       {
         name: "Magnesium",
@@ -659,7 +705,7 @@ export const SYSTEMS = [
         max: 2.6,
         dp: 2,
         dir: "low",
-        demo: [2.02, 2.05, 1.98],
+        base: 2.0167, spread: 0.1331,
       },
       {
         name: "Zinc",
@@ -668,7 +714,7 @@ export const SYSTEMS = [
         max: 130,
         dp: 0,
         dir: "low",
-        demo: [88, 91, 85],
+        base: 88.0, spread: 6.6,
       },
       {
         name: "Omega-3 index",
@@ -677,11 +723,13 @@ export const SYSTEMS = [
         max: 12,
         dp: 1,
         dir: "low",
-        demo: [5.2, 5.6, 5.4],
+        base: 5.4, spread: 0.44,
       },
     ],
   },
 ];
+
+export const SYSTEMS = RAW_SYSTEMS.map(withSeries);
 
 /** Kept as an alias so existing call sites reading "zones" still work. */
 export const ZONES = SYSTEMS;

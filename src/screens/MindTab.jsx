@@ -120,14 +120,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       >
         {t("mind.cadenceNote")}
       </p>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          ...fadeUp(120),
-        }}
-      >
+      <Card style={{ overflow: "hidden", ...fadeUp(120) }}>
         {SCALE_META.map((m, i) => (
           <ScaleCard
             key={m.key}
@@ -135,9 +128,10 @@ export default function MindTab({ sel, onPickSession, showNew }) {
             index={session.indices[i]}
             status={session.status[i]}
             roundIndex={session.roundIndex}
+            last={i === SCALE_META.length - 1}
           />
         ))}
-      </div>
+      </Card>
 
       <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
       <TrendChart

@@ -1,14 +1,14 @@
 {
-  "name": "풀배터리 검사 구독",
-  "short_name": "풀배터리",
-  "description": "자가 채혈 풀배터리 검사 구독 — 마음 5개 척도와 몸 6종 질환 스크리닝",
+  "name": "Pedia",
+  "short_name": "Pedia",
+  "description": "At-home full-panel blood testing with body composition and mind indices",
   "lang": "ko",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#F3F0E9",
-  "theme_color": "#F3F0E9",
+  "background_color": "#F1F1EE",
+  "theme_color": "#F1F1EE",
   "icons": [
     { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
   ]

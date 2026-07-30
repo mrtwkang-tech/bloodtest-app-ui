@@ -19,91 +19,162 @@ import {
  * Narrative text stays as a per-language pair rather than an i18n key, because
  * it is content rather than interface copy.
  */
+/**
+ * Six rounds, three months apart, newest first.
+ *
+ * Eighteen months is what makes the liver series legible: AFP, GGT and FIB-4
+ * are each individually unremarkable for the first four draws, and it is only
+ * the shape across all six that reads as anything. A cross-sectional test
+ * would have returned "normal" five times.
+ */
 const RAW = [
   {
-    round: 3,
-    date: "07.03",
+    round: 6, date: "07.03",
     fullDate: { en: "3 July 2026", ko: "2026년 7월 3일" },
     bodyNote: {
+      hepatic: {
+        en: "AFP has now crossed its reference range, having roughly doubled every round for a year. GGT and the fibrosis estimate rose with it while platelets fell — the combination that warrants imaging rather than another wait.",
+        ko: "AFP가 1년 동안 회차마다 거의 두 배씩 오르다 이번에 참고 범위를 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 함께 올라가고 혈소판은 떨어졌습니다. 한 번 더 기다릴 게 아니라 영상 검사가 필요한 조합입니다.",
+      },
       endocrine: {
-        en: "Average blood sugar edged just past the upper limit. Nothing needs action today, but the direction matters at the next round.",
-        ko: "평균 혈당이 정상 상한을 조금 넘어섰습니다. 당장 조치가 필요한 수준은 아니지만 다음 회차에서 방향을 확인해야 합니다.",
+        en: "Average blood sugar edged past the upper limit. Small on its own, but it has moved in the same direction for four rounds.",
+        ko: "평균 혈당이 상한을 넘었습니다. 한 번만 보면 작은 변화지만, 네 회차 연속 같은 방향입니다.",
       },
     },
     bodyAction: {
+      hepatic: {
+        en: "Book hepatology. Ask for a liver ultrasound with a repeat AFP; bring this trajectory, not just today's number.",
+        ko: "소화기내과 진료를 예약하세요. 간 초음파와 AFP 재검을 요청하시고, 오늘 수치 하나가 아니라 이 추이를 가져가세요.",
+      },
       endocrine: {
-        en: "Adjust when you eat carbohydrates and move after meals. If the next round points the same way, see an endocrinologist.",
-        ko: "탄수화물 섭취 시점과 식후 활동을 조정해보고, 다음 검사에서도 같은 방향이면 내분비내과 상담을 권합니다.",
+        en: "Adjust when you eat carbohydrates and move after meals; recheck next round.",
+        ko: "탄수화물 섭취 시점과 식후 활동을 조정하고 다음 회차에 재확인하세요.",
       },
     },
     summary: {
-      en: "Only stress sits above the peer average; the other four scales are steady. On the body side the hormone panel came up — HbA1c and fasting glucose both edged over — while the other nine systems are inside their ranges.",
-      ko: "마음은 스트레스만 또래 평균을 웃돌고 나머지 네 항목은 안정 범위입니다. 몸은 호르몬 계열에서 HbA1c와 공복혈당이 함께 상한을 넘었고, 나머지 9개 계열은 모두 참고 범위 안입니다.",
+      en: "The liver panel is the finding this round. AFP crossed its range for the first time, and it did so at the end of a year-long climb that GGT, the fibrosis estimate and a falling platelet count all track. Blood sugar also crossed. Everything else is inside range.",
+      ko: "이번 회차의 핵심은 간입니다. AFP가 처음으로 참고 범위를 넘었고, 그것도 1년에 걸친 상승의 끝에서 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 오르고 혈소판이 떨어졌습니다. 혈당도 상한을 넘었습니다. 나머지는 모두 범위 안입니다.",
     },
     mindActivities: {
       en: [
         "Get 30 minutes of aerobic exercise three times a week to bring arousal down.",
         "Cut screens an hour before bed and keep your wake time fixed.",
-        "Protect one block a week that is completely separate from work.",
       ],
       ko: [
         "주 3회 30분 이상 유산소 운동으로 각성 수준을 낮추세요.",
         "취침 1시간 전 화면 사용을 줄이고 기상 시간을 고정하세요.",
-        "주 1회는 업무와 완전히 분리된 활동 시간을 확보하세요.",
       ],
     },
     bodyActivities: {
       en: [
-        "A ten-minute walk after meals is what average blood sugar responds to fastest.",
-        "Cut refined carbohydrates and check which way HbA1c moves next round.",
+        "Bring the full six-round liver trend to your appointment — the shape is the reason to go.",
+        "Stop alcohol until you have been seen.",
       ],
       ko: [
-        "식후 10분 걷기를 습관으로 만들면 평균 혈당이 가장 빠르게 반응합니다.",
-        "정제 탄수화물을 줄이고 다음 회차에서 HbA1c 방향을 확인하세요.",
+        "6회차 전체 간 추이를 진료에 가져가세요. 가야 하는 이유가 그 모양에 있습니다.",
+        "진료를 받기 전까지 음주는 중단하세요.",
       ],
     },
     mind: {
-      en: "Broadly steady, but your sense of control has dropped. Sleep and mood are holding, so there is room to recover — manage the stressor and the next round should improve.",
-      ko: "전반적으로 안정적이지만 상황에 대한 통제감이 낮아진 상태입니다. 수면과 정서 지표가 유지되고 있어 회복 여력은 충분하며, 스트레스 요인만 관리하면 다음 회차에서 개선될 가능성이 높습니다.",
+      en: "Steady on the mood and sleep pathways, with stress load climbing gently across the last three rounds. Nothing here needs action on its own.",
+      ko: "기분과 수면 경로는 안정적이고, 스트레스 부하만 최근 세 회차에 걸쳐 완만히 올라갔습니다. 단독으로 조치가 필요한 항목은 없습니다.",
     },
   },
   {
-    round: 2,
-    date: "04.02",
+    round: 5, date: "04.02",
     fullDate: { en: "2 April 2026", ko: "2026년 4월 2일" },
-    bodyNote: {},
-    bodyAction: {},
+    bodyNote: {
+      hepatic: {
+        en: "The fibrosis estimate crossed its threshold this round. AFP is still inside range, but it has risen at every draw since the first.",
+        ko: "이번 회차에 섬유화 추정치가 기준을 넘었습니다. AFP는 아직 범위 안이지만 첫 회차 이후 매번 올라가고 있습니다.",
+      },
+    },
+    bodyAction: {
+      hepatic: {
+        en: "Do not wait a full quarter. Repeat the liver panel and raise the trend with a clinician.",
+        ko: "분기를 다 기다리지 마세요. 간 패널을 재검하고 추이를 의료진과 상의하세요.",
+      },
+    },
     summary: {
-      en: "Every mental health scale and all ten body systems are inside their reference ranges. The cardiovascular markers and vitamin D that were flagged last round have both come back.",
-      ko: "마음 다섯 항목과 몸 10개 계열이 모두 참고 범위 안입니다. 직전 회차에서 벗어나 있던 심혈관 지표와 비타민 D 모두 정상 구간으로 돌아왔습니다.",
+      en: "The liver markers are still individually mild, but four of them have moved the same way for four rounds. That consistency is the signal here, not any single value.",
+      ko: "간 지표들은 아직 각각으로는 경미합니다. 다만 네 개가 네 회차 동안 같은 방향으로 움직였습니다. 여기서의 신호는 어느 한 수치가 아니라 그 일관성입니다.",
     },
     mindActivities: {
-      en: [
-        "Keep the sleep and activity pattern you have.",
-        "Stay at two or more active days a week.",
-      ],
-      ko: [
-        "현재의 수면·활동 패턴을 그대로 유지하세요.",
-        "주 2회 이상 신체 활동을 이어가세요.",
-      ],
+      en: ["Keep the sleep and activity pattern you have."],
+      ko: ["현재의 수면·활동 패턴을 그대로 유지하세요."],
     },
     bodyActivities: {
-      en: ["Stay on the quarterly cadence so the trend stays readable."],
-      ko: ["분기 검사 주기를 유지해 변화를 추적하세요."],
+      en: ["Cut alcohol to zero for one round and see whether GGT responds."],
+      ko: ["한 회차 동안 음주를 완전히 끊고 GGT가 반응하는지 보세요."],
     },
     mind: {
-      en: "Mood and sleep are both in a settled band, and stress sits below the peer average. Holding this pattern is the best move available.",
-      ko: "정서와 수면이 모두 안정 구간에 있습니다. 스트레스 체감도 또래 평균 이하로 여유가 있는 상태이며, 지금 패턴을 유지하는 것이 가장 좋은 선택입니다.",
+      en: "Mood and sleep are settled. Stress load has started to drift up.",
+      ko: "기분과 수면은 안정적입니다. 스트레스 부하가 올라가기 시작했습니다.",
     },
   },
   {
-    round: 1,
-    date: "01.08",
+    round: 4, date: "01.08",
     fullDate: { en: "8 January 2026", ko: "2026년 1월 8일" },
     bodyNote: {
+      hepatic: {
+        en: "GGT crossed its reference range for the first time. On its own this is common and usually diet or alcohol.",
+        ko: "GGT가 처음으로 참고 범위를 넘었습니다. 단독으로는 흔한 일이고 보통 식습관이나 음주가 원인입니다.",
+      },
+    },
+    bodyAction: {
+      hepatic: {
+        en: "Reduce alcohol and recheck at the next round.",
+        ko: "음주를 줄이고 다음 회차에 재확인하세요.",
+      },
+    },
+    summary: {
+      en: "One liver enzyme moved out of range. Read alone it is unremarkable; it is listed here so the next round has something to compare against.",
+      ko: "간 효소 하나가 범위를 벗어났습니다. 단독으로는 특별할 것이 없고, 다음 회차가 비교할 대상을 갖도록 기록해 둡니다.",
+    },
+    mindActivities: { en: ["Two or more active days a week."], ko: ["주 2회 이상 신체 활동."] },
+    bodyActivities: { en: ["Recheck the liver panel next round."], ko: ["다음 회차에 간 패널을 재확인하세요."] },
+    mind: {
+      en: "All five pathways sit below the peer average.",
+      ko: "다섯 경로 모두 또래 평균 아래입니다.",
+    },
+  },
+  {
+    round: 3, date: "10.04",
+    fullDate: { en: "4 October 2025", ko: "2025년 10월 4일" },
+    bodyNote: {}, bodyAction: {},
+    summary: {
+      en: "Every system is inside its reference range. The cardiovascular markers raised at the first draw have fully corrected.",
+      ko: "모든 계열이 참고 범위 안입니다. 첫 회차에 올라와 있던 심혈관 지표는 완전히 정상화됐습니다.",
+    },
+    mindActivities: { en: ["Keep the pattern you have."], ko: ["지금 패턴을 유지하세요."] },
+    bodyActivities: { en: ["Stay on the quarterly cadence."], ko: ["분기 주기를 유지하세요."] },
+    mind: {
+      en: "The strongest round so far across all five pathways.",
+      ko: "다섯 경로 모두 지금까지 중 가장 좋은 회차입니다.",
+    },
+  },
+  {
+    round: 2, date: "07.05",
+    fullDate: { en: "5 July 2025", ko: "2025년 7월 5일" },
+    bodyNote: {}, bodyAction: {},
+    summary: {
+      en: "Lipids have come most of the way back and inflammation has settled. Nothing outside range.",
+      ko: "지질이 대부분 회복됐고 염증도 가라앉았습니다. 범위를 벗어난 항목은 없습니다.",
+    },
+    mindActivities: { en: ["Hold the sleep schedule."], ko: ["수면 스케줄을 유지하세요."] },
+    bodyActivities: { en: ["Keep saturated fat where it is."], ko: ["포화지방 섭취를 지금 수준으로 유지하세요."] },
+    mind: {
+      en: "Sleep and mood pathways both improved from the baseline round.",
+      ko: "수면과 기분 경로 모두 기준 회차보다 개선됐습니다.",
+    },
+  },
+  {
+    round: 1, date: "04.05",
+    fullDate: { en: "5 April 2025", ko: "2025년 4월 5일" },
+    bodyNote: {
       cardio: {
-        en: "Vessel inflammation and LDL went over the range together. That combination is worth looking at from lifestyle first.",
-        ko: "혈관 염증 지표와 LDL이 함께 참고 범위를 넘었습니다. 두 값이 같이 올라간 조합이라 생활 요인부터 살펴볼 필요가 있습니다.",
+        en: "Vessel inflammation and LDL went over the range together — a combination worth approaching from lifestyle first.",
+        ko: "혈관 염증 지표와 LDL이 함께 참고 범위를 넘었습니다. 생활 요인부터 접근할 만한 조합입니다.",
       },
       nutrition: {
         en: "Vitamin D sits under the reference range — common at this latitude in winter, and the easiest of these to fix.",
@@ -112,37 +183,29 @@ const RAW = [
     },
     bodyAction: {
       cardio: {
-        en: "Start with saturated fat and activity levels. If it holds at the next round, see a cardiologist.",
-        ko: "포화지방 섭취와 활동량을 먼저 조정하고, 다음 회차에서도 유지되면 순환기내과 상담을 권합니다.",
+        en: "Start with saturated fat and activity levels; recheck at the next round.",
+        ko: "포화지방 섭취와 활동량을 먼저 조정하고 다음 회차에 재확인하세요.",
       },
       nutrition: {
-        en: "Daily vitamin D and 15 minutes of midday sun. It usually corrects within one cycle.",
-        ko: "비타민 D 보충과 한낮 햇빛 15분을 권합니다. 보통 한 주기 안에 회복됩니다.",
+        en: "Daily vitamin D and 15 minutes of midday sun.",
+        ko: "비타민 D 보충과 한낮 햇빛 15분을 권합니다.",
       },
     },
     summary: {
-      en: "Your first test, and the baseline everything else is compared against. Anxiety, sleep and burnout were above the peer average; the cardiovascular panel and vitamin D were both outside range.",
-      ko: "첫 검사로 이후 회차의 비교 기준이 되는 회차입니다. 마음은 불안·수면·번아웃이 또래 평균을 넘었고, 몸은 심혈관 계열과 비타민 D가 참고 범위를 벗어났습니다.",
+      en: "The baseline draw, and the one everything after is measured against. Cardiovascular markers and vitamin D were outside range; the liver panel was entirely normal.",
+      ko: "기준이 되는 첫 채혈이고, 이후 모든 회차가 여기에 견줍니다. 심혈관 지표와 비타민 D가 범위를 벗어났고, 간 패널은 완전히 정상이었습니다.",
     },
     mindActivities: {
-      en: [
-        "Ten minutes a day of breathing or relaxation practice.",
-        "Set a hard finish time for work so there is a boundary.",
-        "Hold the same bed and wake times for two weeks.",
-      ],
-      ko: [
-        "호흡·이완 훈련을 하루 10분 실시하세요.",
-        "업무 종료 시간을 정해 경계를 만드세요.",
-        "취침·기상 시간을 2주간 고정해보세요.",
-      ],
+      en: ["Ten minutes a day of breathing practice.", "Hold the same bed and wake times for two weeks."],
+      ko: ["호흡 훈련을 하루 10분.", "취침·기상 시간을 2주간 고정해보세요."],
     },
     bodyActivities: {
       en: ["Cut saturated fat and get at least 150 active minutes a week."],
       ko: ["포화지방을 줄이고 주 150분 이상 유산소 활동을 확보하세요."],
     },
     mind: {
-      en: "Tension is high and recovery time is short. Sleep efficiency is low too, so exhaustion can accumulate — build the rest structure first.",
-      ko: "긴장이 높고 회복 시간이 부족한 상태입니다. 수면 효율도 낮아 소진이 누적될 수 있으므로, 휴식 구조를 먼저 만드는 것이 우선입니다.",
+      en: "Tension is high and recovery time is short. Build the rest structure first.",
+      ko: "긴장이 높고 회복 시간이 부족합니다. 휴식 구조를 먼저 만드세요.",
     },
   },
 ];
@@ -261,6 +324,12 @@ export const BODY_METRICS = [
 });
 
 export const PLANS = {
+  monthly: {
+    labelKey: "store.monthly",
+    noteKey: "store.monthlyNote",
+    ctaKey: "store.ctaMonthly",
+    price: 79000,
+  },
   single: {
     labelKey: "store.single",
     noteKey: "store.singleNote",
@@ -271,14 +340,14 @@ export const PLANS = {
     labelKey: "store.quarter",
     noteKey: "store.quarterNote",
     ctaKey: "store.ctaQuarter",
-    price: 69000,
+    price: 59000,
     badge: true,
   },
   half: {
     labelKey: "store.half",
     noteKey: "store.halfNote",
     ctaKey: "store.ctaHalf",
-    price: 79000,
+    price: 64000,
   },
 };
 
@@ -288,5 +357,7 @@ export const PROFILE = {
   initial: "J",
   age: 34,
   nextInDays: 52,
-  nextDate: { en: "19 Sep 2026", ko: "2026년 9월 19일" },
+  roundsSoFar: 6,
+  monthsTracked: 18,
+  nextDate: { en: "2 October 2026", ko: "2026년 10월 2일" },
 };

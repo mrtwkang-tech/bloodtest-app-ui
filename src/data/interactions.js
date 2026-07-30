@@ -1,4 +1,4 @@
-import { SYSTEMS, markerLevel, valuesAt } from "./body";
+import { ROUNDS, SYSTEMS, markerLevel, valuesAt } from "./body";
 import { SCALE_META, scaleIndex } from "./scales";
 
 /**
@@ -30,7 +30,88 @@ function ratio({ marker, value }) {
   return marker.dir === "low" ? marker.ref / value : value / marker.ref;
 }
 
+/** The full series for a marker, oldest first. */
+function seriesOf(systemKey, markerName) {
+  const system = SYSTEMS.find((s) => s.key === systemKey);
+  const marker = system.markers.find((x) => x.name === markerName);
+  return { marker, series: marker.demo, systemKey };
+}
+
+/**
+ * Fractional change per round, fitted over the last `n` rounds.
+ *
+ * This is the measurement a single draw cannot make. A value can sit inside
+ * its reference range at every visit and still be doubling; the slope is what
+ * separates "normal" from "normal, so far".
+ */
+function riseRate(series, upto, n = 4) {
+  const from = Math.max(0, upto - n + 1);
+  const window = series.slice(from, upto + 1);
+  if (window.length < 3 || window[0] <= 0) return 0;
+  const steps = window.length - 1;
+  return Math.pow(window[window.length - 1] / window[0], 1 / steps) - 1;
+}
+
+/** True when a series has moved the same way at every step. */
+function monotonic(series, upto, n = 4, up = true) {
+  const from = Math.max(0, upto - n + 1);
+  const w = series.slice(from, upto + 1);
+  return w.every((v, i) => i === 0 || (up ? v > w[i - 1] : v < w[i - 1]));
+}
+
 const RULES = [
+  {
+    key: "hepaticTrajectory",
+    titleKey: "ix.hepaticTrajectory.title",
+    bodyKey: "ix.hepaticTrajectory.body",
+    actionKey: "ix.hepaticTrajectory.action",
+    systems: ["hepatic", "oncology", "hematology"],
+    /**
+     * The reason this product exists.
+     *
+     * Hepatocellular carcinoma is caught late because the markers that move
+     * first move slowly and from inside the normal range. AFP under 10 is
+     * "normal" — AFP that has doubled every quarter for a year, while GGT and
+     * the fibrosis estimate climb and platelets fall, is a surveillance
+     * finding. No single draw can see any of that.
+     */
+    evaluate(r) {
+      const afp = seriesOf("oncology", "AFP");
+      const ggt = seriesOf("hepatic", "GGT");
+      const fib = seriesOf("hepatic", "FIB-4");
+      const plt = seriesOf("hematology", "Platelets");
+      const alb = seriesOf("hepatic", "Albumin");
+
+      const afpRate = riseRate(afp.series, r);
+      const afpRising = monotonic(afp.series, r, 4, true);
+      const supporting =
+        (monotonic(ggt.series, r, 4, true) ? 1 : 0) +
+        (monotonic(fib.series, r, 4, true) ? 1 : 0) +
+        (monotonic(plt.series, r, 4, false) ? 1 : 0);
+
+      // Needs a real climb plus at least two corroborating directions.
+      if (!(afpRising && afpRate >= 0.25 && supporting >= 2)) return null;
+
+      const evidence = [afp, ggt, fib, plt, alb].map((e) => ({
+        marker: e.marker,
+        value: e.series[r],
+        level: markerLevel(e.marker, e.series[r]),
+        systemKey: e.systemKey,
+        series: e.series.slice(0, r + 1),
+      }));
+
+      return {
+        severity: markerLevel(afp.marker, afp.series[r]) > 0 ? 2 : 1,
+        evidence,
+        // Surfaced in the copy so the claim is checkable.
+        stats: {
+          rate: Math.round(afpRate * 100),
+          rounds: Math.min(4, r + 1),
+          crossed: markerLevel(afp.marker, afp.series[r]) > 0,
+        },
+      };
+    },
+  },
   {
     key: "residualInflammation",
     titleKey: "ix.residualInflammation.title",

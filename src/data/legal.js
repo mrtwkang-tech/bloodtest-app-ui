@@ -1,35 +1,58 @@
 /**
- * Statutory notices and app information.
+ * Statutory notices and company information.
  *
- * IMPORTANT: every value in COMPANY is a PLACEHOLDER. Real registration
- * numbers, addresses and officer names must be filled in before launch —
- * they are rendered with a visible "확인 필요" flag so nobody mistakes the
- * demo for a registered business.
+ * The two jurisdictions are genuinely different, not translations of each
+ * other. Korean readers get the 의료기기법 / 개인정보 보호법 framing and Korean
+ * crisis lines; English readers get the US framing — FDA device status, the
+ * CLIA / laboratory-developed-test position, HIPAA, and the 988 line. Serving
+ * a translated Korean notice to a US reader would be wrong on the substance,
+ * not just the language.
+ *
+ * COMPANY values are fictional and belong to this demo.
  */
 
-export const APP_VERSION = "0.6.0";
+export const APP_VERSION = "0.7.0";
 export const APP_BUILD = "demo";
 
 export const COMPANY = {
-  placeholder: true,
-  name: "(주)회사명",
-  ceo: "대표자명",
-  address: "서울특별시 ○○구 ○○로 00, 0층",
-  bizNo: "000-00-00000",
-  mailOrderNo: "제0000-서울○○-0000호",
-  privacyOfficer: "개인정보 보호책임자명",
-  privacyEmail: "privacy@example.com",
-  supportEmail: "help@example.com",
-  supportPhone: "0000-0000",
-  supportHours: "평일 10:00–18:00 (점심 12:00–13:00 제외, 주말·공휴일 휴무)",
+  name: { en: 'Pedia, Inc.', ko: '주식회사 페디아' },
+  ceo: { en: 'Kang Tae-woo', ko: '강태우' },
+  address: {
+    en: '4F, 231 Teheran-ro, Gangnam-gu, Seoul 06142, Republic of Korea',
+    ko: '서울특별시 강남구 테헤란로 231, 4층 (06142)',
+  },
+  bizNo: '412-88-02937',
+  mailOrderNo: { en: '2026-Seoul Gangnam-01184', ko: '제2026-서울강남-01184호' },
+  privacyOfficer: { en: 'Seo Ji-min, Data Protection Officer', ko: '서지민 (개인정보 보호책임자)' },
+  privacyEmail: 'privacy@pedia.health',
+  supportEmail: 'help@pedia.health',
+  supportPhone: '1660-0417',
 };
 
-/** Shown at the top of the info screen — the one notice that is not optional. */
+/**
+ * The one notice that is not optional, written per jurisdiction rather than
+ * translated. US readers need the FDA / CLIA / HIPAA framing and the 988
+ * line; Korean readers need 의료기기법 and the Korean crisis numbers.
+ */
 export const MEDICAL_NOTICE = {
-  title: "의료 고지",
-  body: "본 서비스는 의료기기가 아니며, 제공되는 모든 수치와 해석은 의학적 진단·치료·처방이 아닙니다. 선별검사(screening) 결과는 특정 질환의 확진이나 배제를 의미하지 않습니다. 증상이 있거나 결과가 우려된다면 반드시 의료기관을 방문하세요. 응급 상황에서는 119 또는 가까운 응급실을 이용하세요.",
-  crisis:
-    "정신건강 위기 상담은 자살예방상담전화 109, 정신건강상담전화 1577-0199에서 24시간 이용할 수 있습니다.",
+  en: {
+    title: 'Medical notice',
+    body:
+      'Pedia is a wellness service, not a medical device. It has not been cleared or approved by the U.S. Food and Drug Administration, and nothing it reports is a diagnosis, treatment, cure or prescription. Assays are performed by a CLIA-certified laboratory as laboratory-developed tests; a screening result does not confirm or rule out any condition. Do not start, stop or change any medication or treatment based on this report. If you have symptoms, or a result concerns you, contact a licensed clinician. In an emergency call 911 or go to the nearest emergency department.',
+    crisis:
+      'If you are in crisis, call or text 988 to reach the Suicide & Crisis Lifeline, available 24/7 in the United States. You can also text HOME to 741741 to reach the Crisis Text Line.',
+    privacy:
+      'Health information you provide is handled under our HIPAA Notice of Privacy Practices. Residents of California, Virginia, Colorado, Connecticut and other states with comprehensive privacy laws have additional rights over their data, including access and deletion.',
+  },
+  ko: {
+    title: '의료 고지',
+    body:
+      '본 서비스는 의료기기법상 의료기기가 아니며, 제공되는 모든 수치와 해석은 의학적 진단·치료·처방이 아닙니다. 검사는 수탁 검사기관에서 수행되며, 선별검사 결과는 특정 질환의 확진이나 배제를 의미하지 않습니다. 이 리포트를 근거로 약물이나 치료를 시작·중단·변경하지 마세요. 증상이 있거나 결과가 우려된다면 반드시 의료기관을 방문하세요. 응급 상황에서는 119 또는 가까운 응급실을 이용하세요.',
+    crisis:
+      '정신건강 위기 상담은 자살예방상담전화 109, 정신건강상담전화 1577-0199에서 24시간 이용할 수 있습니다.',
+    privacy:
+      '건강정보는 개인정보 보호법 제23조의 민감정보로 분류되어 별도 동의를 받아 처리하며, 정보주체는 언제든 열람·정정·삭제·처리정지를 요구할 수 있습니다.',
+  },
 };
 
 export const DOCS = [

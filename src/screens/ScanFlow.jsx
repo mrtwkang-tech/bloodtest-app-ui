@@ -1,5 +1,4 @@
 import Pressable from "../components/Pressable";
-import StatusBar from "../components/StatusBar";
 import { C, EASE, T } from "../tokens";
 import { useT } from "../i18n";
 
@@ -36,14 +35,13 @@ export default function ScanFlow({ onClose, onRecognized }) {
         zIndex: 20,
       }}
     >
-      <StatusBar dark />
 
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "6px 20px 0",
+          padding: "calc(14px + var(--safe-top)) 20px 0",
           flex: "none",
         }}
       >

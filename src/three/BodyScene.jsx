@@ -69,7 +69,13 @@ export default function BodyScene({
     root.add(body.group);
 
     const organs = buildOrgans(body.parts);
-    ZONE_KEYS.forEach((k) => root.add(organs[k].group));
+    ZONE_KEYS.forEach((k) => {
+      organs[k].group.renderOrder = 1;
+      organs[k].group.traverse((o) => {
+        o.renderOrder = 1;
+      });
+      root.add(organs[k].group);
+    });
 
     const glow = buildGlow(0xffffff);
     root.add(glow.sprite);
@@ -92,8 +98,8 @@ export default function BodyScene({
       glowIntensity: 0,
       glowTarget: 0,
       glowColor: new THREE.Color(0xffffff),
-      bodyOpacity: 0.5,
-      bodyOpacityTarget: 0.5,
+      bodyOpacity: 0.38,
+      bodyOpacityTarget: 0.38,
     };
 
     // ---- pointer: 1:1 rotation with momentum -----------------------------
@@ -284,7 +290,7 @@ export default function BodyScene({
         state.glowTarget = glowTarget;
         state.glowTargetAt.copy(glowAt);
         state.glowColor = glowColor;
-        state.bodyOpacityTarget = anyLit ? 0.3 : 0.5;
+        state.bodyOpacityTarget = anyLit ? 0.22 : 0.38;
       },
       reset() {
         state.yawTarget = 0;

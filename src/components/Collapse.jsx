@@ -11,11 +11,19 @@ import { C, EASE, R, T } from "../tokens";
  */
 export function Collapse({ open, children }) {
   const innerRef = useRef(null);
+  const mounted = useRef(false);
   const [height, setHeight] = useState(open ? "auto" : 0);
 
   useEffect(() => {
     const el = innerRef.current;
     if (!el) return undefined;
+
+    // On the first run a closed panel is already at 0. Measuring it and
+    // animating back down would flash the whole panel open on mount.
+    if (!mounted.current) {
+      mounted.current = true;
+      if (!open) return undefined;
+    }
 
     if (open) {
       setHeight(el.scrollHeight);

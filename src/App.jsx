@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import StatusBar from "./components/StatusBar";
 import TabBar from "./components/TabBar";
 import Sheet from "./components/Sheet";
 import HomeTab from "./screens/HomeTab";
@@ -89,7 +88,6 @@ export default function App() {
                 background: C.bg,
               }}
             >
-              <StatusBar />
 
               {/* Keying on the tab replays the staggered card entrance.
                   Bottom padding clears the floating glass bar — content keeps
@@ -98,7 +96,8 @@ export default function App() {
                 ref={scrollerRef}
                 className="scroller scroll-mask"
                 style={{
-                  padding: "10px 18px calc(122px + var(--safe-bottom))",
+                  padding:
+                    "calc(20px + var(--safe-top)) 18px calc(122px + var(--safe-bottom))",
                 }}
               >
                 {tab === "home" && (

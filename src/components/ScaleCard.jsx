@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Card } from "./primitives";
 import { Collapse, DisclosureButton } from "./Collapse";
-import { C, EASE, STATUS_COLOR, T } from "../tokens";
+import { C, DIVIDER, EASE, STATUS_COLOR, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { scaleDrivers } from "../data/scales";
 import { useT } from "../i18n";
@@ -17,7 +16,7 @@ const WATCH_AT = 66;
  * the card always shows the top driver's mechanism in plain language, and
  * opens to the full marker list on request.
  */
-export default function ScaleCard({ meta, index, status, roundIndex }) {
+export default function ScaleCard({ meta, index, status, roundIndex, last }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const color = STATUS_COLOR[status];
@@ -25,7 +24,7 @@ export default function ScaleCard({ meta, index, status, roundIndex }) {
   const lead = drivers[0];
 
   return (
-    <Card style={{ padding: "14px 16px 13px" }}>
+    <div style={{ padding: "13px 16px 12px", boxShadow: last ? "none" : DIVIDER }}>
       <div
         style={{
           display: "flex",
@@ -77,7 +76,7 @@ export default function ScaleCard({ meta, index, status, roundIndex }) {
       <Ruler index={index} color={color} />
 
       {/* The mechanism, not the number: this is the part a reader can use. */}
-      <div style={{ marginTop: 11 }}>
+      <div style={{ marginTop: 10 }}>
         <div style={{ ...T.micro, color: C.faintest }}>{t("mind.whyThis")}</div>
         <div
           style={{
@@ -198,7 +197,7 @@ export default function ScaleCard({ meta, index, status, roundIndex }) {
       >
         {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
       </p>
-    </Card>
+    </div>
   );
 }
 

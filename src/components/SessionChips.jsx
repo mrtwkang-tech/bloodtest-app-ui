@@ -7,7 +7,19 @@ import { useT } from "../i18n";
 export default function SessionChips({ sel, onPick }) {
   const t = useT();
   return (
-    <div style={{ display: "flex", gap: 6, marginTop: 13 }}>
+    // Six rounds will not fit as equal columns, and squeezing them turns the
+    // labels into abbreviations nobody can read. A rail scrolls instead.
+    <div
+      style={{
+        display: "flex",
+        gap: 6,
+        marginTop: 13,
+        overflowX: "auto",
+        scrollbarWidth: "none",
+        padding: "1px 18px",
+        margin: "13px -18px 0",
+      }}
+    >
       {SESSIONS.map((s, i) => {
         const on = sel === i;
         return (
@@ -19,8 +31,9 @@ export default function SessionChips({ sel, onPick }) {
             onClick={() => onPick(i)}
             pressScale={0.96}
             style={{
-              flex: 1,
-              padding: "8px 4px",
+              flex: "none",
+              minWidth: 62,
+              padding: "8px 10px",
               borderRadius: R.control,
               cursor: "pointer",
               background: on ? C.accent : C.surface,

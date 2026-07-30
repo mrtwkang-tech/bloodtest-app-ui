@@ -1,5 +1,4 @@
 import Pressable from "../components/Pressable";
-import StatusBar from "../components/StatusBar";
 import { Card } from "../components/primitives";
 import { C, DIVIDER, EASE, T } from "../tokens";
 import { useT } from "../i18n";
@@ -24,7 +23,6 @@ export default function AnalyzingFlow({ onBackground }) {
         zIndex: 20,
       }}
     >
-      <StatusBar />
 
       <div
         style={{
@@ -33,7 +31,7 @@ export default function AnalyzingFlow({ onBackground }) {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          padding: "0 26px",
+          padding: "calc(20px + var(--safe-top)) 26px 0",
         }}
       >
         <div

@@ -10,6 +10,7 @@ import {
   SectionTitle,
   Status,
   Badge,
+  Sparkline,
 } from "../components/primitives";
 import {
   C,
@@ -24,6 +25,7 @@ import {
 import { SCALE_META } from "../data/scales";
 import { interactionsFor } from "../data/interactions";
 import { formatValue } from "../data/body";
+import { COMPOSITION, DEVICE, metricLevel } from "../data/inbody";
 import {
   PROFILE,
   SESSIONS,
@@ -36,6 +38,9 @@ import {
 import { useLang } from "../i18n";
 
 const latest = SESSIONS[0];
+
+/** The three composition numbers worth surfacing before the detail screen. */
+const HOME_METRICS = ["smm", "bodyFat", "visceral"];
 
 export default function HomeTab({
   onGoMind,
@@ -171,6 +176,51 @@ export default function HomeTab({
         />
       </div>
 
+      {/* Body composition, imported from the linked device. */}
+      <Card style={{ padding: "15px 18px 16px", marginTop: 10 }} delay={150}>
+        <SectionLabel value={DEVICE.brand}>{t("home.inbody")}</SectionLabel>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: "12px 10px",
+            marginTop: 13,
+          }}
+        >
+          {HOME_METRICS.map((key) => {
+            const m = COMPOSITION.find((c) => c.key === key);
+            const value = m.demo[latest.roundIndex];
+            const level = metricLevel(m, value);
+            return (
+              <div key={key}>
+                <div style={{ ...T.micro, color: C.faintest }}>{t(m.nameKey)}</div>
+                <div
+                  style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 4 }}
+                >
+                  <span
+                    style={{
+                      ...T.num,
+                      fontSize: 16,
+                      fontWeight: 600,
+                      color: LEVEL_COLOR[level],
+                    }}
+                  >
+                    {formatValue(value, m.dp)}
+                  </span>
+                  <span style={{ ...T.unit, color: C.faintest }}>{m.unit}</span>
+                </div>
+                <Sparkline
+                  series={m.demo.slice(0, latest.roundIndex + 1)}
+                  color={LEVEL_COLOR[level]}
+                  width={64}
+                  height={16}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+
       <div style={{ display: "flex", gap: 10, marginTop: 10, ...fadeUp(160) }}>
         <Card style={{ flex: 1, padding: "14px 16px" }}>
           <div style={{ ...T.micro, color: C.faint }}>{t("home.nextTest")}</div>
@@ -179,6 +229,12 @@ export default function HomeTab({
           </div>
           <div style={{ ...T.monoSm, color: C.faintest, marginTop: 3 }}>
             {pick(PROFILE.nextDate, lang)}
+          </div>
+          <div style={{ ...T.micro, color: C.faintest, marginTop: 5 }}>
+            {t("home.tracked", {
+              n: PROFILE.roundsSoFar,
+              m: PROFILE.monthsTracked,
+            })}
           </div>
         </Card>
         <Pressable
@@ -399,9 +455,40 @@ function SignalCard({ signal }) {
         </div>
       </div>
 
-      <p style={{ ...T.bodyText, color: C.body, margin: "10px 0 0", textWrap: "pretty" }}>
-        {t(signal.bodyKey)}
+      <p
+        style={{
+          ...T.bodyText,
+          color: C.body,
+          margin: "10px 0 0",
+          textWrap: "pretty",
+        }}
+      >
+        {t(signal.bodyKey, signal.stats)}
       </p>
+      {signal.stats && (
+        <div
+          style={{
+            background: C.surfaceSunken,
+            borderRadius: R.inner,
+            padding: "10px 12px",
+            marginTop: 11,
+          }}
+        >
+          <div style={{ ...T.micro, color: C.faint }}>
+            {t("ix.whyLongitudinal")}
+          </div>
+          <p
+            style={{
+              ...T.monoSm,
+              color: C.muted,
+              margin: "5px 0 0",
+              textWrap: "pretty",
+            }}
+          >
+            {t("ix.trajectoryNote")}
+          </p>
+        </div>
+      )}
 
       <div style={{ marginTop: 11 }}>
         <DisclosureButton

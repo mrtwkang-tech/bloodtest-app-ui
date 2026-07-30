@@ -31,15 +31,15 @@ export const J = {
 
   shoulderL: [-0.175, 0.735, 0],
   shoulderR: [0.175, 0.735, 0],
-  elbowL: [-0.225, 0.5, 0.005],
-  elbowR: [0.225, 0.5, 0.005],
-  wristL: [-0.255, 0.265, 0.02],
-  wristR: [0.255, 0.265, 0.02],
+  elbowL: [-0.243, 0.498, 0.006],
+  elbowR: [0.243, 0.498, 0.006],
+  wristL: [-0.272, 0.262, 0.022],
+  wristR: [0.272, 0.262, 0.022],
   handL: [-0.263, 0.18, 0.028],
   handR: [0.263, 0.18, 0.028],
 
-  hipL: [-0.082, 0.185, 0],
-  hipR: [0.082, 0.185, 0],
+  hipL: [-0.086, 0.185, 0],
+  hipR: [0.086, 0.185, 0],
   kneeL: [-0.088, -0.145, 0.012],
   kneeR: [0.088, -0.145, 0.012],
   ankleL: [-0.092, -0.475, -0.005],
@@ -60,8 +60,10 @@ export function makeBodyMaterial() {
     thickness: 0.6,
     ior: 1.24,
     transparent: true,
-    opacity: 0.5,
-    depthWrite: false,
+    opacity: 0.38,
+    // Writing depth is what stops overlapping body surfaces from compounding
+    // into bright seams at the shoulders and hips.
+    depthWrite: true,
     clearcoat: 0.45,
     clearcoatRoughness: 0.55,
   });
@@ -89,6 +91,104 @@ function joint(mat, p, r, squash = 1) {
   mesh.position.copy(v3(p));
   mesh.scale.set(1, squash, 1);
   return mesh;
+}
+
+
+/**
+ * A limb swept as one continuous surface.
+ *
+ * The previous build was a cylinder per bone plus a sphere per joint. On a
+ * translucent material every one of those intersections shows as a bright
+ * lens of doubled density — which is what made the elbows and knees look
+ * unpleasant. Sweeping a single varying-radius tube along a smooth spline
+ * removes the intersections entirely, and rounding the caps means the limb
+ * ends without a visible lid.
+ */
+function limb(mat, nodes, { segments = 44, radial = 22, capStart = true, capEnd = true } = {}) {
+  const curve = new THREE.CatmullRomCurve3(
+    nodes.map((n) => v3(n.p)),
+    false,
+    "catmullrom",
+    0.4,
+  );
+  const frames = curve.computeFrenetFrames(segments, false);
+  const positions = [];
+  const indices = [];
+
+  // Radius is interpolated across the node list, eased so the taper reads as
+  // muscle rather than as a cone.
+  const radiusAt = (t) => {
+    const x = t * (nodes.length - 1);
+    const i = Math.min(nodes.length - 2, Math.floor(x));
+    const f = x - i;
+    const e = f * f * (3 - 2 * f);
+    return nodes[i].r * (1 - e) + nodes[i + 1].r * e;
+  };
+
+  const ring = (centre, normal, binormal, r) => {
+    const base = positions.length / 3;
+    for (let j = 0; j < radial; j++) {
+      const a = (j / radial) * Math.PI * 2;
+      positions.push(
+        centre.x + (normal.x * Math.cos(a) + binormal.x * Math.sin(a)) * r,
+        centre.y + (normal.y * Math.cos(a) + binormal.y * Math.sin(a)) * r,
+        centre.z + (normal.z * Math.cos(a) + binormal.z * Math.sin(a)) * r,
+      );
+    }
+    return base;
+  };
+
+  const rings = [];
+  const CAP = 5;
+
+  // Rounded start cap: rings that shrink back along the tangent.
+  if (capStart) {
+    const p0 = curve.getPointAt(0);
+    const t0 = curve.getTangentAt(0);
+    const r0 = radiusAt(0);
+    for (let k = CAP; k >= 1; k--) {
+      const a = (k / CAP) * (Math.PI / 2);
+      const c = p0.clone().addScaledVector(t0, -Math.sin(a) * r0);
+      rings.push(ring(c, frames.normals[0], frames.binormals[0], Math.cos(a) * r0));
+    }
+  }
+
+  for (let i = 0; i <= segments; i++) {
+    const t = i / segments;
+    rings.push(ring(curve.getPointAt(t), frames.normals[i], frames.binormals[i], radiusAt(t)));
+  }
+
+  if (capEnd) {
+    const p1 = curve.getPointAt(1);
+    const t1 = curve.getTangentAt(1);
+    const r1 = radiusAt(1);
+    for (let k = 1; k <= CAP; k++) {
+      const a = (k / CAP) * (Math.PI / 2);
+      const c = p1.clone().addScaledVector(t1, Math.sin(a) * r1);
+      rings.push(ring(c, frames.normals[segments], frames.binormals[segments], Math.cos(a) * r1));
+    }
+  }
+
+  for (let r = 0; r < rings.length - 1; r++) {
+    for (let j = 0; j < radial; j++) {
+      const a = rings[r] + j;
+      const b = rings[r] + ((j + 1) % radial);
+      const c = rings[r + 1] + j;
+      const d = rings[r + 1] + ((j + 1) % radial);
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return new THREE.Mesh(geo, mat);
+}
+
+/** Midpoint between two joints, nudged along an axis. */
+function mid(a, b, lift = 0) {
+  return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2 + lift, (a[2] + b[2]) / 2];
 }
 
 /**
@@ -148,66 +248,82 @@ function torsoGeometry() {
   return geo;
 }
 
-/** The translucent figure, articulated at every major joint. */
+/**
+ * The figure: smooth, continuous, android rather than anatomical.
+ *
+ * Each limb is one swept surface through its joint chain, so an elbow is a
+ * change in curvature and radius rather than two solids pushed into each
+ * other. The body writes depth and renders after the organs, which stops
+ * translucent surfaces from stacking into bright patches where they overlap.
+ */
 export function buildBody() {
   const mat = makeBodyMaterial();
   const group = new THREE.Group();
   const parts = [];
   const push = (m) => {
+    m.renderOrder = 2;
     group.add(m);
     parts.push(m);
     return m;
   };
 
-  // Head and neck.
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.101, SEG, 18), mat);
-  head.position.set(0, 0.958, 0.004);
-  head.scale.set(0.94, 1.2, 1.02);
+  // Head: one smooth ovoid, with the jaw as a swept continuation rather than
+  // a second ball pressed into the skull.
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.098, 40, 30), mat);
+  head.position.set(0, 0.952, 0.006);
+  head.scale.set(0.95, 1.17, 1.04);
   push(head);
-  const jaw = new THREE.Mesh(new THREE.SphereGeometry(0.062, SEG, 14), mat);
-  jaw.position.set(0, 0.888, 0.022);
-  jaw.scale.set(0.96, 0.78, 1.0);
-  push(jaw);
-  push(bone(mat, J.neck, J.c7, 0.038, 0.052));
+
+  // Neck flows out of the jaw line and widens into the shoulders.
+  push(
+    limb(mat, [
+      { p: [0, 0.9, 0.012], r: 0.043 },
+      { p: [0, 0.858, 0.004], r: 0.041 },
+      { p: [0, 0.8, -0.004], r: 0.05 },
+    ], { segments: 20, capStart: false, capEnd: false }),
+  );
 
   push(new THREE.Mesh(torsoGeometry(), mat));
 
-  // Clavicles tie the arms into the chest instead of leaving them floating.
-  push(bone(mat, [0, 0.752, 0.03], J.shoulderL, 0.016, 0.026));
-  push(bone(mat, [0, 0.752, 0.03], J.shoulderR, 0.016, 0.026));
+  // Shoulder caps: a single sphere blended into the deltoid start of the arm.
+  [["L", -1], ["R", 1]].forEach(([s, sign]) => {
+    const sh = new THREE.Mesh(new THREE.SphereGeometry(0.056, 26, 20), mat);
+    sh.position.set(sign * 0.163, 0.723, 0.004);
+    sh.scale.set(1.05, 0.98, 1.0);
+    push(sh);
 
-  // Arms: shoulder → elbow → wrist → hand, with a cap at each hinge.
-  [
-    ["L", -1],
-    ["R", 1],
-  ].forEach(([s]) => {
-    push(joint(mat, J[`shoulder${s}`], 0.049));
-    push(bone(mat, J[`shoulder${s}`], J[`elbow${s}`], 0.042, 0.033));
-    push(joint(mat, J[`elbow${s}`], 0.034));
-    push(bone(mat, J[`elbow${s}`], J[`wrist${s}`], 0.032, 0.023));
-    push(joint(mat, J[`wrist${s}`], 0.023));
-    const hand = new THREE.Mesh(new THREE.SphereGeometry(0.032, 16, 12), mat);
-    hand.position.copy(v3(J[`hand${s}`]));
-    hand.scale.set(0.72, 1.35, 0.42);
-    push(hand);
+    // One surface, shoulder → elbow → wrist → hand.
+    push(
+      limb(mat, [
+        { p: [sign * 0.162, 0.726, 0.004], r: 0.05 },
+        { p: mid(J[`shoulder${s}`], J[`elbow${s}`], 0.012), r: 0.043 },
+        { p: J[`elbow${s}`], r: 0.036 },
+        { p: mid(J[`elbow${s}`], J[`wrist${s}`], -0.004), r: 0.031 },
+        { p: J[`wrist${s}`], r: 0.024 },
+        { p: [sign * 0.282, 0.162, 0.032], r: 0.026 },
+        { p: [sign * 0.286, 0.126, 0.036], r: 0.014 },
+      ]),
+    );
   });
 
-  // Pelvis, then legs: hip → knee → ankle → foot.
-  const pelvis = new THREE.Mesh(new THREE.SphereGeometry(0.105, SEG, 14), mat);
-  pelvis.position.set(0, 0.185, 0);
-  pelvis.scale.set(1.42, 0.62, 0.94);
+  // Pelvis blends the torso base into both legs.
+  const pelvis = new THREE.Mesh(new THREE.SphereGeometry(0.1, 30, 22), mat);
+  pelvis.position.set(0, 0.188, 0.002);
+  pelvis.scale.set(1.4, 0.68, 0.96);
   push(pelvis);
 
-  [["L"], ["R"]].forEach(([s]) => {
-    push(joint(mat, J[`hip${s}`], 0.055));
-    push(bone(mat, J[`hip${s}`], J[`knee${s}`], 0.062, 0.044));
-    push(joint(mat, J[`knee${s}`], 0.046));
-    push(bone(mat, J[`knee${s}`], J[`ankle${s}`], 0.043, 0.029));
-    push(joint(mat, J[`ankle${s}`], 0.028));
-    const foot = new THREE.Mesh(new THREE.SphereGeometry(0.045, 16, 12), mat);
-    foot.position.copy(v3(J[`toe${s}`]));
-    foot.scale.set(0.62, 0.38, 1.5);
-    push(foot);
+  [["L", -1], ["R", 1]].forEach(([s, sign]) => {
+    push(
+      limb(mat, [
+        { p: [sign * 0.078, 0.212, 0.002], r: 0.066 },
+        { p: mid(J[`hip${s}`], J[`knee${s}`], 0.02), r: 0.061 },
+        { p: J[`knee${s}`], r: 0.049 },
+        { p: mid(J[`knee${s}`], J[`ankle${s}`], 0.03), r: 0.045 },
+        { p: J[`ankle${s}`], r: 0.029 },
+        { p: [sign * 0.094, -0.512, 0.012], r: 0.03 },
+        { p: [sign * 0.094, -0.529, 0.062], r: 0.02 },
+      ]),
+    );
   });
 
   return { group, material: mat, parts };
@@ -224,7 +340,7 @@ function organMaterial(color) {
     metalness: 0,
     transparent: true,
     opacity: 0,
-    depthWrite: false,
+    depthWrite: true,
   });
 }
 

@@ -1,9 +1,23 @@
-# Full Panel — blood test subscription app
+# Pedia — longitudinal blood panel
 
 At-home blood testing mockup: 69 biomarkers covering 17 conditions across ten
 organ systems — one per medical specialty — read through a 3D anatomy viewer,
-plus five mind indices derived from the same draw. React + Vite + three.js,
-English base with a full Korean dictionary.
+plus five mind indices and imported body composition from the same visit.
+Six rounds at three-month intervals. React + Vite + three.js, English base
+with a full Korean dictionary.
+
+## The thing it is built to demonstrate
+
+Across the six rounds, AFP rises at every draw — roughly 48% per round —
+while GGT and a fibrosis estimate climb with it and platelets fall. For four
+of those six draws every one of those values is inside its reference range. A
+cross-sectional panel returns "normal" five times and finds the liver on the
+sixth; the trajectory is legible from the third.
+
+That is the whole argument for a subscription rather than a check-up:
+`interactions.js` can fit a slope because it has a series to fit it to. Body
+composition corroborates it from a second instrument — unintentional weight
+loss with a falling phase angle, in the same window.
 
 ## Design decisions
 
@@ -24,6 +38,12 @@ a diagnosis, and the UI says so.
 
 **Mind and body are separate tabs.** The indices are *state*; the screenings
 are *risk* (mostly-null, heavy). They answer different questions.
+
+**Body composition is imported, not decorative.** An InBody series pairs with
+the blood over the same rounds, and the cross-read block names the places one
+changes how the other should be read — most usefully creatinine, which is a
+muscle breakdown product, so a muscular body posts a high creatinine and a low
+estimated GFR with healthy kidneys.
 
 **Cross-system signals (BETA).** A per-specialty panel can only ask "is this
 marker out of range?". It cannot ask whether three in-range markers, in this

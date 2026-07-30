@@ -1,5 +1,5 @@
 import Pressable from "../components/Pressable";
-import { Card, Badge, SectionTitle } from "../components/primitives";
+import { Card, SectionTitle } from "../components/primitives";
 import { C, DIVIDER, DIVIDER_TOP, T, fadeUp } from "../tokens";
 import {
   APP_BUILD,
@@ -23,6 +23,8 @@ const LEGAL_ORDER = [
 
 export default function MoreTab({ onOpenDoc, onGoStore }) {
   const { t, lang, setLang } = useLang();
+  // The notice is written per jurisdiction, not translated.
+  const notice = MEDICAL_NOTICE[lang] ?? MEDICAL_NOTICE.en;
 
   return (
     <div>
@@ -99,7 +101,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       {/* The medical disclaimer is a standing notice, not buried in a doc. */}
       <Card style={{ padding: "16px 18px", background: C.night }} delay={20}>
         <div style={{ ...T.micro, color: "rgba(255,255,255,.55)" }}>
-          {t("more.medicalTitle")}
+          {notice.title}
         </div>
         <p
           style={{
@@ -110,7 +112,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
             textWrap: "pretty",
           }}
         >
-          {MEDICAL_NOTICE.body}
+          {notice.body}
         </p>
         <p
           style={{
@@ -123,7 +125,18 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
             textWrap: "pretty",
           }}
         >
-          {MEDICAL_NOTICE.crisis}
+          {notice.crisis}
+        </p>
+        <p
+          style={{
+            ...T.micro,
+            color: "rgba(255,255,255,.5)",
+            margin: "9px 0 0",
+            lineHeight: 1.65,
+            textWrap: "pretty",
+          }}
+        >
+          {notice.privacy}
         </p>
       </Card>
 
@@ -161,28 +174,8 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       {/* Business registration block — the 통신판매업 disclosure. */}
       <Card style={{ padding: "16px 18px", marginTop: 22 }} delay={160}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ ...T.label, color: C.ink }}>
-            {t("more.business")}
-          </span>
-          {COMPANY.placeholder && (
-            <Badge color={C.watch} tint={C.watchTint}>
-              {t("more.needsReview")}
-            </Badge>
-          )}
+          <span style={{ ...T.label, color: C.ink }}>{t("more.business")}</span>
         </div>
-        {COMPANY.placeholder && (
-          <p
-            style={{
-              ...T.micro,
-              color: C.watch,
-              margin: "8px 0 0",
-              lineHeight: 1.6,
-              textWrap: "pretty",
-            }}
-          >
-            {t("more.businessWarning")}
-          </p>
-        )}
         <dl
           style={{
             margin: "12px 0 0",
@@ -191,12 +184,15 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
             gap: 7,
           }}
         >
-          <InfoRow k={t("biz.name")} v={COMPANY.name} />
-          <InfoRow k={t("biz.ceo")} v={COMPANY.ceo} />
-          <InfoRow k={t("biz.address")} v={COMPANY.address} />
+          <InfoRow k={t("biz.name")} v={pick(COMPANY.name, lang)} />
+          <InfoRow k={t("biz.ceo")} v={pick(COMPANY.ceo, lang)} />
+          <InfoRow k={t("biz.address")} v={pick(COMPANY.address, lang)} />
           <InfoRow k={t("biz.bizNo")} v={COMPANY.bizNo} />
-          <InfoRow k={t("biz.mailOrder")} v={COMPANY.mailOrderNo} />
-          <InfoRow k={t("biz.privacyOfficer")} v={COMPANY.privacyOfficer} />
+          <InfoRow k={t("biz.mailOrder")} v={pick(COMPANY.mailOrderNo, lang)} />
+          <InfoRow
+            k={t("biz.privacyOfficer")}
+            v={pick(COMPANY.privacyOfficer, lang)}
+          />
           <InfoRow k={t("biz.privacyEmail")} v={COMPANY.privacyEmail} />
         </dl>
         <div

@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Collapse, DisclosureButton } from "../components/Collapse";
+import InBodyPanel from "../components/InBodyPanel";
 import BodyScene from "../three/BodyScene";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
@@ -172,6 +173,9 @@ export default function BodyTab({ sel, onPickSession }) {
       >
         {t("body.disclaimer")}
       </p>
+
+      <SectionTitle>{t("body.composition")}</SectionTitle>
+      <InBodyPanel roundIndex={session.roundIndex} />
 
       <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
       <TrendChart
@@ -417,7 +421,7 @@ function MarkerBar({ marker, value }) {
             {formatValue(value, marker.dp)}
           </span>
           {marker.unit && (
-            <span style={{ ...T.micro, color: C.faintest, marginLeft: 4 }}>
+            <span style={{ ...T.unit, color: C.faintest, marginLeft: 4 }}>
               {marker.unit}
             </span>
           )}
