@@ -71,7 +71,7 @@ export default function AnalyzingFlow({ onBackground }) {
         </div>
         <p
           style={{
-            ...T.body,
+            ...T.bodyText,
             color: C.muted,
             textAlign: "center",
             margin: "8px 0 0",
@@ -124,7 +124,7 @@ export default function AnalyzingFlow({ onBackground }) {
               <span
                 style={{
                   flex: 1,
-                  ...T.callout,
+                  ...T.label,
                   color: s.state === "todo" ? C.faintest : C.ink,
                   fontWeight: s.state === "active" ? 700 : 600,
                 }}
@@ -157,10 +157,10 @@ export default function AnalyzingFlow({ onBackground }) {
           pressScale={0.97}
           style={{
             width: "100%",
-            borderRadius: 16,
+            borderRadius: 14,
             padding: 15,
             textAlign: "center",
-            ...T.callout,
+            ...T.label,
             color: C.body,
             cursor: "pointer",
             background: "transparent",

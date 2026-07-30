@@ -1,6 +1,6 @@
 import Pressable from "../components/Pressable";
-import { Card, Pill, SectionTitle } from "../components/primitives";
-import { C, DIVIDER, T, fadeUp } from "../tokens";
+import { Card, Badge, SectionTitle } from "../components/primitives";
+import { C, CARD, DIVIDER, R, T, fadeUp } from "../tokens";
 import { PLANS } from "../data/sessions";
 import { useT } from "../i18n";
 
@@ -33,8 +33,8 @@ export default function StoreTab({ plan, onPickPlan }) {
             style={{
               width: 36,
               height: 36,
-              borderRadius: 10,
-              background: "rgba(11,11,12,.08)",
+              borderRadius: R.control,
+              background: C.chipIdle,
             }}
           />
           <div style={{ ...T.micro, color: C.faint }}>{t("store.kit")}</div>
@@ -54,7 +54,7 @@ export default function StoreTab({ plan, onPickPlan }) {
           </div>
           <p
             style={{
-              ...T.caption,
+              ...T.monoSm,
               color: C.muted,
               margin: "7px 0 0",
               textWrap: "pretty",
@@ -92,13 +92,13 @@ export default function StoreTab({ plan, onPickPlan }) {
                 width: "100%",
                 textAlign: "left",
                 background: C.surface,
-                borderRadius: 18,
+                borderRadius: R.card,
                 padding: "15px 17px",
                 border: "none",
                 cursor: "pointer",
                 boxShadow: on
-                  ? `inset 0 0 0 1.5px ${C.accent}, 0 1px 2px rgba(11,11,12,.04)`
-                  : "0 0 0 1px rgba(11,11,12,.06), 0 1px 2px rgba(11,11,12,.04)",
+                  ? `inset 0 0 0 1.5px ${C.accent}`
+                  : CARD,
               }}
             >
               <span
@@ -109,18 +109,18 @@ export default function StoreTab({ plan, onPickPlan }) {
                   flex: "none",
                   boxShadow: on
                     ? `inset 0 0 0 5.5px ${C.accent}`
-                    : "inset 0 0 0 1.6px rgba(11,11,12,.2)",
+                    : `inset 0 0 0 1.6px ${C.hairlineStrong}`,
                 }}
               />
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <span style={{ ...T.callout, color: C.ink }}>
+                  <span style={{ ...T.label, color: C.ink }}>
                     {t(p.labelKey)}
                   </span>
                   {p.badge && (
-                    <Pill color={C.optimal} tint={C.optimalTint}>
+                    <Badge color={C.optimal} tint={C.optimalTint}>
                       {t("store.recommended")}
-                    </Pill>
+                    </Badge>
                   )}
                 </span>
                 <span
@@ -186,7 +186,7 @@ export default function StoreTab({ plan, onPickPlan }) {
             >
               ✓
             </span>
-            <span style={{ ...T.caption, color: C.body }}>{t(k)}</span>
+            <span style={{ ...T.monoSm, color: C.body }}>{t(k)}</span>
           </div>
         ))}
       </Card>
@@ -200,7 +200,7 @@ export default function StoreTab({ plan, onPickPlan }) {
           width: "100%",
           background: C.accent,
           color: C.onAccent,
-          borderRadius: 16,
+          borderRadius: R.card,
           padding: 17,
           textAlign: "center",
           border: "none",

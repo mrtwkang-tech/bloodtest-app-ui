@@ -1,5 +1,5 @@
 import Pressable from "../components/Pressable";
-import { Card, Pill, SectionTitle } from "../components/primitives";
+import { Card, Badge, SectionTitle } from "../components/primitives";
 import { C, DIVIDER, DIVIDER_TOP, T, fadeUp } from "../tokens";
 import {
   APP_BUILD,
@@ -103,7 +103,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
         </div>
         <p
           style={{
-            ...T.caption,
+            ...T.monoSm,
             color: "rgba(255,255,255,.78)",
             margin: "7px 0 0",
             lineHeight: 1.7,
@@ -161,13 +161,13 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       {/* Business registration block — the 통신판매업 disclosure. */}
       <Card style={{ padding: "16px 18px", marginTop: 22 }} delay={160}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ ...T.callout, color: C.ink }}>
+          <span style={{ ...T.label, color: C.ink }}>
             {t("more.business")}
           </span>
           {COMPANY.placeholder && (
-            <Pill color={C.watch} tint={C.watchTint}>
+            <Badge color={C.watch} tint={C.watchTint}>
               {t("more.needsReview")}
-            </Pill>
+            </Badge>
           )}
         </div>
         {COMPANY.placeholder && (
@@ -223,7 +223,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
           type="button"
           pressScale={0.95}
           style={{
-            ...T.caption,
+            ...T.monoSm,
             color: C.faint,
             margin: "12px auto 0",
             display: "block",
@@ -278,7 +278,7 @@ function MenuRow({ label, value, last, onClick }) {
       }}
       hoverStyle={{ background: C.surfaceHover }}
     >
-      <span style={{ flex: 1, ...T.callout, color: C.ink }}>{label}</span>
+      <span style={{ flex: 1, ...T.label, color: C.ink }}>{label}</span>
       {value && (
         <span style={{ ...T.micro, color: C.faint, marginRight: 8 }}>
           {value}

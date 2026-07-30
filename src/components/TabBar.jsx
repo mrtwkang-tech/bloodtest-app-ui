@@ -89,7 +89,7 @@ function TabItem({ tab, current, onSelect, dot }) {
         alignItems: "center",
         gap: 3,
         cursor: "pointer",
-        color: on ? C.ink : "rgba(60,63,70,.62)",
+        color: on ? C.ink : "rgba(78,82,90,.66)",
         transition: `color 200ms ${EASE}`,
         background: "none",
         border: "none",
@@ -226,7 +226,7 @@ export default function TabBar({
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to bottom, rgba(250,250,251,0) 0%, rgba(250,250,251,.42) 34%, rgba(250,250,251,.66) 100%)",
+              "linear-gradient(to bottom, rgba(246,246,243,0) 0%, rgba(246,246,243,.46) 34%, rgba(246,246,243,.72) 100%)",
             opacity: "calc(.55 + .45 * var(--glass-presence))",
             transition: `opacity 260ms ${EASE}`,
           }}
@@ -268,7 +268,7 @@ export default function TabBar({
             left: 0,
             right: 0,
             height: 1,
-            background: "rgba(11,11,12,.07)",
+            background: "rgba(23,24,26,.09)",
             opacity: "var(--glass-presence)",
           }}
         />
@@ -330,7 +330,7 @@ export default function TabBar({
             border: "none",
             cursor: "pointer",
             boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,.16), 0 0 0 4px rgba(250,250,251,.65), 0 10px 24px -8px rgba(11,11,12,.5)",
+              "inset 0 1px 0 rgba(255,255,255,.16), 0 0 0 4px rgba(246,246,243,.7), 0 10px 24px -8px rgba(23,24,26,.5)",
           }}
         >
           <ScanIcon />

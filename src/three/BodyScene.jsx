@@ -7,10 +7,15 @@ import {
   project,
 } from "../motion/physics";
 
-const ZONE_KEYS = ["neuro", "cardio", "metab", "systemic"];
+const ZONE_KEYS = [
+  "neuro", "cardio", "endocrine", "hepatic", "renal",
+  "hematology", "pulmonary", "immune", "oncology", "nutrition",
+];
+/** Cancer is the only system drawn as the whole figure. */
+const SHELL_KEYS = new Set(["oncology"]);
 
 /** Level 0/1/2 → the colour the organ glows. Clear stays cool and quiet. */
-const LEVEL_COLOR = [0x4fd6a0, 0xf0a839, 0xf4674a];
+const LEVEL_COLOR = [0x5f9440, 0xd39525, 0xc9553a];
 
 /**
  * Three.js anatomy viewer.
@@ -42,12 +47,12 @@ export default function BodyScene({
     renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.08;
     mount.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100);
-    camera.position.set(0, 0.3, 3.9);
+    camera.position.set(0, 0.235, 3.35);
 
     scene.add(new THREE.HemisphereLight(0xffffff, 0xbfb6a6, 1.5));
     const key = new THREE.DirectionalLight(0xffffff, 1.5);
@@ -159,7 +164,7 @@ export default function BodyScene({
 
       // Test the visible organ systems first, then fall back to the body.
       for (const k of ZONE_KEYS) {
-        if (k === "systemic") continue;
+        if (SHELL_KEYS.has(k)) continue;
         const hits = raycaster.intersectObject(organs[k].group, true);
         if (hits.length) {
           apiRef.current?.onPick?.(k);
@@ -173,14 +178,14 @@ export default function BodyScene({
         let best = null;
         let bestD = Infinity;
         for (const k of ZONE_KEYS) {
-          if (k === "systemic") continue;
+          if (SHELL_KEYS.has(k)) continue;
           const d = Math.abs(organs[k].focus.y - y);
           if (d < bestD) {
             bestD = d;
             best = k;
           }
         }
-        apiRef.current?.onPick?.(bestD < 0.3 ? best : "systemic");
+        apiRef.current?.onPick?.(bestD < 0.22 ? best : "oncology");
       }
     }
 
@@ -212,7 +217,7 @@ export default function BodyScene({
         const pulse = reduced ? 1 : 0.86 + Math.sin(t * 1.9 + k.length) * 0.14;
         const lit = s.intensity[k];
         organ.materials.forEach((m) => {
-          m.opacity = lit * (k === "systemic" ? 0.22 : 0.9);
+          m.opacity = lit * (SHELL_KEYS.has(k) ? 0.2 : 0.92);
           m.emissiveIntensity = lit * 1.5 * pulse;
           m.color.copy(s.color[k]);
           m.emissive.copy(s.color[k]);
@@ -259,8 +264,10 @@ export default function BodyScene({
           const k = zone.key;
           const isActive = active === k;
           // Flagged organs are always visible; a tap brings any organ forward.
-          const base = level > 0 ? 0.55 + level * 0.2 : 0;
-          state.target[k] = isActive ? 1 : base;
+          // With ten systems, lighting every clear one at once is soup:
+          // only a flagged system shows unprompted.
+          const base = level > 0 ? 0.5 + level * 0.22 : 0;
+          state.target[k] = isActive ? 1 : active ? 0 : base;
           state.color[k].setHex(LEVEL_COLOR[level]);
           if (state.target[k] > 0.05) anyLit = true;
 

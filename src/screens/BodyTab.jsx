@@ -3,16 +3,14 @@ import BodyScene from "../three/BodyScene";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
 import TrendChart from "../components/TrendChart";
-import { Card, ChipRail, Pill, SectionTitle } from "../components/primitives";
 import {
-  C,
-  CARD,
-  DIVIDER_TOP,
-  LEVEL_COLOR,
-  LEVEL_TINT,
-  T,
-  fadeUp,
-} from "../tokens";
+  Card,
+  ChipRail,
+  SectionLabel,
+  SectionTitle,
+  Status,
+} from "../components/primitives";
+import { C, CARD, LEVEL_COLOR, LEVEL_TINT, R, T, fadeUp } from "../tokens";
 import {
   BODY_STATUS_KEY,
   formatValue,
@@ -31,9 +29,8 @@ import { useLang } from "../i18n";
 
 /**
  * The body screen is the 3D figure plus whatever the current selection is
- * about. Selecting an organ system in the rail, tapping the mesh, or tapping a
- * card all drive the same piece of state, so the model and the list can never
- * disagree about what is being looked at.
+ * about. The chip rail, a tap on the mesh, and a tap on a card all drive the
+ * same piece of state, so the model and the list can never disagree.
  */
 export default function BodyTab({ sel, onPickSession }) {
   const { t, lang } = useLang();
@@ -73,13 +70,13 @@ export default function BodyTab({ sel, onPickSession }) {
         <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
           {t("body.title")}
         </h1>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 3 }}>
+        <div style={{ ...T.monoSm, color: C.faint, marginTop: 5 }}>
           {t("body.subtitle")}
         </div>
         <SessionChips sel={sel} onPick={onPickSession} />
       </header>
 
-      <div style={{ marginTop: 14, ...fadeUp(40) }}>
+      <div style={{ marginTop: 13, ...fadeUp(40) }}>
         <ChipRail
           items={railItems}
           value={active ?? "__all"}
@@ -87,9 +84,8 @@ export default function BodyTab({ sel, onPickSession }) {
         />
       </div>
 
-      {/* The figure. Organs light by level; a selection brings one forward. */}
       <Card
-        style={{ marginTop: 12, padding: "6px 0 12px", overflow: "hidden" }}
+        style={{ marginTop: 10, padding: "4px 0 11px", overflow: "hidden" }}
         delay={80}
       >
         <BodyScene
@@ -100,7 +96,7 @@ export default function BodyTab({ sel, onPickSession }) {
         />
         <div
           style={{
-            ...T.micro,
+            ...T.monoSm,
             color: C.faintest,
             textAlign: "center",
             padding: "0 18px",
@@ -109,14 +105,14 @@ export default function BodyTab({ sel, onPickSession }) {
           {summary.flagged.length === 0 && !active
             ? t("body.allInRange")
             : t("body.tapOrgan")}
-          {" · "}
-          {t("body.rotateHint")}
         </div>
       </Card>
 
-      <Card style={{ padding: "16px 18px", marginTop: 12 }} delay={120}>
-        <div style={{ ...T.micro, color: C.faint }}>{t("body.summary")}</div>
-        <div style={{ ...T.title3, color: C.ink, marginTop: 6 }}>
+      <Card style={{ padding: "16px 18px", marginTop: 10 }} delay={120}>
+        <SectionLabel value={`${summary.okConditions}/${summary.total}`}>
+          {t("body.summary")}
+        </SectionLabel>
+        <div style={{ ...T.title3, color: C.ink, marginTop: 9 }}>
           {summary.flagged.length === 0
             ? t("body.allClear", { n: summary.total })
             : t("body.someFlagged", {
@@ -125,29 +121,30 @@ export default function BodyTab({ sel, onPickSession }) {
                 n: summary.flagged.length,
               })}
         </div>
-        {summary.flagged.length > 0 && (
-          <div
-            style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}
-          >
-            {summary.flagged.map(({ zone, level }) => (
-              <Pill
-                key={zone.key}
-                color={LEVEL_COLOR[level]}
-                tint={LEVEL_TINT[level]}
-              >
-                {t(zone.nameKey)}
-              </Pill>
-            ))}
-          </div>
-        )}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "9px 12px",
+            marginTop: 13,
+          }}
+        >
+          {summary.zones.map(({ zone, level }) => (
+            <Status key={zone.key} color={LEVEL_COLOR[level]}>
+              {t(zone.nameKey)}
+            </Status>
+          ))}
+        </div>
       </Card>
 
       {shown.length > 0 && (
         <>
-          <SectionTitle>
+          <SectionTitle
+            value={shown.length > 1 ? String(shown.length) : undefined}
+          >
             {activeEntry ? t(activeEntry.zone.nameKey) : t("body.watch")}
           </SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {shown.map(({ zone, values, level }) => (
               <ZonePanel
                 key={zone.key}
@@ -166,36 +163,33 @@ export default function BodyTab({ sel, onPickSession }) {
 
       <p
         style={{
-          ...T.micro,
+          ...T.monoSm,
           color: C.faintest,
-          margin: "14px 6px 0",
-          lineHeight: 1.6,
+          margin: "13px 4px 0",
           textWrap: "pretty",
         }}
       >
         {t("body.disclaimer")}
       </p>
 
-      <div style={{ marginTop: 16 }}>
-        <TrendChart
-          title={pickMetric.marker.name}
-          unit={pickMetric.marker.unit}
-          series={series}
-          labels={rounds.map((s) => t("round.n", { n: s.round }))}
-          reference={pickMetric.marker.ref}
-          referenceLabel={t("body.refUpper")}
-          sel={sel}
-          color={LEVEL_COLOR[markerLevel(pickMetric.marker, currentValue)]}
-          options={BODY_METRICS.map((m) => ({
-            key: `${m.zone}-${m.mi}`,
-            label: m.marker.name,
-          }))}
-          selectedOption={metric}
-          onPickOption={setMetric}
-          formatValue={(v) => formatValue(v, pickMetric.marker.dp)}
-          delay={0}
-        />
-      </div>
+      <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
+      <TrendChart
+        title={pickMetric.marker.name}
+        unit={pickMetric.marker.unit}
+        series={series}
+        labels={rounds.map((s) => t("round.n", { n: s.round }))}
+        reference={pickMetric.marker.ref}
+        referenceLabel={t("body.refUpper")}
+        sel={sel}
+        color={LEVEL_COLOR[markerLevel(pickMetric.marker, currentValue)]}
+        options={BODY_METRICS.map((m) => ({
+          key: `${m.zone}-${m.mi}`,
+          label: m.marker.name,
+        }))}
+        selectedOption={metric}
+        onPickOption={setMetric}
+        formatValue={(v) => formatValue(v, pickMetric.marker.dp)}
+      />
     </div>
   );
 }
@@ -211,7 +205,7 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
       style={{
         overflow: "hidden",
         boxShadow: selected
-          ? `0 0 0 1.5px ${LEVEL_COLOR[level]}44, ${CARD}`
+          ? `inset 0 0 0 1.5px ${LEVEL_COLOR[level]}55`
           : CARD,
       }}
     >
@@ -219,12 +213,12 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
         as="button"
         type="button"
         onClick={onSelect}
-        pressScale={0.99}
+        pressScale={0.995}
         style={{
           display: "block",
           width: "100%",
           textAlign: "left",
-          padding: "16px 18px 12px",
+          padding: "15px 17px 11px",
           background: "none",
           border: "none",
           cursor: "pointer",
@@ -233,44 +227,47 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <span
             style={{
-              width: 8,
-              height: 8,
+              width: 7,
+              height: 7,
               borderRadius: "50%",
               background: LEVEL_COLOR[level],
               flex: "none",
             }}
           />
           <span style={{ ...T.title3, color: C.ink }}>{t(zone.nameKey)}</span>
-          <span style={{ marginLeft: "auto" }}>
-            <Pill color={LEVEL_COLOR[level]} tint={LEVEL_TINT[level]}>
-              {t(BODY_STATUS_KEY[level])}
-            </Pill>
+          <span
+            style={{
+              marginLeft: "auto",
+              ...T.micro,
+              color: LEVEL_COLOR[level],
+            }}
+          >
+            {t(BODY_STATUS_KEY[level])}
           </span>
         </div>
+        {/* The specialty is the actionable part: it names the clinic. */}
         <div
-          style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 10 }}
+          style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 9 }}
         >
-          {zone.conditionKeys.map((k) => (
-            <span
-              key={k}
-              style={{
-                ...T.micro,
-                color: C.muted,
-                background: C.surfaceSunken,
-                borderRadius: 999,
-                padding: "3px 8px",
-              }}
-            >
-              {t(k)}
-            </span>
-          ))}
+          <span style={{ ...T.micro, color: C.faintest }}>
+            {t("body.specialty")}
+          </span>
+          <span style={{ ...T.monoSm, color: C.body }}>
+            {t(zone.specialtyKey)}
+          </span>
+          <span style={{ marginLeft: "auto", ...T.micro, color: C.faintest }}>
+            {t("body.markerCount", { n: zone.markers.length })}
+          </span>
+        </div>
+        <div style={{ ...T.monoSm, color: C.faint, marginTop: 6 }}>
+          {zone.conditionKeys.map((k) => t(k)).join(" · ")}
         </div>
         {over.length > 0 && (
           <div
             style={{
-              ...T.caption,
+              ...T.monoSm,
               color: C.body,
-              marginTop: 10,
+              marginTop: 7,
               textWrap: "pretty",
             }}
           >
@@ -281,14 +278,14 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
         )}
       </Pressable>
 
-      <div style={{ padding: "0 18px 16px" }}>
+      <div style={{ padding: "0 17px 15px" }}>
         <p
           style={{
-            ...T.caption,
+            ...T.monoSm,
             color: C.muted,
             margin: "2px 0 0",
-            paddingTop: 12,
-            boxShadow: DIVIDER_TOP,
+            paddingTop: 11,
+            boxShadow: `inset 0 1px 0 ${C.hairline}`,
             textWrap: "pretty",
           }}
         >
@@ -299,8 +296,8 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 14,
-            marginTop: 16,
+            gap: 13,
+            marginTop: 15,
           }}
         >
           {zone.markers.map((m, i) => (
@@ -308,13 +305,13 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
           ))}
         </div>
 
-        {level > 0 && (
+        {level > 0 && action && (
           <div
             style={{
               background: LEVEL_TINT[level],
-              borderRadius: 14,
-              padding: "12px 14px",
-              marginTop: 16,
+              borderRadius: R.inner,
+              padding: "11px 13px",
+              marginTop: 15,
             }}
           >
             <div style={{ ...T.micro, color: LEVEL_COLOR[level] }}>
@@ -322,13 +319,13 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             </div>
             <p
               style={{
-                ...T.caption,
+                ...T.monoSm,
                 color: C.body,
-                margin: "5px 0 0",
+                margin: "6px 0 0",
                 textWrap: "pretty",
               }}
             >
-              {action || ""}
+              {action}
             </p>
           </div>
         )}
@@ -337,6 +334,7 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
   );
 }
 
+/** One biomarker against its reference range, on the same axis grammar. */
 function MarkerBar({ marker, value }) {
   const t = useLang().t;
   const level = markerLevel(marker, value);
@@ -347,48 +345,58 @@ function MarkerBar({ marker, value }) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
+          gap: 10,
         }}
       >
-        <span style={{ ...T.callout, color: C.ink }}>
-          {marker.name}{" "}
+        <span style={{ ...T.label, color: C.ink }}>{marker.name}</span>
+        <span>
+          <span
+            style={{
+              ...T.num,
+              fontSize: 13.5,
+              fontWeight: 600,
+              color: LEVEL_COLOR[level],
+            }}
+          >
+            {formatValue(value, marker.dp)}
+          </span>
           {marker.unit && (
-            <span style={{ ...T.micro, color: C.faintest }}>{marker.unit}</span>
+            <span style={{ ...T.micro, color: C.faintest, marginLeft: 4 }}>
+              {marker.unit}
+            </span>
           )}
-        </span>
-        <span style={{ ...T.callout, ...T.mono, color: LEVEL_COLOR[level] }}>
-          {formatValue(value, marker.dp)}
         </span>
       </div>
       <div
         style={{
           position: "relative",
-          height: 6,
-          borderRadius: 999,
+          height: 5,
+          borderRadius: 2,
           background: markerBand(marker),
-          margin: "10px 0 5px",
+          margin: "10px 0 4px",
         }}
       >
         <div
           style={{
             position: "absolute",
-            top: -4,
-            left: markerLeft(value, marker.max),
-            width: 4,
-            height: 14,
-            borderRadius: 999,
-            background: C.ink,
-            transform: "translateX(-2px)",
-            boxShadow: "0 0 0 2px #fff",
+            top: -1,
+            left: markerLeft(marker.ref, marker.max),
+            width: 1,
+            height: 7,
+            background: "rgba(23,24,26,.45)",
           }}
         />
         <div
           style={{
             position: "absolute",
-            top: -2,
-            left: markerLeft(marker.ref, marker.max),
-            width: 1.5,
-            height: 10,
-            background: "rgba(11,11,12,.45)",
+            top: -3.5,
+            left: markerLeft(value, marker.max),
+            width: 3,
+            height: 12,
+            marginLeft: -1.5,
+            borderRadius: 1.5,
+            background: C.ink,
+            boxShadow: `0 0 0 2px ${C.surface}`,
           }}
         />
       </div>

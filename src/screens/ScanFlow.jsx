@@ -110,7 +110,7 @@ export default function ScanFlow({ onClose, onRecognized }) {
 
         <div
           style={{
-            ...T.body,
+            ...T.bodyText,
             color: "rgba(255,255,255,.72)",
             textAlign: "center",
             marginTop: 26,
@@ -158,12 +158,12 @@ export default function ScanFlow({ onClose, onRecognized }) {
           style={{
             background: C.optimal,
             color: "#04160D",
-            borderRadius: 16,
+            borderRadius: 14,
             padding: 16,
             textAlign: "center",
             ...T.title3,
             cursor: "pointer",
-            boxShadow: "0 10px 24px -12px rgba(18,183,106,.8)",
+            boxShadow: "0 10px 24px -12px rgba(76,122,51,.7)",
             border: "none",
             width: "100%",
           }}

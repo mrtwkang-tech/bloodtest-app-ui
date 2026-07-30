@@ -1,139 +1,175 @@
 /**
  * Design tokens.
  *
- * The palette moved from the warm paper look to a near-white clinical surface:
- * a report about tumour markers and stroke risk should read as instrument
- * output, not stationery. Colour is now reserved almost entirely for status,
- * which makes an out-of-range marker impossible to miss.
+ * The reference for this pass is an instrument panel, not a consumer card
+ * feed. Three rules carry most of the character:
+ *
+ *  1. Monospace does the talking for anything that describes or measures —
+ *     descriptions, units, counts, ranks, state labels. Proportional type is
+ *     reserved for names and headings. This is what makes a readout read as a
+ *     readout instead of a marketing page.
+ *  2. Radii stay small and stepped (14 / 10 / 8). Fully-round pills are for
+ *     genuine status badges only. Wrapping every value in a tinted capsule is
+ *     the tell of a generated layout.
+ *  3. Boundaries are hairlines, not shadows. Elevation is reserved for things
+ *     that genuinely float.
  */
 
 export const EASE = "cubic-bezier(.23,1,.32,1)";
-/** Slight overshoot for momentum-driven motion only. */
-export const EASE_SPRING = "cubic-bezier(.16,1.2,.3,1)";
+
+export const FONT_SANS =
+  '-apple-system, BlinkMacSystemFont, "SF Pro Text", Pretendard, system-ui, "Segoe UI", Roboto, sans-serif';
+export const FONT_MONO =
+  'ui-monospace, "SF Mono", SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace';
 
 export const C = {
-  ink: "#0B0B0C",
-  ink2: "#1C1D1F",
-  body: "#42454A",
-  muted: "#6B6F76",
-  faint: "#8E939B",
-  faintest: "#AEB3BA",
-  disabled: "#C2C6CC",
-  hairline: "rgba(11,11,12,.08)",
-  hairlineStrong: "rgba(11,11,12,.14)",
+  // Warm neutral ink — pure #000 on a warm ground reads as a rendering error.
+  ink: "#17181A",
+  ink2: "#33363B",
+  body: "#4E525A",
+  muted: "#6E737C",
+  faint: "#8C919A",
+  faintest: "#A9AEB6",
+  disabled: "#C4C8CE",
 
-  canvas: "#EFEFF1",
-  bg: "#F7F7F8",
-  surface: "#FFFFFF",
-  surfaceSunken: "#F2F3F5",
-  surfaceHover: "#FAFAFB",
-  chipIdle: "#F1F2F4",
+  hairline: "rgba(23,24,26,.09)",
+  hairlineStrong: "rgba(23,24,26,.16)",
 
-  // Status — one hue per state, used everywhere from bars to organ glow.
-  optimal: "#12B76A",
-  optimalTint: "#E7F8F0",
-  inRange: "#8B94A0",
-  inRangeTint: "#F0F1F3",
-  watch: "#E8A317",
-  watchTint: "#FDF4E3",
-  alert: "#EF5B41",
-  alertTint: "#FDECE8",
+  canvas: "#DEDED8",
+  bg: "#F1F1EE",
+  surface: "#FBFBFA",
+  surfaceRaised: "#FFFFFF",
+  surfaceSunken: "#EAEAE6",
+  surfaceHover: "#F5F5F2",
+  chipIdle: "#E8E8E4",
 
-  accent: "#0B0B0C",
+  // Status. One hue per state, from bars to organ glow to tab dots.
+  optimal: "#4C7A33",
+  optimalSoft: "#7FA860",
+  optimalTint: "#E8F0E0",
+  inRange: "#8C919A",
+  inRangeTint: "#E9E9E5",
+  watch: "#B8801F",
+  watchTint: "#F7EEDA",
+  alert: "#B4462F",
+  alertTint: "#F6E4DF",
+
+  accent: "#3F6329",
+  accentSoft: "#E6EEDE",
   onAccent: "#FFFFFF",
 
-  night: "#111214",
-  scanBg: "#0A0B0C",
+  night: "#1B1D1C",
+  scanBg: "#111312",
 
-  peer: "#D5D8DD",
-  peerStroke: "#B6BBC3",
+  peer: "#BFC3BA",
+  peerStroke: "#9BA096",
 };
 
-export const STATUS_KEYS = ["good", "watch", "alert"];
 export const STATUS_COLOR = { good: C.optimal, watch: C.watch, alert: C.alert };
 export const STATUS_TINT = {
   good: C.optimalTint,
   watch: C.watchTint,
   alert: C.alertTint,
 };
-
-/** Body zone level (0/1/2) shares the same three hues. */
 export const LEVEL_COLOR = [C.optimal, C.watch, C.alert];
 export const LEVEL_TINT = [C.optimalTint, C.watchTint, C.alertTint];
 
-/** Cards sit on a hairline ring plus a whisper of shadow, never a 1px border. */
-export const CARD =
-  "0 0 0 1px rgba(11,11,12,.06), 0 1px 2px rgba(11,11,12,.04)";
-export const CARD_RAISED =
-  "0 0 0 1px rgba(11,11,12,.06), 0 6px 20px -8px rgba(11,11,12,.16)";
-export const DIVIDER = "inset 0 -1px 0 rgba(11,11,12,.06)";
-export const DIVIDER_TOP = "inset 0 1px 0 rgba(11,11,12,.06)";
+/** Stepped radii — a card, a row inside it, a control inside that. */
+export const R = { card: 14, inner: 10, control: 8, pill: 999 };
 
-/** Translucent chrome — content scrolls underneath rather than being clipped. */
-export const MATERIAL_CHROME = {
-  background: "rgba(255,255,255,.72)",
-  backdropFilter: "blur(24px) saturate(180%)",
-  WebkitBackdropFilter: "blur(24px) saturate(180%)",
-};
+/** Hairline ring. Shadow only where something actually floats. */
+export const HAIRLINE = `inset 0 0 0 1px ${C.hairline}`;
+export const CARD = `inset 0 0 0 1px ${C.hairline}`;
+export const CARD_FLOAT = `inset 0 0 0 1px ${C.hairline}, 0 8px 24px -12px rgba(23,24,26,.22)`;
+export const DIVIDER = `inset 0 -1px 0 ${C.hairline}`;
+export const DIVIDER_TOP = `inset 0 1px 0 ${C.hairline}`;
 
 /**
- * Type ramp. Tracking is size-specific: large text needs negative tracking to
- * stop looking loose, body text sits near zero. A single letter-spacing value
- * across a ramp is wrong at one end or the other.
+ * Type ramp.
+ *
+ * Tracking is size-specific: display sizes need negative tracking to stop
+ * looking loose, and the uppercase micro label needs strong positive tracking
+ * to stay readable at 10px. One letter-spacing value across a ramp is always
+ * wrong at one end.
  */
 export const T = {
   display: {
-    fontSize: 56,
+    fontFamily: FONT_SANS,
+    fontSize: 52,
     fontWeight: 600,
-    lineHeight: 1.0,
+    lineHeight: 1,
     letterSpacing: "-0.035em",
+    fontVariantNumeric: "tabular-nums",
   },
   title1: {
-    fontSize: 28,
-    fontWeight: 700,
+    fontFamily: FONT_SANS,
+    fontSize: 26,
+    fontWeight: 640,
     lineHeight: 1.15,
-    letterSpacing: "-0.025em",
+    letterSpacing: "-0.024em",
   },
   title2: {
-    fontSize: 20,
-    fontWeight: 700,
+    fontFamily: FONT_SANS,
+    fontSize: 19,
+    fontWeight: 640,
     lineHeight: 1.25,
-    letterSpacing: "-0.02em",
+    letterSpacing: "-0.018em",
   },
   title3: {
-    fontSize: 16,
-    fontWeight: 700,
+    fontFamily: FONT_SANS,
+    fontSize: 15,
+    fontWeight: 640,
     lineHeight: 1.3,
-    letterSpacing: "-0.015em",
+    letterSpacing: "-0.012em",
   },
-  body: {
-    fontSize: 14,
-    fontWeight: 500,
+  bodyText: {
+    fontFamily: FONT_SANS,
+    fontSize: 13.5,
+    fontWeight: 450,
     lineHeight: 1.55,
-    letterSpacing: "-0.005em",
+    letterSpacing: "-0.004em",
   },
-  callout: {
+  label: {
+    fontFamily: FONT_SANS,
     fontSize: 13,
-    fontWeight: 600,
-    lineHeight: 1.4,
-    letterSpacing: "-0.005em",
-  },
-  caption: {
-    fontSize: 12,
-    fontWeight: 500,
-    lineHeight: 1.45,
-    letterSpacing: "0",
-  },
-  micro: {
-    fontSize: 10.5,
-    fontWeight: 600,
+    fontWeight: 560,
     lineHeight: 1.35,
-    letterSpacing: "0.01em",
+    letterSpacing: "-0.006em",
   },
-  mono: { fontVariantNumeric: "tabular-nums" },
+
+  /** Monospace family — descriptions, units, states, anything measured. */
+  mono: {
+    fontFamily: FONT_MONO,
+    fontSize: 12,
+    fontWeight: 450,
+    lineHeight: 1.6,
+    letterSpacing: "-0.01em",
+  },
+  monoSm: {
+    fontFamily: FONT_MONO,
+    fontSize: 11,
+    fontWeight: 450,
+    lineHeight: 1.5,
+    letterSpacing: "-0.01em",
+  },
+  /** Uppercase section label. Wide tracking is what keeps 10px legible. */
+  micro: {
+    fontFamily: FONT_MONO,
+    fontSize: 10,
+    fontWeight: 500,
+    lineHeight: 1.4,
+    letterSpacing: "0.09em",
+    textTransform: "uppercase",
+  },
+  /** Numerals that must align in a column. */
+  num: {
+    fontFamily: FONT_MONO,
+    fontVariantNumeric: "tabular-nums",
+    letterSpacing: "-0.01em",
+  },
 };
 
 export const fadeUp = (delayMs = 0) => ({
-  animation: `fadeUp 420ms ${EASE} both`,
+  animation: `fadeUp 400ms ${EASE} both`,
   animationDelay: `${delayMs}ms`,
 });

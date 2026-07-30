@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Pressable from "./Pressable";
-import { C, EASE, MATERIAL_CHROME, T } from "../tokens";
+import { C, EASE, R, T } from "../tokens";
 import { createVelocityTracker, project, rubberband } from "../motion/physics";
 import { useT } from "../i18n";
 
@@ -90,7 +90,7 @@ export default function Sheet({
           position: "absolute",
           inset: "44px 0 0",
           background: C.bg,
-          borderRadius: "22px 22px 0 0",
+          borderRadius: `${R.card + 4}px ${R.card + 4}px 0 0`,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -112,7 +112,9 @@ export default function Sheet({
             padding: "10px 16px 12px",
             cursor: dragging ? "grabbing" : "grab",
             touchAction: "none",
-            ...MATERIAL_CHROME,
+            background: "rgba(251,251,250,.78)",
+            backdropFilter: "blur(22px) saturate(180%)",
+            WebkitBackdropFilter: "blur(22px) saturate(180%)",
           }}
           className="material"
         >

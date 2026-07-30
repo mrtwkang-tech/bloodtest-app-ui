@@ -13,11 +13,11 @@ export default function InfoDoc({ doc, onClose }) {
       <Card style={{ padding: "18px 18px 20px" }}>
         {doc.sections.map((s, i) => (
           <section key={s.h} style={{ marginTop: i === 0 ? 0 : 20 }}>
-            <h2 style={{ ...T.callout, color: C.ink, margin: 0 }}>{s.h}</h2>
+            <h2 style={{ ...T.label, color: C.ink, margin: 0 }}>{s.h}</h2>
             {s.p && (
               <p
                 style={{
-                  ...T.caption,
+                  ...T.monoSm,
                   color: C.body,
                   margin: "7px 0 0",
                   lineHeight: 1.8,
@@ -37,7 +37,7 @@ export default function InfoDoc({ doc, onClose }) {
                     style={{
                       display: "flex",
                       gap: 8,
-                      ...T.caption,
+                      ...T.monoSm,
                       color: C.body,
                       lineHeight: 1.75,
                       marginTop: 6,

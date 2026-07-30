@@ -1,5 +1,5 @@
 import Pressable from "./Pressable";
-import { C, CARD, T } from "../tokens";
+import { C, CARD, R, T } from "../tokens";
 import { SESSIONS } from "../data/sessions";
 import { useT } from "../i18n";
 
@@ -7,7 +7,7 @@ import { useT } from "../i18n";
 export default function SessionChips({ sel, onPick }) {
   const t = useT();
   return (
-    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+    <div style={{ display: "flex", gap: 6, marginTop: 13 }}>
       {SESSIONS.map((s, i) => {
         const on = sel === i;
         return (
@@ -17,11 +17,11 @@ export default function SessionChips({ sel, onPick }) {
             type="button"
             aria-pressed={on}
             onClick={() => onPick(i)}
-            pressScale={0.95}
+            pressScale={0.96}
             style={{
               flex: 1,
-              padding: "9px 4px",
-              borderRadius: 14,
+              padding: "8px 4px",
+              borderRadius: R.control,
               cursor: "pointer",
               background: on ? C.accent : C.surface,
               color: on ? C.onAccent : C.muted,
@@ -29,8 +29,10 @@ export default function SessionChips({ sel, onPick }) {
               border: "none",
             }}
           >
-            <div style={{ ...T.callout }}>{t("round.n", { n: s.round })}</div>
-            <div style={{ ...T.micro, opacity: 0.62, marginTop: 1 }}>
+            <div style={{ ...T.monoSm, fontWeight: 500 }}>
+              {t("round.n", { n: s.round })}
+            </div>
+            <div style={{ ...T.micro, opacity: 0.62, marginTop: 2 }}>
               {s.date}
             </div>
           </Pressable>

@@ -1,146 +1,182 @@
-import { Card } from "./primitives";
-import { C, EASE, T } from "../tokens";
-import { SCALE_META, radarPoints } from "../data/scales";
+import { Card, SectionLabel } from "./primitives";
+import { AXES, SCALE_META } from "../data/scales";
+import { C, EASE, STATUS_COLOR, T } from "../tokens";
 import { useT } from "../i18n";
 
-// Axis label anchors, just outside the outer ring in viewBox units.
-const LABEL_POS = [
-  { x: 100, y: 12 },
-  { x: 188, y: 74 },
-  { x: 155, y: 185 },
-  { x: 45, y: 185 },
-  { x: 12, y: 74 },
-];
+const CX = 150;
+const CY = 112;
+const R_MAX = 76;
+const RINGS = [20, 40, 60, 80, 100];
 
-const PEER = radarPoints([50, 50, 50, 50, 50]);
-const RING_75 = radarPoints([75, 75, 75, 75, 75]);
-const RING_25 = radarPoints([25, 25, 25, 25, 25]);
+const rad = (deg) => (deg * Math.PI) / 180;
+const pt = (angle, r) => [
+  CX + Math.cos(rad(angle)) * r,
+  CY + Math.sin(rad(angle)) * r,
+];
+const poly = (values, scale = 1) =>
+  values
+    .map((v, i) =>
+      pt(AXES[i], (Math.max(3, Math.min(100, v)) / 100) * R_MAX * scale),
+    )
+    .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+    .join(" ");
+
+const ringPoly = (v) =>
+  AXES.map((a) => pt(a, (v / 100) * R_MAX))
+    .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+    .join(" ");
 
 /**
  * Percentile radar.
  *
- * Plotting score/max instead would not be comparable across instruments — MBI
- * 28/60 and PHQ-9 4/27 look wildly different while both sit near the 30th
- * percentile. On a percentile radar every axis means the same thing and the
- * peer average is a regular pentagon at 50.
+ * Plotting score/max would not be comparable across instruments — MBI 28/60
+ * and PHQ-9 4/27 look wildly different while both sit near the 30th
+ * percentile. On a percentile radar every axis means the same thing, the peer
+ * average is a regular pentagon at 50, and distance from centre is readable.
+ *
+ * The graduated rings, spokes and per-axis readouts are what turn it from a
+ * decorative blob into something you can actually take a measurement off.
  */
-export default function RadarChart({ percentiles, delay = 40 }) {
+export default function RadarChart({ percentiles, statuses, delay = 40 }) {
   const t = useT();
-  const mine = radarPoints(percentiles);
 
   return (
-    <Card style={{ padding: "16px 14px 12px" }} delay={delay}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          justifyContent: "center",
-          ...T.micro,
-          color: C.muted,
-        }}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span
-            style={{
-              width: 9,
-              height: 9,
-              borderRadius: 3,
-              background: C.accent,
-            }}
-          />
-          {t("mind.me")}
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span
-            style={{ width: 9, height: 9, borderRadius: 3, background: C.peer }}
-          />
-          {t("mind.peer")}
-        </span>
-      </div>
+    <Card style={{ padding: "15px 14px 12px" }} delay={delay}>
+      <SectionLabel value={`${t("mind.me")} · ${t("mind.peer")}`}>
+        {t("mind.percentile")}
+      </SectionLabel>
 
       <svg
         width="100%"
-        height="208"
-        viewBox="0 0 200 200"
+        viewBox="0 0 300 244"
         role="img"
+        style={{ display: "block", marginTop: 6 }}
         aria-label={SCALE_META.map(
           (m, i) => `${t(`scale.${m.key}`)} ${percentiles[i]}`,
         ).join(", ")}
       >
-        <polygon
-          points={RING_75}
-          fill="none"
-          stroke={C.hairline}
-          strokeWidth="1"
-        />
-        <polygon
-          points={RING_25}
-          fill="none"
-          stroke={C.hairline}
-          strokeWidth="1"
-        />
-        <polygon
-          points={PEER}
-          fill="rgba(213,216,221,.55)"
-          stroke={C.peerStroke}
-          strokeWidth="1.25"
-        />
-        <polygon
-          points={mine}
-          fill="rgba(11,11,12,.12)"
-          stroke={C.accent}
-          strokeWidth="2"
-          strokeLinejoin="round"
-          style={{ transition: `all 520ms ${EASE}` }}
-        />
-        {SCALE_META.map((m, i) => (
+        {/* Graduated rings — the scale you read the polygon against. */}
+        {RINGS.map((v) => (
+          <polygon
+            key={v}
+            points={ringPoly(v)}
+            fill="none"
+            stroke={v === 100 ? C.hairlineStrong : C.hairline}
+            strokeWidth="1"
+          />
+        ))}
+
+        {/* Spokes, so each vertex has a line to sit on. */}
+        {AXES.map((a, i) => {
+          const [x, y] = pt(a, R_MAX);
+          return (
+            <line
+              key={i}
+              x1={CX}
+              y1={CY}
+              x2={x}
+              y2={y}
+              stroke={C.hairline}
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        {/* Ring values, printed once up the top spoke. */}
+        {RINGS.slice(0, 4).map((v) => (
           <text
-            key={m.key}
-            x={LABEL_POS[i].x}
-            y={LABEL_POS[i].y}
-            textAnchor="middle"
-            fontSize="9.5"
-            fontWeight="600"
-            fill={C.muted}
+            key={v}
+            x={CX - 6}
+            y={CY - (v / 100) * R_MAX + 3}
+            textAnchor="end"
+            style={{ ...T.micro, fontSize: 7.5, letterSpacing: "0.04em" }}
+            fill={C.faintest}
           >
-            {t(`scale.${m.key}`)}
+            {v}
           </text>
         ))}
-      </svg>
 
-      {/* Numbers live outside the SVG so they stay selectable and scale with text size. */}
-      <div style={{ display: "flex", marginTop: 2 }}>
-        {SCALE_META.map((m, i) => (
-          <div
-            key={m.key}
-            style={{ flex: 1, textAlign: "center", minWidth: 0 }}
-          >
-            <div style={{ ...T.callout, ...T.mono, color: C.ink }}>
-              {percentiles[i]}
-            </div>
-            <div
-              style={{
-                ...T.micro,
-                color: C.faintest,
-                marginTop: 1,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {t(`scale.${m.key}`)}
-            </div>
-          </div>
-        ))}
-      </div>
+        {/* Peer average: an outline at 50, never a filled blob competing with you. */}
+        <polygon
+          points={ringPoly(50)}
+          fill="none"
+          stroke={C.peerStroke}
+          strokeWidth="1.25"
+          strokeDasharray="3 3"
+        />
+
+        {/* You. */}
+        <polygon
+          points={poly(percentiles)}
+          fill="rgba(63,99,41,.13)"
+          stroke={C.accent}
+          strokeWidth="1.75"
+          strokeLinejoin="round"
+          style={{ transition: `all 560ms ${EASE}` }}
+        />
+
+        {/* Vertices, coloured by that scale's own status. */}
+        {percentiles.map((v, i) => {
+          const [x, y] = pt(
+            AXES[i],
+            (Math.max(3, Math.min(100, v)) / 100) * R_MAX,
+          );
+          return (
+            <circle
+              key={SCALE_META[i].key}
+              cx={x}
+              cy={y}
+              r="3.4"
+              fill={STATUS_COLOR[statuses[i]]}
+              stroke={C.surface}
+              strokeWidth="1.6"
+              style={{ transition: `all 560ms ${EASE}` }}
+            />
+          );
+        })}
+
+        {/* Axis readouts: name above, measured percentile below. */}
+        {SCALE_META.map((m, i) => {
+          const a = AXES[i];
+          const [lx, ly] = pt(a, R_MAX + 22);
+          const cos = Math.cos(rad(a));
+          const anchor =
+            Math.abs(cos) < 0.3 ? "middle" : cos > 0 ? "start" : "end";
+          const top = Math.sin(rad(a)) < -0.5;
+          const baseY = top ? ly - 4 : ly + 2;
+          return (
+            <g key={m.key}>
+              <text
+                x={lx}
+                y={baseY}
+                textAnchor={anchor}
+                style={{ ...T.micro, fontSize: 9, letterSpacing: "0.05em" }}
+                fill={C.muted}
+              >
+                {t(`scale.${m.key}`)}
+              </text>
+              <text
+                x={lx}
+                y={baseY + 13}
+                textAnchor={anchor}
+                style={{ ...T.num, fontSize: 12.5, fontWeight: 600 }}
+                fill={C.ink}
+              >
+                {percentiles[i]}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
 
       <div
         style={{
-          textAlign: "center",
-          ...T.micro,
+          ...T.monoSm,
           color: C.faint,
-          marginTop: 10,
+          textAlign: "center",
+          paddingTop: 10,
+          marginTop: 2,
+          boxShadow: `inset 0 1px 0 ${C.hairline}`,
         }}
       >
         {t("mind.radarCaption")}

@@ -3,15 +3,13 @@ import RadarChart from "../components/RadarChart";
 import ScaleCard from "../components/ScaleCard";
 import TrendChart from "../components/TrendChart";
 import SessionChips from "../components/SessionChips";
-import { Card, Pill, SectionTitle } from "../components/primitives";
 import {
-  C,
-  DIVIDER_TOP,
-  STATUS_COLOR,
-  STATUS_TINT,
-  T,
-  fadeUp,
-} from "../tokens";
+  Card,
+  SectionLabel,
+  SectionTitle,
+  Status,
+} from "../components/primitives";
+import { C, R, STATUS_COLOR, T, fadeUp } from "../tokens";
 import { SCALE_META } from "../data/scales";
 import { SESSIONS, mindSummary, pick } from "../data/sessions";
 import { useLang } from "../i18n";
@@ -30,7 +28,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         <h1 style={{ ...T.title1, color: C.ink, margin: 0 }}>
           {t("mind.title")}
         </h1>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 3 }}>
+        <div style={{ ...T.monoSm, color: C.faint, marginTop: 5 }}>
           {t("mind.subtitle")}
         </div>
         <SessionChips sel={sel} onPick={onPickSession} />
@@ -41,53 +39,59 @@ export default function MindTab({ sel, onPickSession, showNew }) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 9,
-            background: C.optimalTint,
-            borderRadius: 14,
-            padding: "11px 14px",
+            gap: 8,
+            background: C.accentSoft,
+            borderRadius: R.inner,
+            padding: "10px 13px",
             marginTop: 12,
             ...fadeUp(20),
           }}
         >
           <span
             style={{
-              width: 7,
-              height: 7,
+              width: 6,
+              height: 6,
               borderRadius: "50%",
-              background: C.optimal,
+              background: C.accent,
             }}
           />
-          <span style={{ ...T.caption, color: C.ink2 }}>
+          <span style={{ ...T.monoSm, color: C.ink2 }}>
             {t("mind.newResult")}
           </span>
         </div>
       )}
 
-      <Card style={{ padding: "18px 20px", marginTop: 12 }} delay={40}>
-        <div style={{ ...T.micro, color: C.faint }}>{t("mind.summary")}</div>
-        <div style={{ ...T.title3, color: C.ink, marginTop: 6 }}>
+      <Card style={{ padding: "16px 18px" }} delay={40}>
+        <SectionLabel value={`${summary.ok}/${SCALE_META.length}`}>
+          {t("mind.summary")}
+        </SectionLabel>
+        <div style={{ ...T.title3, color: C.ink, marginTop: 9 }}>
           {summary.warn === 0
             ? t("mind.allGood")
             : t("mind.someGood", { ok: summary.ok })}
         </div>
         {summary.warn > 0 && (
           <div
-            style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 10 }}
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 14,
+              marginTop: 10,
+            }}
           >
             {summary.keys.map((k) => {
               const i = SCALE_META.findIndex((m) => m.key === k);
-              const st = session.status[i];
               return (
-                <Pill key={k} color={STATUS_COLOR[st]} tint={STATUS_TINT[st]}>
+                <Status key={k} color={STATUS_COLOR[session.status[i]]}>
                   {t(`scale.${k}`)}
-                </Pill>
+                </Status>
               );
             })}
           </div>
         )}
         <p
           style={{
-            ...T.body,
+            ...T.bodyText,
             color: C.body,
             margin: "12px 0 0",
             textWrap: "pretty",
@@ -97,11 +101,17 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         </p>
       </Card>
 
-      <div style={{ marginTop: 12 }}>
-        <RadarChart percentiles={session.percentiles} delay={80} />
+      <div style={{ marginTop: 10 }}>
+        <RadarChart
+          percentiles={session.percentiles}
+          statuses={session.status}
+          delay={80}
+        />
       </div>
 
-      <SectionTitle>{t("mind.percentile")}</SectionTitle>
+      <SectionTitle value={t("mind.percentile")}>
+        {t("mind.scales")}
+      </SectionTitle>
       <div
         style={{
           display: "flex",
@@ -121,27 +131,26 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         ))}
       </div>
 
-      <div style={{ marginTop: 16 }}>
-        <TrendChart
-          title={t("mind.trend", { name: t(`scale.${meta.key}`) })}
-          unit={meta.code}
-          series={rounds.map((s) => s.scores[metric])}
-          labels={rounds.map((s) => t("round.n", { n: s.round }))}
-          reference={meta.avg}
-          referenceLabel={t("mind.peerAvg")}
-          sel={sel}
-          color={STATUS_COLOR[session.status[metric]]}
-          options={SCALE_META.map((m) => ({
-            key: m.key,
-            label: t(`scale.${m.key}`),
-          }))}
-          selectedOption={metric}
-          onPickOption={setMetric}
-        />
-      </div>
+      <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
+      <TrendChart
+        title={t(`scale.${meta.key}`)}
+        unit={meta.code}
+        series={rounds.map((s) => s.scores[metric])}
+        labels={rounds.map((s) => t("round.n", { n: s.round }))}
+        reference={meta.avg}
+        referenceLabel={t("mind.peerAvg")}
+        sel={sel}
+        color={STATUS_COLOR[session.status[metric]]}
+        options={SCALE_META.map((m) => ({
+          key: m.key,
+          label: t(`scale.${m.key}`),
+        }))}
+        selectedOption={metric}
+        onPickOption={setMetric}
+      />
 
       <SectionTitle>{t("mind.activities")}</SectionTitle>
-      <Card style={{ padding: "16px 18px" }} delay={0}>
+      <Card style={{ padding: "15px 17px" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {pick(session.mindActivities, lang).map((text, i) => (
             <div
@@ -150,22 +159,18 @@ export default function MindTab({ sel, onPickSession, showNew }) {
             >
               <span
                 style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: "50%",
-                  background: C.surfaceSunken,
-                  color: C.muted,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
                   ...T.micro,
+                  color: C.faintest,
                   flex: "none",
-                  marginTop: 1,
+                  marginTop: 3,
+                  width: 14,
                 }}
               >
-                {i + 1}
+                {String(i + 1).padStart(2, "0")}
               </span>
-              <span style={{ ...T.body, color: C.body, textWrap: "pretty" }}>
+              <span
+                style={{ ...T.bodyText, color: C.body, textWrap: "pretty" }}
+              >
                 {text}
               </span>
             </div>
@@ -174,18 +179,24 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       </Card>
 
       <SectionTitle>{t("mind.state")}</SectionTitle>
-      <Card style={{ padding: "16px 18px" }} delay={0}>
-        <p style={{ ...T.body, color: C.body, margin: 0, textWrap: "pretty" }}>
+      <Card style={{ padding: "15px 17px" }}>
+        <p
+          style={{
+            ...T.bodyText,
+            color: C.body,
+            margin: 0,
+            textWrap: "pretty",
+          }}
+        >
           {pick(session.mind, lang)}
         </p>
         <p
           style={{
-            ...T.micro,
-            color: C.faintest,
+            ...T.monoSm,
+            color: C.faint,
             margin: "12px 0 0",
-            paddingTop: 12,
-            boxShadow: DIVIDER_TOP,
-            lineHeight: 1.6,
+            paddingTop: 11,
+            boxShadow: `inset 0 1px 0 ${C.hairline}`,
             textWrap: "pretty",
           }}
         >

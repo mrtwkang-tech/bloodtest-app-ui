@@ -1,11 +1,12 @@
 import { SCALE_META, scalePercentile, statusOf } from "./scales";
 import {
+  SYSTEMS,
   TOTAL_CONDITIONS,
   TOTAL_MARKERS,
-  ZONES,
   isOptimal,
   markerLevel,
-  zonesFor,
+  systemsAt,
+  valuesAt,
 } from "./body";
 
 /**
@@ -24,27 +25,21 @@ const RAW = [
     date: "07.03",
     fullDate: { en: "3 July 2026", ko: "2026년 7월 3일" },
     scores: [4, 5, 21, 7, 28],
-    body: {
-      neuro: [0.18, 9.2, 78],
-      cardio: [0.7, 108, 22, 9.1],
-      metab: [5.9, 104, 2.2],
-      systemic: [5.1, 1.8, 11],
-    },
     bodyNote: {
-      metab: {
+      endocrine: {
         en: "Average blood sugar edged just past the upper limit. Nothing needs action today, but the direction matters at the next round.",
         ko: "평균 혈당이 정상 상한을 조금 넘어섰습니다. 당장 조치가 필요한 수준은 아니지만 다음 회차에서 방향을 확인해야 합니다.",
       },
     },
     bodyAction: {
-      metab: {
+      endocrine: {
         en: "Adjust when you eat carbohydrates and move after meals. If the next round points the same way, see an endocrinologist.",
         ko: "탄수화물 섭취 시점과 식후 활동을 조정해보고, 다음 검사에서도 같은 방향이면 내분비내과 상담을 권합니다.",
       },
     },
     summary: {
-      en: "Only stress sits above the peer average; the other four scales are steady. On the body side one metabolic signal came up, while brain, cardiovascular and systemic markers are all inside their reference ranges.",
-      ko: "마음은 스트레스만 또래 평균을 웃돌고 나머지 네 항목은 안정 범위입니다. 몸은 대사 계열에서 신호가 하나 올라왔고, 뇌·신경과 심혈관, 전신 지표는 모두 참고 범위 안입니다.",
+      en: "Only stress sits above the peer average; the other four scales are steady. On the body side the hormone panel came up — HbA1c and fasting glucose both edged over — while the other nine systems are inside their ranges.",
+      ko: "마음은 스트레스만 또래 평균을 웃돌고 나머지 네 항목은 안정 범위입니다. 몸은 호르몬 계열에서 HbA1c와 공복혈당이 함께 상한을 넘었고, 나머지 9개 계열은 모두 참고 범위 안입니다.",
     },
     mindActivities: {
       en: [
@@ -78,17 +73,11 @@ const RAW = [
     date: "04.02",
     fullDate: { en: "2 April 2026", ko: "2026년 4월 2일" },
     scores: [6, 5, 17, 8, 30],
-    body: {
-      neuro: [0.19, 9.8, 82],
-      cardio: [0.8, 121, 24, 9.4],
-      metab: [5.5, 94, 1.8],
-      systemic: [4.8, 1.7, 10],
-    },
     bodyNote: {},
     bodyAction: {},
     summary: {
-      en: "All five mental health scales and all six screenings are inside their ranges. The cardiovascular markers that were raised last round have come back down.",
-      ko: "마음 다섯 항목과 몸 여섯 항목이 모두 참고 범위 안입니다. 직전 회차에서 올라와 있던 심혈관 지표도 정상 구간으로 돌아왔습니다.",
+      en: "Every mental health scale and all ten body systems are inside their reference ranges. The cardiovascular markers and vitamin D that were flagged last round have both come back.",
+      ko: "마음 다섯 항목과 몸 10개 계열이 모두 참고 범위 안입니다. 직전 회차에서 벗어나 있던 심혈관 지표와 비타민 D 모두 정상 구간으로 돌아왔습니다.",
     },
     mindActivities: {
       en: [
@@ -114,16 +103,14 @@ const RAW = [
     date: "01.08",
     fullDate: { en: "8 January 2026", ko: "2026년 1월 8일" },
     scores: [7, 8, 15, 10, 36],
-    body: {
-      neuro: [0.21, 10.4, 88],
-      cardio: [1.4, 142, 26, 10.2],
-      metab: [5.4, 92, 1.7],
-      systemic: [5.4, 2.0, 12],
-    },
     bodyNote: {
       cardio: {
         en: "Vessel inflammation and LDL went over the range together. That combination is worth looking at from lifestyle first.",
         ko: "혈관 염증 지표와 LDL이 함께 참고 범위를 넘었습니다. 두 값이 같이 올라간 조합이라 생활 요인부터 살펴볼 필요가 있습니다.",
+      },
+      nutrition: {
+        en: "Vitamin D sits under the reference range — common at this latitude in winter, and the easiest of these to fix.",
+        ko: "비타민 D가 참고 범위 아래입니다. 겨울철에 흔하고, 이 중 가장 교정하기 쉬운 항목입니다.",
       },
     },
     bodyAction: {
@@ -131,10 +118,14 @@ const RAW = [
         en: "Start with saturated fat and activity levels. If it holds at the next round, see a cardiologist.",
         ko: "포화지방 섭취와 활동량을 먼저 조정하고, 다음 회차에서도 유지되면 순환기내과 상담을 권합니다.",
       },
+      nutrition: {
+        en: "Daily vitamin D and 15 minutes of midday sun. It usually corrects within one cycle.",
+        ko: "비타민 D 보충과 한낮 햇빛 15분을 권합니다. 보통 한 주기 안에 회복됩니다.",
+      },
     },
     summary: {
-      en: "Your first test, and the baseline everything else is compared against. Anxiety, sleep and burnout were above the peer average, and a cardiovascular signal came up.",
-      ko: "첫 검사로 이후 회차의 비교 기준이 되는 회차입니다. 마음은 불안·수면·번아웃이 또래 평균을 넘었고, 몸은 심혈관 계열에서 신호가 올라왔습니다.",
+      en: "Your first test, and the baseline everything else is compared against. Anxiety, sleep and burnout were above the peer average; the cardiovascular panel and vitamin D were both outside range.",
+      ko: "첫 검사로 이후 회차의 비교 기준이 되는 회차입니다. 마음은 불안·수면·번아웃이 또래 평균을 넘었고, 몸은 심혈관 계열과 비타민 D가 참고 범위를 벗어났습니다.",
     },
     mindActivities: {
       en: [
@@ -159,8 +150,10 @@ const RAW = [
   },
 ];
 
-export const SESSIONS = RAW.map((s) => ({
+export const SESSIONS = RAW.map((s, i) => ({
   ...s,
+  // RAW is newest-first; the marker demo arrays are oldest-first.
+  roundIndex: RAW.length - 1 - i,
   status: s.scores.map((score, i) => statusOf(SCALE_META[i], score)),
   percentiles: s.scores.map((score, i) =>
     scalePercentile(SCALE_META[i], score),
@@ -187,14 +180,11 @@ export function mindSummary(session) {
 }
 
 export function bodySummary(session) {
-  const zones = zonesFor(session);
+  const zones = systemsAt(session.roundIndex);
   const flagged = zones.filter((z) => z.level > 0);
   const clear = zones.filter((z) => z.level === 0);
   const worst = zones.reduce((a, z) => Math.max(a, z.level), 0);
-  const okConditions = clear.reduce(
-    (n, z) => n + z.zone.conditionKeys.length,
-    0,
-  );
+  const okConditions = clear.reduce((n, z) => n + z.zone.conditionKeys.length, 0);
   return {
     zones,
     flagged,
@@ -222,9 +212,9 @@ export function biomarkerCounts(session) {
     else inRange += 1;
   });
 
-  ZONES.forEach((zone) => {
-    const values = session.body[zone.key];
-    zone.markers.forEach((m, i) => {
+  SYSTEMS.forEach((system) => {
+    const values = valuesAt(system, session.roundIndex);
+    system.markers.forEach((m, i) => {
       const lv = markerLevel(m, values[i]);
       if (lv > 0) out += 1;
       else if (isOptimal(m, values[i])) optimal += 1;
@@ -251,12 +241,12 @@ export function healthScore(session) {
     if (s === "watch") penalty += 0.02;
     if (s === "alert") penalty += 0.05;
   });
-  ZONES.forEach((zone) => {
-    const values = session.body[zone.key];
-    zone.markers.forEach((m, i) => {
+  SYSTEMS.forEach((system) => {
+    const values = valuesAt(system, session.roundIndex);
+    system.markers.forEach((m, i) => {
       const lv = markerLevel(m, values[i]);
-      if (lv === 1) penalty += 0.02;
-      if (lv === 2) penalty += 0.05;
+      if (lv === 1) penalty += 0.015;
+      if (lv === 2) penalty += 0.04;
     });
   });
 
@@ -264,21 +254,19 @@ export function healthScore(session) {
 }
 
 /** Trend series for a body marker across every round, oldest first. */
-export function bodySeries(zoneKey, markerIndex) {
-  return [...SESSIONS].reverse().map((s) => s.body[zoneKey][markerIndex]);
+export function bodySeries(systemKey, markerIndex) {
+  return SYSTEMS.find((s) => s.key === systemKey).markers[markerIndex].demo;
 }
 
 /** Markers offered on the body trend chart — representative, not all thirteen. */
+/** One representative marker per system for the trend picker. */
 export const BODY_METRICS = [
-  { zone: "metab", mi: 0 },
-  { zone: "metab", mi: 1 },
-  { zone: "cardio", mi: 1 },
-  { zone: "cardio", mi: 0 },
-  { zone: "neuro", mi: 0 },
-  { zone: "systemic", mi: 0 },
-].map((m) => {
-  const zone = ZONES.find((z) => z.key === m.zone);
-  return { ...m, zoneKey: zone.nameKey, marker: zone.markers[m.mi] };
+  ["endocrine", 0], ["cardio", 1], ["cardio", 0], ["nutrition", 0],
+  ["hepatic", 0], ["renal", 1], ["hematology", 0], ["pulmonary", 0],
+  ["immune", 0], ["oncology", 0], ["neuro", 0],
+].map(([zone, mi]) => {
+  const system = SYSTEMS.find((s) => s.key === zone);
+  return { zone, mi, zoneKey: system.nameKey, marker: system.markers[mi] };
 });
 
 export const PLANS = {

@@ -1,6 +1,6 @@
 import Pressable from "./Pressable";
 import { Card } from "./primitives";
-import { C, EASE, T } from "../tokens";
+import { C, EASE, R, T } from "../tokens";
 import { computeTrend } from "../lib/trend";
 import { useT } from "../i18n";
 
@@ -8,8 +8,8 @@ import { useT } from "../i18n";
  * Round-over-round chart, shared by mind and body.
  *
  * Value labels sit in an HTML row under the plot rather than inside the SVG:
- * they are the part people read, and they need to be selectable and to scale
- * with the user's text-size setting.
+ * they are the part people read, and they need to stay selectable and to
+ * scale with the user's text-size setting.
  */
 export default function TrendChart({
   title,
@@ -38,7 +38,7 @@ export default function TrendChart({
         : t("trend.up", { p: tr.pctChange });
 
   return (
-    <Card style={{ padding: "18px 18px 16px" }} delay={delay}>
+    <Card style={{ padding: "16px 17px 15px" }} delay={delay}>
       <div
         style={{
           display: "flex",
@@ -59,9 +59,11 @@ export default function TrendChart({
       </div>
 
       <div
-        style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}
+        style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 7 }}
       >
-        <span style={{ width: 14, borderTop: `1px dashed ${C.disabled}` }} />
+        <span
+          style={{ width: 13, borderTop: `1px dashed ${C.hairlineStrong}` }}
+        />
         <span style={{ ...T.micro, color: C.faint }}>
           {referenceLabel} {formatValue(reference)}
         </span>
@@ -69,55 +71,56 @@ export default function TrendChart({
 
       <svg
         width="100%"
-        height="86"
-        viewBox="0 0 246 86"
-        style={{ marginTop: 10 }}
+        height="84"
+        viewBox="0 0 246 84"
+        style={{ marginTop: 9 }}
         aria-hidden="true"
       >
         <line
-          x1="6"
+          x1="4"
           y1={tr.refY}
-          x2="240"
+          x2="242"
           y2={tr.refY}
           stroke={C.hairlineStrong}
           strokeWidth="1"
-          strokeDasharray="3 4"
+          strokeDasharray="3 3"
         />
         <polyline
           points={tr.xs.map((x, i) => `${x},${tr.ys[i]}`).join(" ")}
           fill="none"
           stroke={color}
-          strokeWidth="2.25"
+          strokeWidth="2"
           strokeLinejoin="round"
           strokeLinecap="round"
-          style={{ transition: `stroke 320ms ${EASE}` }}
+          style={{ transition: `stroke 300ms ${EASE}` }}
         />
         {series.map((v, i) => (
           <circle
             key={labels[i]}
             cx={tr.xs[i]}
             cy={tr.ys[i]}
-            r={tr.selX === i ? 5 : 3.2}
+            r={tr.selX === i ? 4.4 : 2.8}
             fill={color}
-            stroke="#fff"
-            strokeWidth="2"
+            stroke={C.surface}
+            strokeWidth="1.8"
           />
         ))}
       </svg>
 
-      <div style={{ display: "flex", marginTop: 6 }}>
+      <div style={{ display: "flex", marginTop: 5 }}>
         {series.map((v, i) => (
           <div key={labels[i]} style={{ flex: 1, textAlign: "center" }}>
             <div
               style={{
-                ...T.callout,
-                ...T.mono,
+                ...T.num,
+                fontSize: 13,
+                fontWeight: 600,
                 color: tr.selX === i ? C.ink : C.faintest,
               }}
             >
               {formatValue(v)}
             </div>
-            <div style={{ ...T.micro, color: C.faintest, marginTop: 1 }}>
+            <div style={{ ...T.micro, color: C.faintest, marginTop: 2 }}>
               {labels[i]}
             </div>
           </div>
@@ -128,8 +131,10 @@ export default function TrendChart({
         <div
           style={{
             display: "flex",
-            gap: 6,
-            marginTop: 14,
+            gap: 5,
+            marginTop: 13,
+            paddingTop: 13,
+            boxShadow: `inset 0 1px 0 ${C.hairline}`,
             overflowX: "auto",
             scrollbarWidth: "none",
           }}
@@ -141,11 +146,11 @@ export default function TrendChart({
               type="button"
               aria-pressed={selectedOption === i}
               onClick={() => onPickOption(i)}
-              pressScale={0.94}
+              pressScale={0.95}
               style={{
                 flex: "none",
-                padding: "8px 12px",
-                borderRadius: 999,
+                padding: "6px 10px",
+                borderRadius: R.control,
                 cursor: "pointer",
                 whiteSpace: "nowrap",
                 background: selectedOption === i ? C.accent : C.surfaceSunken,
