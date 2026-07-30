@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
-import { C, DIVIDER, EASE, STATUS_COLOR, T } from "../tokens";
+import { Dot } from "./primitives";
+import { C, DIVIDER, EASE, INSET, STATUS_COLOR, T, tint } from "../tokens";
 import { formatValue } from "../data/body";
 import { scaleDrivers } from "../data/scales";
 import { useT } from "../i18n";
@@ -24,7 +25,9 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
   const lead = drivers[0];
 
   return (
-    <div style={{ padding: "13px 16px 12px", boxShadow: last ? "none" : DIVIDER }}>
+    <div
+      style={{ padding: "13px 16px 12px", boxShadow: last ? "none" : DIVIDER }}
+    >
       <div
         style={{
           display: "flex",
@@ -75,7 +78,9 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
 
       <Ruler index={index} color={color} />
 
-      {/* The mechanism, not the number: this is the part a reader can use. */}
+      {/* The mechanism, not the number: this is the part a reader can use.
+          The plain name leads; the locus follows in mono so the claim stays
+          checkable without being the first thing anyone has to read. */}
       <div style={{ marginTop: 10 }}>
         <div style={{ ...T.micro, color: C.faintest }}>{t("mind.whyThis")}</div>
         <div
@@ -84,9 +89,12 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
             alignItems: "baseline",
             gap: 7,
             marginTop: 6,
+            flexWrap: "wrap",
           }}
         >
-          <span style={{ ...T.label, color: C.ink }}>{lead.marker.name}</span>
+          <span style={{ ...T.label, color: C.ink }}>
+            {lead.marker.plainKey ? t(lead.marker.plainKey) : lead.marker.name}
+          </span>
           <span
             style={{
               ...T.num,
@@ -101,6 +109,11 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
             {lead.pushesUp ? t("mind.pushesUp") : t("mind.pushesDown")}
           </span>
         </div>
+        {lead.marker.windowKey && (
+          <div style={{ ...T.micro, color: C.faint, marginTop: 5 }}>
+            {lead.marker.name} · {t(lead.marker.windowKey)}
+          </div>
+        )}
         <p
           style={{
             ...T.monoSm,
@@ -134,18 +147,13 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
                 <div
                   style={{ display: "flex", alignItems: "baseline", gap: 8 }}
                 >
-                  <span
-                    style={{
-                      width: 5,
-                      height: 5,
-                      borderRadius: "50%",
-                      background: d.pushesUp ? C.watch : C.optimal,
-                      flex: "none",
-                      transform: "translateY(-2px)",
-                    }}
+                  <Dot
+                    color={d.pushesUp ? C.watch : C.optimal}
+                    size={5}
+                    style={{ transform: "translateY(-2px)" }}
                   />
-                  <span style={{ ...T.monoSm, color: C.ink }}>
-                    {d.marker.name}
+                  <span style={{ ...T.label, color: C.ink }}>
+                    {d.marker.plainKey ? t(d.marker.plainKey) : d.marker.name}
                   </span>
                   <span
                     style={{
@@ -168,11 +176,33 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
                     {d.marker.unit || "—"}
                   </span>
                 </div>
-                <p
+                {/* The locus, then the window it averages over. The window is
+                    the reason this marker belongs in a quarterly product. */}
+                <div
                   style={{
                     ...T.micro,
-                    color: C.faint,
+                    color: C.faintest,
                     margin: "4px 0 0 13px",
+                    display: "flex",
+                    gap: 6,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <span>{d.marker.name}</span>
+                  <span style={{ opacity: 0.45 }}>·</span>
+                  <span style={{ color: d.cumulative ? C.optimal : C.faint }}>
+                    {d.marker.windowKey
+                      ? t(d.marker.windowKey)
+                      : d.cumulative
+                        ? t("mind.cumulativeTag")
+                        : t("mind.snapshotTag")}
+                  </span>
+                </div>
+                <p
+                  style={{
+                    ...T.monoSm,
+                    color: C.faint,
+                    margin: "5px 0 0 13px",
                     lineHeight: 1.6,
                     textWrap: "pretty",
                   }}
@@ -213,8 +243,9 @@ function Ruler({ index, color }) {
         style={{
           position: "relative",
           height: 6,
-          borderRadius: 2,
+          borderRadius: 3,
           background: C.surfaceSunken,
+          boxShadow: INSET,
         }}
       >
         <div
@@ -222,8 +253,11 @@ function Ruler({ index, color }) {
             position: "absolute",
             inset: "0 auto 0 0",
             width: `${index}%`,
-            background: color,
-            borderRadius: 2,
+            // Lit along the top edge and casting its own colour into the
+            // trough, so the fill sits in the track rather than on it.
+            background: `linear-gradient(180deg, ${tint("#ffffff", 0.32)} 0%, transparent 68%), ${color}`,
+            borderRadius: 3,
+            boxShadow: `0 0 8px ${tint(color, 0.45)}`,
             transition: `width 520ms ${EASE}, background 240ms ${EASE}`,
           }}
         />

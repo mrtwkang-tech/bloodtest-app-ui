@@ -1,5 +1,5 @@
 import Pressable from "../components/Pressable";
-import { Card, SectionTitle } from "../components/primitives";
+import { Caret, Card, SectionTitle } from "../components/primitives";
 import { C, DIVIDER, DIVIDER_TOP, T, fadeUp } from "../tokens";
 import {
   APP_BUILD,
@@ -280,7 +280,7 @@ function MenuRow({ label, value, last, onClick }) {
           {value}
         </span>
       )}
-      <span style={{ fontSize: 15, color: C.faintest }}>›</span>
+      <Caret />
     </Pressable>
   );
 }

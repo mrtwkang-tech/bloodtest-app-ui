@@ -1,19 +1,29 @@
-import { SYSTEMS, valuesAt } from "./body";
+import { valuesAt } from "./body";
+import { findMarker } from "./panels";
 
 /**
- * Mind indices, derived from blood.
+ * Mind indices, derived from markers that accumulate.
  *
  * This is a blood test, so a questionnaire score has no business being here —
  * the earlier PHQ-9 / GAD-7 numbers were values the panel cannot produce.
- * Each index is instead a weighted composite of markers the draw actually
- * measures, along the biological pathways that are known to move mood:
- * inflammation, the stress axis, tryptophan diversion, neuroplasticity,
- * methylation, oxygen delivery and thyroid output.
  *
- * Why a 1–3 month cadence is the right window: these markers integrate over
- * weeks to months, not hours. HbA1c averages 2–3 months of glucose, ferritin
- * and the omega-3 index shift over months, BDNF and cortisol over weeks. A
- * daily reading would be noise; a yearly one would miss the change.
+ * The second correction matters more. An earlier version of these indices ran
+ * on morning cortisol, and morning cortisol cannot answer the question this
+ * product asks. It varies two- to three-fold across a single day and moves
+ * with the hour of the draw; two readings three months apart differ mostly
+ * because the two mornings differed. A quarterly instrument has to be built on
+ * markers whose value at the moment of the draw is a summary of the months
+ * before it, not a snapshot of that morning.
+ *
+ * So every index below is anchored on integrating markers:
+ *   · methylation marks, which accumulate and decay over weeks to months
+ *     (see epigenetics.js — hypothetical assays, flagged as such everywhere)
+ *   · HbA1c, ~3 months of glucose
+ *   · the omega-3 index, ~4 months of membrane turnover
+ *   · ferritin, haemoglobin, vitamin D, RBC magnesium — weeks to months
+ *
+ * Where a fast-moving plasma marker still earns a place (Kyn/Trp, overnight
+ * melatonin, DHEA-S) it carries a small weight and never leads an index.
  *
  * IMPORTANT: an index is a description of biological load along a pathway,
  * not a diagnosis of a mental illness. Every string that renders one says so.
@@ -40,12 +50,12 @@ export const SCALE_META = [
     // The pathway label shown instead of a questionnaire code.
     code: "composite",
     drivers: [
-      m("cardio", "hs-CRP", 1.2, "mech.inflammation"),
-      m("immune", "IL-6", 1.2, "mech.inflammation"),
-      m("neuro", "Kyn/Trp ratio", 1.4, "mech.tryptophan"),
-      m("neuro", "BDNF", 1.3, "mech.plasticity"),
-      m("nutrition", "Vitamin D", 0.9, "mech.vitaminD"),
-      m("nutrition", "Omega-3 index", 0.8, "mech.omega3"),
+      m("epigen", "SLC6A4 promoter", 1.5, "mech.slc6a4"),
+      m("epigen", "BDNF promoter IV", 1.4, "mech.bdnfMeth"),
+      m("epigen", "DNAm inflammation", 1.2, "mech.dnamInflam"),
+      m("nutrition", "Omega-3 index", 0.9, "mech.omega3"),
+      m("nutrition", "Vitamin D", 0.7, "mech.vitaminD"),
+      m("neuro", "Kyn/Trp ratio", 0.5, "mech.tryptophan"),
     ],
   },
   {
@@ -53,11 +63,12 @@ export const SCALE_META = [
     axisKey: "scale.tension",
     code: "composite",
     drivers: [
-      m("endocrine", "Cortisol (AM)", 1.5, "mech.cortisol"),
-      m("endocrine", "DHEA-S", 1.2, "mech.dhea"),
-      m("nutrition", "Magnesium", 1.0, "mech.magnesium"),
-      m("endocrine", "TSH", 0.8, "mech.thyroid"),
-      m("immune", "IL-6", 0.6, "mech.inflammation"),
+      m("epigen", "FKBP5 intron 7", 1.5, "mech.fkbp5"),
+      m("epigen", "NR3C1 exon 1F", 1.3, "mech.nr3c1"),
+      m("epigen", "COMT Val158 CpG", 1.0, "mech.comt"),
+      m("epigen", "OXTR −934 CpG", 0.8, "mech.oxtr"),
+      m("nutrition", "Magnesium", 0.7, "mech.magnesium"),
+      m("endocrine", "DHEA-S", 0.5, "mech.dhea"),
     ],
   },
   {
@@ -65,10 +76,11 @@ export const SCALE_META = [
     axisKey: "scale.stress",
     code: "composite",
     drivers: [
-      m("endocrine", "Cortisol (AM)", 1.4, "mech.cortisol"),
+      m("epigen", "DNAm cortisol (90d)", 1.6, "mech.cortisolLoad"),
+      m("epigen", "NR3C1 exon 1F", 1.3, "mech.nr3c1"),
       m("endocrine", "HbA1c", 1.0, "mech.glucose"),
-      m("cardio", "hs-CRP", 1.0, "mech.inflammation"),
-      m("endocrine", "DHEA-S", 1.0, "mech.dhea"),
+      m("epigen", "DunedinPACE", 0.9, "mech.pace"),
+      m("epigen", "DNAm inflammation", 0.8, "mech.dnamInflam"),
     ],
   },
   {
@@ -76,10 +88,10 @@ export const SCALE_META = [
     axisKey: "scale.sleep",
     code: "composite",
     drivers: [
-      m("neuro", "6-sulfatoxymelatonin", 1.6, "mech.melatonin"),
-      m("endocrine", "Cortisol (AM)", 1.0, "mech.cortisolRhythm"),
-      m("nutrition", "Magnesium", 0.8, "mech.magnesium"),
-      m("nutrition", "Vitamin D", 0.6, "mech.vitaminD"),
+      m("epigen", "PER2/CLOCK index", 1.6, "mech.circadian"),
+      m("epigen", "DNAm cortisol (90d)", 0.9, "mech.cortisolLoad"),
+      m("neuro", "6-sulfatoxymelatonin", 0.8, "mech.melatonin"),
+      m("nutrition", "Magnesium", 0.6, "mech.magnesium"),
     ],
   },
   {
@@ -89,22 +101,34 @@ export const SCALE_META = [
     drivers: [
       m("hematology", "Ferritin", 1.3, "mech.iron"),
       m("hematology", "Haemoglobin", 1.2, "mech.oxygen"),
-      m("endocrine", "Free T4", 1.1, "mech.thyroid"),
-      m("nutrition", "Vitamin B12", 0.9, "mech.b12"),
-      m("endocrine", "Fasting insulin", 0.8, "mech.insulin"),
-      m("cardio", "hs-CRP", 0.7, "mech.inflammation"),
+      m("endocrine", "Free T4", 1.0, "mech.thyroid"),
+      m("epigen", "DunedinPACE", 0.9, "mech.pace"),
+      m("nutrition", "Vitamin B12", 0.8, "mech.b12"),
+      m("epigen", "DNAmTL", 0.7, "mech.telomere"),
+      m("epigen", "DNAm inflammation", 0.7, "mech.dnamInflam"),
     ],
   },
 ];
 
-function findMarker(systemKey, markerName) {
-  const system = SYSTEMS.find((s) => s.key === systemKey);
-  const index = system?.markers.findIndex((x) => x.name === markerName) ?? -1;
-  if (!system || index < 0) {
-    throw new Error(`Unknown driver marker: ${systemKey}/${markerName}`);
-  }
-  return { system, index, marker: system.markers[index] };
+/** True when an index is built mostly on markers that integrate over months. */
+export function cumulativeShare(meta) {
+  const total = meta.drivers.reduce((n, d) => n + d.weight, 0);
+  const slow = meta.drivers
+    .filter((d) => d.system === "epigen" || SLOW_BLOOD.has(d.marker))
+    .reduce((n, d) => n + d.weight, 0);
+  return slow / total;
 }
+
+/** Blood markers whose value is already an average over weeks or months. */
+const SLOW_BLOOD = new Set([
+  "HbA1c",
+  "Omega-3 index",
+  "Ferritin",
+  "Haemoglobin",
+  "Vitamin D",
+  "Vitamin B12",
+  "Magnesium",
+]);
 
 /**
  * One marker's contribution, 0–1.
@@ -127,8 +151,8 @@ export function scaleIndex(meta, roundIndex) {
   let sum = 0;
   let weight = 0;
   meta.drivers.forEach((d) => {
-    const { system, index, marker } = findMarker(d.system, d.marker);
-    const value = valuesAt(system, roundIndex)[index];
+    const { panel, index, marker } = findMarker(d.system, d.marker);
+    const value = valuesAt(panel, roundIndex)[index];
     sum += markerLoad(marker, value) * d.weight;
     weight += d.weight;
   });
@@ -142,16 +166,18 @@ export function scaleIndex(meta, roundIndex) {
 export function scaleDrivers(meta, roundIndex) {
   return meta.drivers
     .map((d) => {
-      const { system, index, marker } = findMarker(d.system, d.marker);
-      const value = valuesAt(system, roundIndex)[index];
+      const { panel, index, marker } = findMarker(d.system, d.marker);
+      const value = valuesAt(panel, roundIndex)[index];
       const load = markerLoad(marker, value);
       return {
         marker,
         value,
         load,
-        systemKey: system.key,
-        systemNameKey: system.nameKey,
+        systemKey: panel.key,
+        systemNameKey: panel.nameKey,
         mechanismKey: d.mechanismKey,
+        // Methylation markers integrate; plasma markers mostly do not.
+        cumulative: panel.key === "epigen" || SLOW_BLOOD.has(marker.name),
         // Contribution to the index, so the ordering reflects the weighting.
         contribution: load * d.weight,
         pushesUp: load > 0.5,

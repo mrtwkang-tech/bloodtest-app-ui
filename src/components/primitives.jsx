@@ -1,12 +1,32 @@
 import Pressable from "./Pressable";
-import { C, CARD, DIVIDER, EASE, R, T, fadeUp } from "../tokens";
+import {
+  C,
+  CARD,
+  CARET,
+  DIVIDER,
+  EASE,
+  INSET,
+  R,
+  SURFACE,
+  T,
+  backlight,
+  dot,
+  fadeUp,
+  tint,
+} from "../tokens";
 
-/** Surface card. Hairline ring, small radius, no shadow. */
-export function Card({ children, style, delay, ...rest }) {
+/**
+ * Surface card: lit top edge, shaded foot, one soft ambient cast.
+ *
+ * `glow` tints the upper-right of the panel with a status hue, which is how a
+ * card carrying a warning announces itself without being wrapped in a coloured
+ * border or a tinted block.
+ */
+export function Card({ children, style, delay, glow, ...rest }) {
   return (
     <section
       style={{
-        background: C.surface,
+        background: glow ? `${glow}, ${SURFACE}` : SURFACE,
         borderRadius: R.card,
         boxShadow: CARD,
         ...(delay != null ? fadeUp(delay) : null),
@@ -16,6 +36,26 @@ export function Card({ children, style, delay, ...rest }) {
     >
       {children}
     </section>
+  );
+}
+
+/**
+ * A status dot, area-compensated against square neighbours and lit with its
+ * own colour so it reads as an indicator lamp rather than a printed circle.
+ */
+export function Dot({ color, size = 6, lit = true, style }) {
+  return <span style={{ ...dot(size, color, lit), ...style }} />;
+}
+
+/** Disclosure chevron, nudged off mathematical centre. */
+export function Caret({ color = C.faintest, size = 15, style }) {
+  return (
+    <span
+      aria-hidden="true"
+      style={{ ...CARET, fontSize: size, color, lineHeight: 1, ...style }}
+    >
+      ›
+    </span>
   );
 }
 
@@ -64,15 +104,7 @@ export function Status({ color, children, mono = true, style }) {
     <span
       style={{ display: "inline-flex", alignItems: "center", gap: 6, ...style }}
     >
-      <span
-        style={{
-          width: 6,
-          height: 6,
-          borderRadius: "50%",
-          background: color,
-          flex: "none",
-        }}
-      />
+      <Dot color={color} />
       <span style={{ ...(mono ? T.monoSm : T.label), color: C.body }}>
         {children}
       </span>
@@ -81,15 +113,23 @@ export function Status({ color, children, mono = true, style }) {
 }
 
 /** Genuine status badge — rare by design. */
-export function Badge({ children, color = C.muted, tint = C.chipIdle, style }) {
+export function Badge({
+  children,
+  color = C.muted,
+  tint: fill = C.chipIdle,
+  style,
+}) {
   return (
     <span
       style={{
         ...T.micro,
-        background: tint,
+        background: fill,
         color,
         borderRadius: R.control,
-        padding: "3px 7px",
+        // Optical padding: uppercase sits high in its box, so the top pad is
+        // shaved and the bottom carries the difference.
+        padding: "2.5px 7px 3.5px",
+        boxShadow: `inset 0 0 0 1px ${tint(color, 0.16)}, inset 0 1px 0 rgba(255,255,255,.6)`,
         whiteSpace: "nowrap",
         ...style,
       }}
@@ -108,6 +148,7 @@ export function Segmented({ items, value, onChange, style }) {
         gap: 2,
         background: C.surfaceSunken,
         borderRadius: R.control + 2,
+        boxShadow: INSET,
         padding: 2,
         ...style,
       }}
@@ -129,9 +170,11 @@ export function Segmented({ items, value, onChange, style }) {
               borderRadius: R.control,
               padding: "6px 11px",
               whiteSpace: "nowrap",
-              background: on ? C.surfaceRaised : "transparent",
+              background: on ? SURFACE : "transparent",
               color: on ? C.ink : C.faint,
-              boxShadow: on ? "0 1px 2px rgba(23,24,26,.12)" : "none",
+              boxShadow: on
+                ? "inset 0 1px 0 rgba(255,255,255,.9), 0 1px 2px rgba(23,24,26,.14), 0 4px 10px -6px rgba(23,24,26,.28)"
+                : "none",
               transition: `background 180ms ${EASE}, color 180ms ${EASE}`,
             }}
           >
@@ -142,6 +185,9 @@ export function Segmented({ items, value, onChange, style }) {
     </div>
   );
 }
+
+/** A selected chip casts its own colour, not a grey shadow. */
+const backlightAccent = backlight(C.accent, 0.9);
 
 /** Horizontal scrolling chip rail for switching subject. */
 export function ChipRail({ items, value, onChange, style }) {
@@ -176,23 +222,24 @@ export function ChipRail({ items, value, onChange, style }) {
               borderRadius: R.control,
               border: "none",
               cursor: "pointer",
-              background: on ? C.accent : C.surface,
+              background: on
+                ? `linear-gradient(180deg, ${tint("#ffffff", 0.16)} 0%, transparent 55%), ${C.accent}`
+                : SURFACE,
               color: on ? C.onAccent : C.body,
-              boxShadow: on ? "none" : CARD,
+              boxShadow: on
+                ? `inset 0 1px 0 rgba(255,255,255,.22), ${backlightAccent}`
+                : CARD,
               whiteSpace: "nowrap",
               ...T.monoSm,
             }}
           >
             {item.dot && (
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: item.dot,
-                  flex: "none",
-                  boxShadow: on ? "0 0 0 1.5px rgba(255,255,255,.35)" : "none",
-                }}
+              <Dot
+                color={item.dot}
+                lit={!on}
+                style={
+                  on ? { boxShadow: "0 0 0 1.5px rgba(255,255,255,.45)" } : null
+                }
               />
             )}
             {item.label}
@@ -228,14 +275,28 @@ export function CountStrip({ counts, labels }) {
           color={out > 0 ? C.alert : undefined}
         />
       </div>
-      <div style={{ display: "flex", gap: 2, marginTop: 13, height: 4 }}>
+      {/* The bar sits in a shallow trough, and each segment is lit along its
+          top edge — so the proportions read as inlaid, not painted on. */}
+      <div
+        style={{
+          display: "flex",
+          gap: 2,
+          marginTop: 13,
+          height: 5,
+          borderRadius: 2.5,
+          background: C.surfaceSunken,
+          boxShadow: INSET,
+          padding: 0,
+        }}
+      >
         {seg.map((s, i) => (
           <div
             key={i}
             style={{
               flex: s.n,
-              background: s.color,
-              borderRadius: 1,
+              background: `linear-gradient(180deg, ${tint("#ffffff", 0.34)} 0%, transparent 70%), ${s.color}`,
+              borderRadius: 2.5,
+              boxShadow: `0 0 6px ${tint(s.color, 0.4)}`,
               transition: `flex 520ms ${EASE}`,
             }}
           />
@@ -280,13 +341,26 @@ export function Sparkline({ series, color, width = 52, height = 20 }) {
     return [x, y];
   });
   const last = pts[pts.length - 1];
+  const id = `spark-${Math.round(pts[0][1] * 100)}-${width}`;
   return (
     <svg
       width={width}
       height={height}
       aria-hidden="true"
-      style={{ flex: "none" }}
+      style={{ flex: "none", overflow: "visible" }}
     >
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {/* The area wash gives the line a body; without it a 1.4px stroke on a
+          light panel is the thinnest thing on screen and reads as debris. */}
+      <polygon
+        points={`0,${height} ${pts.map((p) => p.join(",")).join(" ")} ${width},${height}`}
+        fill={`url(#${id})`}
+      />
       <polyline
         points={pts.map((p) => p.join(",")).join(" ")}
         fill="none"
@@ -295,7 +369,9 @@ export function Sparkline({ series, color, width = 52, height = 20 }) {
         strokeLinejoin="round"
         strokeLinecap="round"
       />
-      <circle cx={last[0]} cy={last[1]} r="2.2" fill={color} />
+      {/* The head of the line is the live value: it gets the lamp. */}
+      <circle cx={last[0]} cy={last[1]} r="4" fill={color} opacity="0.22" />
+      <circle cx={last[0]} cy={last[1]} r="2.1" fill={color} />
     </svg>
   );
 }
@@ -338,17 +414,7 @@ export function DataRow({
           {String(rank).padStart(2, "0")}
         </span>
       )}
-      {color && (
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: color,
-            flex: "none",
-          }}
-        />
-      )}
+      {color && <Dot color={color} />}
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ ...T.label, color: C.ink, display: "block" }}>
           {name}
@@ -384,7 +450,39 @@ export function DataRow({
   );
 }
 
-/** Large tabular figure. */
-export function Display({ children, color = C.ink, size = 52 }) {
-  return <div style={{ ...T.display, fontSize: size, color }}>{children}</div>;
+/**
+ * Large tabular figure.
+ *
+ * The negative left margin is optical overhang: a digit's left sidebearing
+ * pushes the glyph in from the text box, so at 58px the number would sit a
+ * couple of pixels right of the label stacked above it. Pulling the box left
+ * by a fraction of the size lines the two up to the eye.
+ */
+export function Display({ children, color = C.ink, size = 52, glowColor }) {
+  return (
+    <div style={{ position: "relative", display: "inline-block" }}>
+      {glowColor && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: `${-size * 0.3}px`,
+            background: `radial-gradient(closest-side, ${tint(glowColor, 0.2)}, transparent 72%)`,
+            pointerEvents: "none",
+          }}
+        />
+      )}
+      <div
+        style={{
+          ...T.display,
+          fontSize: size,
+          color,
+          position: "relative",
+          marginLeft: -size * 0.028,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
 }

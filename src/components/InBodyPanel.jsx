@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, SectionLabel, Status, Badge } from "./primitives";
 import { Collapse, DisclosureButton } from "./Collapse";
 import Pressable from "./Pressable";
-import { C, EASE, LEVEL_COLOR, R, T } from "../tokens";
+import { C, EASE, INSET, LEVEL_COLOR, R, T, tint } from "../tokens";
 import { formatValue } from "../data/body";
 import {
   COMPOSITION,
@@ -98,7 +98,10 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
                       ...T.num,
                       fontSize: 17,
                       fontWeight: 600,
-                      color: LEVEL_COLOR[level],
+                      // A metric with no target band has no verdict to give.
+                      // Painting weight green because it is "level 0" would
+                      // claim the loss below was a good thing.
+                      color: m.band ? LEVEL_COLOR[level] : C.ink,
                     }}
                   >
                     {formatValue(m.value, m.dp)}
@@ -160,8 +163,9 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
                       style={{
                         flex: 1,
                         height: 5,
-                        borderRadius: 2,
+                        borderRadius: 2.5,
                         background: C.surfaceSunken,
+                        boxShadow: INSET,
                         position: "relative",
                       }}
                     >
@@ -171,8 +175,8 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
                           position: "absolute",
                           inset: "0 auto 0 0",
                           width: `${Math.min(100, (v / 120) * 100)}%`,
-                          background: v >= 95 ? C.optimal : C.watch,
-                          borderRadius: 2,
+                          background: `linear-gradient(180deg, ${tint("#ffffff", 0.3)} 0%, transparent 70%), ${v >= 95 ? C.optimal : C.watch}`,
+                          borderRadius: 2.5,
                           transition: `width 520ms ${EASE}`,
                         }}
                       />
@@ -218,7 +222,8 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
           <div
             style={{
               display: "flex",
-              alignItems: "center",
+              flexDirection: "column",
+              alignItems: "flex-start",
               gap: 7,
               margin: "4px 2px 0",
             }}
@@ -228,10 +233,11 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
             </Badge>
             <span
               style={{
-                ...T.micro,
+                ...T.monoSm,
                 color: C.faintest,
                 flex: 1,
-                lineHeight: 1.5,
+                lineHeight: 1.6,
+                textWrap: "pretty",
               }}
             >
               {t("ib.crossReadNote")}

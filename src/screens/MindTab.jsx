@@ -4,6 +4,7 @@ import ScaleCard from "../components/ScaleCard";
 import TrendChart from "../components/TrendChart";
 import SessionChips from "../components/SessionChips";
 import {
+  Badge,
   Card,
   SectionLabel,
   SectionTitle,
@@ -108,6 +109,53 @@ export default function MindTab({ sel, onPickSession, showNew }) {
           delay={80}
         />
       </div>
+
+      {/* The instrument note. A reader who has been told their "stress load" is
+          57 deserves to know what was measured to get there — and, given the
+          obvious objection, why it was not a hormone. */}
+      <SectionTitle>{t("mind.whyCumulative")}</SectionTitle>
+      <Card style={{ padding: "15px 17px" }} delay={100}>
+        <p
+          style={{
+            ...T.bodyText,
+            color: C.body,
+            margin: 0,
+            textWrap: "pretty",
+          }}
+        >
+          {t("mind.whyCumulativeBody")}
+        </p>
+        {/* Badge above rather than beside: a badge in a flex row steals a
+            third of the measure and squeezes the sentence into a column. */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 8,
+            marginTop: 13,
+            paddingTop: 12,
+            boxShadow: `inset 0 1px 0 ${C.hairline}`,
+          }}
+        >
+          <Badge color={C.watch} tint={C.watchTint}>
+            {t("epi.badge")}
+          </Badge>
+          {/* A full sentence, so monoSm — T.micro uppercases, which is right
+              for a two-word label and unreadable for a paragraph. */}
+          <span
+            style={{
+              ...T.monoSm,
+              color: C.faint,
+              flex: 1,
+              lineHeight: 1.65,
+              textWrap: "pretty",
+            }}
+          >
+            {t("epi.hypothetical")}
+          </span>
+        </div>
+      </Card>
 
       <SectionTitle value={t("mind.index")}>{t("mind.scales")}</SectionTitle>
       <p

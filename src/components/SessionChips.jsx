@@ -1,5 +1,5 @@
 import Pressable from "./Pressable";
-import { C, CARD, R, T } from "../tokens";
+import { C, CARD, R, SURFACE, T, backlight, tint } from "../tokens";
 import { SESSIONS } from "../data/sessions";
 import { useT } from "../i18n";
 
@@ -36,9 +36,13 @@ export default function SessionChips({ sel, onPick }) {
               padding: "8px 10px",
               borderRadius: R.control,
               cursor: "pointer",
-              background: on ? C.accent : C.surface,
+              background: on
+                ? `linear-gradient(180deg, ${tint("#ffffff", 0.16)} 0%, transparent 58%), ${C.accent}`
+                : SURFACE,
               color: on ? C.onAccent : C.muted,
-              boxShadow: on ? "none" : CARD,
+              boxShadow: on
+                ? `inset 0 1px 0 rgba(255,255,255,.22), ${backlight(C.accent, 0.9)}`
+                : CARD,
               border: "none",
             }}
           >

@@ -4,20 +4,29 @@ html, body {
   margin: 0;
   height: 100%;
   background: #DEDED8;
-  /* System font first — it already ships optical sizing and legibility tuning.
-     Pretendard carries the Hangul, the system face carries the Latin. */
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Pretendard',
-    system-ui, 'Segoe UI', Roboto, sans-serif;
+  /*
+    ONE family for both languages.
+
+    The previous stack put -apple-system first with Pretendard behind it, which
+    meant Latin rendered in SF and Hangul fell through to Apple SD Gothic Neo —
+    two faces with different x-heights, different weight curves and different
+    optical centres, mixed inside single sentences. Pretendard's Latin is drawn
+    on Inter's skeleton and its Hangul is designed to sit against it, so one
+    family now covers the whole product and renders identically on every
+    platform instead of changing face per device.
+  */
+  font-family: 'Pretendard Variable', Pretendard, -apple-system,
+    BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
+  /* Contextual alternates and kerning on; both are part of why the face was
+     chosen and both are off by default in some engines. */
+  font-kerning: normal;
+  font-feature-settings: 'calt' 1, 'kern' 1;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
   color: #17181A;
-}
-
-:lang(ko) {
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 button { font-family: inherit; color: inherit; }

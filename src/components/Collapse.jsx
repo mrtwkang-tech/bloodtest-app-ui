@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Pressable from "./Pressable";
-import { C, EASE, R, T } from "../tokens";
+import { C, CARET, EASE, INSET, R, T } from "../tokens";
 
 /**
  * Height-animated disclosure.
@@ -69,6 +69,7 @@ export function DisclosureButton({ open, label, hint, onClick, style }) {
         padding: "9px 11px",
         borderRadius: R.control,
         background: C.surfaceSunken,
+        boxShadow: INSET,
         border: "none",
         cursor: "pointer",
         textAlign: "left",
@@ -80,8 +81,11 @@ export function DisclosureButton({ open, label, hint, onClick, style }) {
       <span
         style={{
           ...T.monoSm,
+          ...CARET,
           color: C.faint,
-          transform: open ? "rotate(90deg)" : "rotate(0deg)",
+          transform: open
+            ? "translateX(.6px) rotate(90deg)"
+            : "translateX(.6px)",
           transition: `transform 260ms ${EASE}`,
           lineHeight: 1,
         }}

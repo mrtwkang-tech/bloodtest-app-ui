@@ -1,4 +1,5 @@
-import { ROUNDS, SYSTEMS, markerLevel, valuesAt } from "./body";
+import { SYSTEMS, markerLevel } from "./body";
+import { readMarker } from "./panels";
 import { SCALE_META, scaleIndex } from "./scales";
 
 /**
@@ -16,13 +17,9 @@ import { SCALE_META, scaleIndex } from "./scales";
  * heuristics over demo data, not a validated risk model.
  */
 
-/** Marker lookup by system key and name. */
+/** Marker lookup by panel key and name. */
 function read(roundIndex, systemKey, markerName) {
-  const system = SYSTEMS.find((s) => s.key === systemKey);
-  const index = system.markers.findIndex((x) => x.name === markerName);
-  const marker = system.markers[index];
-  const value = valuesAt(system, roundIndex)[index];
-  return { marker, value, level: markerLevel(marker, value), systemKey };
+  return readMarker(systemKey, markerName, roundIndex);
 }
 
 /** Ratio of a value to its reference, oriented so >1 always means "worse". */
@@ -139,18 +136,18 @@ const RULES = [
     titleKey: "ix.stressGlycaemia.title",
     bodyKey: "ix.stressGlycaemia.body",
     actionKey: "ix.stressGlycaemia.action",
-    systems: ["endocrine", "neuro"],
+    systems: ["endocrine", "epigen"],
     evaluate(r) {
-      const cortisol = read(r, "endocrine", "Cortisol (AM)");
+      // Both sides of this pattern are cumulative on purpose: HbA1c averages a
+      // quarter of glucose, and the methylation score averages a quarter of
+      // glucocorticoid exposure. A morning cortisol would have made the same
+      // claim from a single hour.
+      const load = read(r, "epigen", "DNAm cortisol (90d)");
       const a1c = read(r, "endocrine", "HbA1c");
+      const nr3c1 = read(r, "epigen", "NR3C1 exon 1F");
       const dhea = read(r, "endocrine", "DHEA-S");
-      const melatonin = read(r, "neuro", "6-sulfatoxymelatonin");
-      // Glucose rising while the adrenal ratio slips: reads as load, not diet.
-      const hit =
-        ratio(a1c) > 0.99 && ratio(cortisol) > 0.78 && ratio(dhea) > 0.85;
-      return hit
-        ? { severity: 1, evidence: [a1c, cortisol, dhea, melatonin] }
-        : null;
+      const hit = ratio(a1c) > 0.99 && ratio(load) > 1.0 && ratio(nr3c1) > 0.95;
+      return hit ? { severity: 1, evidence: [a1c, load, nr3c1, dhea] } : null;
     },
   },
   {
@@ -194,16 +191,18 @@ const RULES = [
     titleKey: "ix.sleepAxis.title",
     bodyKey: "ix.sleepAxis.body",
     actionKey: "ix.sleepAxis.action",
-    systems: ["neuro", "endocrine"],
+    systems: ["epigen", "neuro"],
     evaluate(r) {
+      const clock = read(r, "epigen", "PER2/CLOCK index");
       const melatonin = read(r, "neuro", "6-sulfatoxymelatonin");
-      const cortisol = read(r, "endocrine", "Cortisol (AM)");
-      // Low night-time output against a high morning peak: a phase problem.
-      const hit = ratio(melatonin) > 0.95 && ratio(cortisol) > 0.7;
+      const load = read(r, "epigen", "DNAm cortisol (90d)");
+      // One night's melatonin is one night. The clock-gene drift is what says
+      // the phase problem has been there for weeks.
+      const hit = ratio(clock) > 0.95 && ratio(melatonin) > 0.9;
       return hit
         ? {
-            severity: ratio(melatonin) > 1.1 ? 2 : 1,
-            evidence: [melatonin, cortisol],
+            severity: ratio(clock) > 1.15 ? 2 : 1,
+            evidence: [clock, melatonin, load],
           }
         : null;
     },

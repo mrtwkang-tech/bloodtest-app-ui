@@ -1,31 +1,32 @@
 import { useState } from "react";
 import Pressable from "../components/Pressable";
 import { Collapse, DisclosureButton } from "../components/Collapse";
+import InBodyPanel from "../components/InBodyPanel";
 import {
   Card,
   CountStrip,
   DataRow,
   Display,
+  Dot,
   SectionLabel,
   SectionTitle,
   Status,
   Badge,
-  Sparkline,
 } from "../components/primitives";
 import {
   C,
-  CARD,
   EASE,
   LEVEL_COLOR,
   R,
   STATUS_COLOR,
   T,
+  backlight,
   fadeUp,
+  tint,
+  wash,
 } from "../tokens";
-import { SCALE_META } from "../data/scales";
 import { interactionsFor } from "../data/interactions";
 import { formatValue } from "../data/body";
-import { COMPOSITION, DEVICE, metricLevel } from "../data/inbody";
 import {
   PROFILE,
   SESSIONS,
@@ -39,21 +40,24 @@ import { useLang } from "../i18n";
 
 const latest = SESSIONS[0];
 
-/** The three composition numbers worth surfacing before the detail screen. */
-const HOME_METRICS = ["smm", "bodyFat", "visceral"];
-
-export default function HomeTab({
-  onGoMind,
-  onGoBody,
-  onGoStore,
-  onOpenSession,
-}) {
+/**
+ * Home carries the whole-person view: one score, the panel's shape, body
+ * composition, and the cross-system signals.
+ *
+ * It deliberately does NOT restate the individual mind indices or organ
+ * systems. Those lists lived here as two dense summary cards, which meant the
+ * first screen was a table of contents for two other screens — the reader had
+ * to parse fifteen labels before reaching anything Home alone could tell them.
+ * The tab bar already navigates; Home now says something.
+ */
+export default function HomeTab({ onGoStore, onOpenSession }) {
   const { t, lang } = useLang();
   const score = healthScore(latest);
   const counts = biomarkerCounts(latest);
   const mind = mindSummary(latest);
   const body = bodySummary(latest);
   const signals = interactionsFor(latest.roundIndex);
+  const scoreColor = score >= 80 ? C.optimal : score >= 60 ? C.watch : C.alert;
 
   const leadKey =
     score >= 82
@@ -100,7 +104,11 @@ export default function HomeTab({
       </header>
 
       {/* The one number the whole panel resolves to. */}
-      <Card style={{ padding: "18px 20px 20px" }} delay={40}>
+      <Card
+        style={{ padding: "18px 20px 20px" }}
+        glow={wash(scoreColor, 0.13)}
+        delay={40}
+      >
         <SectionLabel value={t("home.scoreOutOf")}>
           {t("home.score")}
         </SectionLabel>
@@ -112,7 +120,9 @@ export default function HomeTab({
             marginTop: 10,
           }}
         >
-          <Display size={58}>{score}</Display>
+          <Display size={58} glowColor={scoreColor}>
+            {score}
+          </Display>
           <ScoreRing value={score} />
         </div>
         <p
@@ -142,86 +152,44 @@ export default function HomeTab({
         </div>
       </Card>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 10, ...fadeUp(120) }}>
-        <DomainCard
-          label={t("home.mind")}
-          headline={
-            mind.warn === 0
-              ? t("home.allClear")
-              : t("home.needsAttention", { n: mind.warn })
-          }
-          color={STATUS_COLOR[mind.worst]}
-          rows={SCALE_META.map((m, i) => ({
-            key: m.key,
-            label: t(m.axisKey),
-            color: STATUS_COLOR[latest.status[i]],
-            value: latest.indices[i],
-          }))}
-          onClick={onGoMind}
-        />
-        <DomainCard
-          label={t("home.body")}
-          headline={
-            body.flagged.length === 0
-              ? t("home.allClear")
-              : t("home.needsAttention", { n: body.flagged.length })
-          }
-          color={LEVEL_COLOR[body.worst]}
-          rows={body.zones.map(({ zone, level }) => ({
-            key: zone.key,
-            label: t(zone.nameKey),
-            color: LEVEL_COLOR[level],
-          }))}
-          onClick={onGoBody}
-        />
-      </div>
-
-      {/* Body composition, imported from the linked device. */}
-      <Card style={{ padding: "15px 18px 16px", marginTop: 10 }} delay={150}>
-        <SectionLabel value={DEVICE.brand}>{t("home.inbody")}</SectionLabel>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "12px 10px",
-            marginTop: 13,
-          }}
-        >
-          {HOME_METRICS.map((key) => {
-            const m = COMPOSITION.find((c) => c.key === key);
-            const value = m.demo[latest.roundIndex];
-            const level = metricLevel(m, value);
-            return (
-              <div key={key}>
-                <div style={{ ...T.micro, color: C.faintest }}>{t(m.nameKey)}</div>
-                <div
-                  style={{ display: "flex", alignItems: "baseline", gap: 4, marginTop: 4 }}
-                >
-                  <span
-                    style={{
-                      ...T.num,
-                      fontSize: 16,
-                      fontWeight: 600,
-                      color: LEVEL_COLOR[level],
-                    }}
-                  >
-                    {formatValue(value, m.dp)}
-                  </span>
-                  <span style={{ ...T.unit, color: C.faintest }}>{m.unit}</span>
-                </div>
-                <Sparkline
-                  series={m.demo.slice(0, latest.roundIndex + 1)}
-                  color={LEVEL_COLOR[level]}
-                  width={64}
-                  height={16}
-                />
-              </div>
-            );
-          })}
+      {/* One line each for the two domains — a heading, not a contents page.
+          The detail lives on their own tabs. */}
+      <Card style={{ padding: "13px 18px 14px", marginTop: 10 }} delay={120}>
+        <div style={{ display: "flex", gap: 18 }}>
+          <DomainLine
+            label={t("home.mind")}
+            color={STATUS_COLOR[mind.worst]}
+            text={
+              mind.warn === 0
+                ? t("home.allClear")
+                : t("home.needsAttention", { n: mind.warn })
+            }
+          />
+          <span
+            aria-hidden="true"
+            style={{ width: 1, background: C.hairline, alignSelf: "stretch" }}
+          />
+          <DomainLine
+            label={t("home.body")}
+            color={LEVEL_COLOR[body.worst]}
+            text={
+              body.flagged.length === 0
+                ? t("home.allClear")
+                : t("home.needsAttention", { n: body.flagged.length })
+            }
+          />
         </div>
       </Card>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 10, ...fadeUp(160) }}>
+      {/* Body composition lives here now, in full. It belongs on the
+          whole-person screen rather than under the organ-system model: it is
+          measured on a different instrument, on the same body, on the same
+          schedule. */}
+      <div style={{ marginTop: 10 }}>
+        <InBodyPanel roundIndex={latest.roundIndex} delay={150} />
+      </div>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 22, ...fadeUp(160) }}>
         <Card style={{ flex: 1, padding: "14px 16px" }}>
           <div style={{ ...T.micro, color: C.faint }}>{t("home.nextTest")}</div>
           <div style={{ ...T.title2, ...T.num, color: C.ink, marginTop: 7 }}>
@@ -248,7 +216,10 @@ export default function HomeTab({
             borderRadius: R.card,
             border: "none",
             cursor: "pointer",
-            background: C.accent,
+            // Lit like every other surface, but the light it throws is its own
+            // colour rather than grey.
+            background: `linear-gradient(168deg, ${tint("#ffffff", 0.18)} 0%, transparent 46%), ${C.accent}`,
+            boxShadow: `inset 0 1px 0 rgba(255,255,255,.22), ${backlight(C.accent)}`,
             color: C.onAccent,
             textAlign: "left",
           }}
@@ -269,11 +240,27 @@ export default function HomeTab({
         {t("ix.title")}
       </SectionTitle>
       <div style={{ marginBottom: 4, ...fadeUp(200) }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7, margin: "0 2px 9px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 7,
+            margin: "0 2px 9px",
+          }}
+        >
           <Badge color={C.accent} tint={C.accentSoft}>
             {t("ix.beta")}
           </Badge>
-          <span style={{ ...T.micro, color: C.faintest, flex: 1, lineHeight: 1.5 }}>
+          <span
+            style={{
+              ...T.monoSm,
+              color: C.faintest,
+              flex: 1,
+              lineHeight: 1.6,
+              textWrap: "pretty",
+            }}
+          >
             {t("ix.note")}
           </span>
         </div>
@@ -318,110 +305,95 @@ export default function HomeTab({
   );
 }
 
-/** Thin progress ring — the score restated as a proportion. */
+/**
+ * Thin progress ring — the score restated as a proportion.
+ *
+ * The track is recessed and the arc is lit: a soft blurred copy underneath
+ * throws the arc's own colour onto the panel, and the arc itself carries a
+ * gradient so the light falls off along its length rather than sitting at one
+ * flat value the whole way round.
+ */
 function ScoreRing({ value }) {
   const r = 25;
   const circ = 2 * Math.PI * r;
+  const color = value >= 80 ? C.optimal : value >= 60 ? C.watch : C.alert;
+  const dash = `${(circ * value) / 100} ${circ}`;
   return (
-    <svg width="60" height="60" viewBox="0 0 60 60" aria-hidden="true">
+    <svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true">
+      <defs>
+        <linearGradient id="ringLight" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.72" />
+          <stop offset="55%" stopColor={color} stopOpacity="1" />
+        </linearGradient>
+        <filter id="ringGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="3.2" />
+        </filter>
+      </defs>
       <circle
-        cx="30"
-        cy="30"
+        cx="32"
+        cy="32"
         r={r}
         fill="none"
         stroke={C.surfaceSunken}
-        strokeWidth="4"
+        strokeWidth="4.5"
       />
       <circle
-        cx="30"
-        cy="30"
+        cx="32"
+        cy="32"
         r={r}
         fill="none"
-        stroke={value >= 80 ? C.optimal : value >= 60 ? C.watch : C.alert}
-        strokeWidth="4"
+        stroke={color}
+        strokeOpacity="0.55"
+        strokeWidth="4.5"
         strokeLinecap="round"
-        strokeDasharray={`${(circ * value) / 100} ${circ}`}
-        transform="rotate(-90 30 30)"
+        strokeDasharray={dash}
+        transform="rotate(-90 32 32)"
+        filter="url(#ringGlow)"
+      />
+      <circle
+        cx="32"
+        cy="32"
+        r={r}
+        fill="none"
+        stroke="url(#ringLight)"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+        strokeDasharray={dash}
+        transform="rotate(-90 32 32)"
         style={{ transition: `stroke-dasharray 720ms ${EASE}` }}
       />
     </svg>
   );
 }
 
-function DomainCard({ label, headline, color, rows, onClick }) {
+/** One domain, one line: a lamp, a name, a verdict. */
+function DomainLine({ label, color, text }) {
   return (
-    <Pressable
-      as="button"
-      type="button"
-      onClick={onClick}
-      pressScale={0.985}
-      style={{
-        display: "block",
-        alignSelf: "stretch",
-        flex: 1,
-        minWidth: 0,
-        padding: "14px 15px 13px",
-        borderRadius: R.card,
-        background: C.surface,
-        boxShadow: CARD,
-        border: "none",
-        cursor: "pointer",
-        textAlign: "left",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ ...T.micro, color: C.faint }}>{label}</span>
-        <span style={{ marginLeft: "auto", ...T.monoSm, color: C.faintest }}>
-          ›
-        </span>
-      </div>
-      <div style={{ marginTop: 9 }}>
-        <Status color={color}>{headline}</Status>
-      </div>
+    <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ ...T.micro, color: C.faint }}>{label}</div>
       <div
         style={{
           display: "flex",
-          flexDirection: "column",
-          gap: 5,
-          marginTop: 12,
+          alignItems: "center",
+          gap: 7,
+          marginTop: 7,
         }}
       >
-        {rows.map((r) => (
-          <div
-            key={r.key}
-            style={{ display: "flex", alignItems: "center", gap: 6 }}
-          >
-            <span
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: "50%",
-                background: r.color,
-                flex: "none",
-              }}
-            />
-            <span
-              style={{
-                ...T.monoSm,
-                color: C.muted,
-                flex: 1,
-                minWidth: 0,
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              {r.label}
-            </span>
-            {r.value != null && (
-              <span style={{ ...T.num, fontSize: 11, color: C.faint }}>
-                {r.value}
-              </span>
-            )}
-          </div>
-        ))}
+        <Dot color={color} size={7} />
+        <span
+          style={{
+            ...T.label,
+            color: C.ink,
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {text}
+        </span>
       </div>
-    </Pressable>
+    </div>
   );
 }
 
@@ -502,20 +474,45 @@ function SignalCard({ signal }) {
             {signal.evidence.map((e) => (
               <div
                 key={e.marker.name}
-                style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}
+                style={{
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 8,
+                  marginTop: 6,
+                }}
               >
                 <span style={{ ...T.monoSm, color: C.ink, flex: 1 }}>
                   {e.marker.name}
                 </span>
-                <span style={{ ...T.num, fontSize: 12, color: LEVEL_COLOR[e.level] }}>
+                <span
+                  style={{
+                    ...T.num,
+                    fontSize: 12,
+                    color: LEVEL_COLOR[e.level],
+                  }}
+                >
                   {formatValue(e.value, e.marker.dp)}
                 </span>
-                <span style={{ ...T.micro, color: C.faintest, width: 58, textAlign: "right" }}>
+                <span
+                  style={{
+                    ...T.micro,
+                    color: C.faintest,
+                    width: 58,
+                    textAlign: "right",
+                  }}
+                >
                   {e.marker.unit || "—"}
                 </span>
               </div>
             ))}
-            <p style={{ ...T.monoSm, color: C.muted, margin: "12px 0 0", textWrap: "pretty" }}>
+            <p
+              style={{
+                ...T.monoSm,
+                color: C.muted,
+                margin: "12px 0 0",
+                textWrap: "pretty",
+              }}
+            >
               {t(signal.actionKey)}
             </p>
           </div>

@@ -1,10 +1,27 @@
 import Pressable from "../components/Pressable";
 import { Card, Badge, SectionTitle } from "../components/primitives";
-import { C, CARD, DIVIDER, R, T, fadeUp } from "../tokens";
+import {
+  C,
+  CARD,
+  DIVIDER,
+  R,
+  SURFACE,
+  T,
+  backlight,
+  fadeUp,
+  tint,
+} from "../tokens";
 import { PLANS } from "../data/sessions";
+import { TOTAL_MARKERS } from "../data/body";
+import { EPIGEN } from "../data/epigenetics";
 import { useT } from "../i18n";
 
-const PLAN_KEYS = ["single", "quarter", "half"];
+/** Counts come from the panels themselves, so the copy cannot go stale. */
+const COUNTS = { n: TOTAL_MARKERS, e: EPIGEN.markers.length };
+
+// Monthly first among the subscriptions: it is the tightest cadence, and
+// the trajectory signals are the reason a tighter cadence is worth buying.
+const PLAN_KEYS = ["single", "monthly", "quarter", "half"];
 const INCLUDED_KEYS = [
   "store.incl1",
   "store.incl2",
@@ -60,7 +77,7 @@ export default function StoreTab({ plan, onPickPlan }) {
               textWrap: "pretty",
             }}
           >
-            {t("store.kitDesc")}
+            {t("store.kitDesc", COUNTS)}
           </p>
         </div>
       </Card>
@@ -91,14 +108,12 @@ export default function StoreTab({ plan, onPickPlan }) {
                 gap: 13,
                 width: "100%",
                 textAlign: "left",
-                background: C.surface,
+                background: SURFACE,
                 borderRadius: R.card,
                 padding: "15px 17px",
                 border: "none",
                 cursor: "pointer",
-                boxShadow: on
-                  ? `inset 0 0 0 1.5px ${C.accent}`
-                  : CARD,
+                boxShadow: on ? `inset 0 0 0 1.5px ${C.accent}` : CARD,
               }}
             >
               <span
@@ -186,7 +201,7 @@ export default function StoreTab({ plan, onPickPlan }) {
             >
               ✓
             </span>
-            <span style={{ ...T.monoSm, color: C.body }}>{t(k)}</span>
+            <span style={{ ...T.monoSm, color: C.body }}>{t(k, COUNTS)}</span>
           </div>
         ))}
       </Card>
@@ -198,7 +213,8 @@ export default function StoreTab({ plan, onPickPlan }) {
         style={{
           display: "block",
           width: "100%",
-          background: C.accent,
+          background: `linear-gradient(180deg, ${tint("#ffffff", 0.16)} 0%, transparent 52%), ${C.accent}`,
+          boxShadow: `inset 0 1px 0 rgba(255,255,255,.22), ${backlight(C.accent)}`,
           color: C.onAccent,
           borderRadius: R.card,
           padding: 17,

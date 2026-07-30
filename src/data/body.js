@@ -45,13 +45,15 @@ function walk(name, base, spread) {
 }
 
 /** Fills in `demo` for any marker that only declared a base. */
-function withSeries(system) {
+export function withSeries(system) {
   return {
     ...system,
     markers: system.markers.map((m) => {
       const demo = m.demo ?? walk(`${system.key}:${m.name}`, m.base, m.spread);
       if (demo.length !== ROUNDS) {
-        throw new Error(`${system.key}/${m.name}: expected ${ROUNDS} readings, got ${demo.length}`);
+        throw new Error(
+          `${system.key}/${m.name}: expected ${ROUNDS} readings, got ${demo.length}`,
+        );
       }
       return { ...m, demo };
     }),
@@ -75,7 +77,8 @@ const RAW_SYSTEMS = [
         ref: 0.4,
         max: 1.2,
         dp: 2,
-        base: 0.1933, spread: 0.033,
+        base: 0.1933,
+        spread: 0.033,
       },
       {
         name: "NfL",
@@ -83,7 +86,8 @@ const RAW_SYSTEMS = [
         ref: 15,
         max: 40,
         dp: 1,
-        base: 9.8, spread: 1.32,
+        base: 9.8,
+        spread: 1.32,
       },
       {
         name: "GFAP",
@@ -91,7 +95,8 @@ const RAW_SYSTEMS = [
         ref: 130,
         max: 300,
         dp: 0,
-        base: 82.6667, spread: 11.0,
+        base: 82.6667,
+        spread: 11.0,
       },
       {
         name: "Aβ42/40",
@@ -100,7 +105,8 @@ const RAW_SYSTEMS = [
         max: 0.12,
         dp: 3,
         dir: "low",
-        base: 0.0837, spread: 0.0055,
+        base: 0.0837,
+        spread: 0.0055,
       },
       {
         name: "α-synuclein",
@@ -108,7 +114,8 @@ const RAW_SYSTEMS = [
         ref: 1.6,
         max: 4,
         dp: 2,
-        base: 0.8967, spread: 0.0592,
+        base: 0.8967,
+        spread: 0.0592,
       },
       {
         name: "S100B",
@@ -116,7 +123,8 @@ const RAW_SYSTEMS = [
         ref: 0.1,
         max: 0.3,
         dp: 2,
-        base: 0.0567, spread: 0.011,
+        base: 0.0567,
+        spread: 0.011,
       },
       {
         name: "Kyn/Trp ratio",
@@ -200,7 +208,8 @@ const RAW_SYSTEMS = [
         ref: 50,
         max: 150,
         dp: 0,
-        base: 24.0, spread: 4.4,
+        base: 24.0,
+        spread: 4.4,
       },
       {
         name: "Homocysteine",
@@ -208,7 +217,8 @@ const RAW_SYSTEMS = [
         ref: 15,
         max: 30,
         dp: 1,
-        base: 9.5667, spread: 1.21,
+        base: 9.5667,
+        spread: 1.21,
       },
       {
         name: "NT-proBNP",
@@ -216,7 +226,8 @@ const RAW_SYSTEMS = [
         ref: 125,
         max: 400,
         dp: 0,
-        base: 44.3333, spread: 7.7,
+        base: 44.3333,
+        spread: 7.7,
       },
       {
         name: "Troponin-I",
@@ -224,7 +235,8 @@ const RAW_SYSTEMS = [
         ref: 15,
         max: 50,
         dp: 1,
-        base: 1.9333, spread: 0.33,
+        base: 1.9333,
+        spread: 0.33,
       },
     ],
   },
@@ -265,7 +277,8 @@ const RAW_SYSTEMS = [
         ref: 2.5,
         max: 6,
         dp: 1,
-        base: 1.9, spread: 0.55,
+        base: 1.9,
+        spread: 0.55,
       },
       {
         name: "TSH",
@@ -273,7 +286,8 @@ const RAW_SYSTEMS = [
         ref: 4.0,
         max: 10,
         dp: 2,
-        base: 2.2667, spread: 0.33,
+        base: 2.2667,
+        spread: 0.33,
       },
       {
         name: "Free T4",
@@ -282,7 +296,8 @@ const RAW_SYSTEMS = [
         max: 2,
         dp: 2,
         dir: "low",
-        base: 1.09, spread: 0.0719,
+        base: 1.09,
+        spread: 0.0719,
       },
       {
         name: "Cortisol (AM)",
@@ -382,7 +397,8 @@ const RAW_SYSTEMS = [
         ref: 1.2,
         max: 3,
         dp: 2,
-        base: 0.9333, spread: 0.0616,
+        base: 0.9333,
+        spread: 0.0616,
       },
       {
         name: "eGFR",
@@ -391,7 +407,8 @@ const RAW_SYSTEMS = [
         max: 140,
         dp: 0,
         dir: "low",
-        base: 98.6667, spread: 6.512,
+        base: 98.6667,
+        spread: 6.512,
       },
       {
         name: "BUN",
@@ -399,7 +416,8 @@ const RAW_SYSTEMS = [
         ref: 20,
         max: 50,
         dp: 0,
-        base: 14.0, spread: 2.2,
+        base: 14.0,
+        spread: 2.2,
       },
       {
         name: "Cystatin C",
@@ -407,7 +425,8 @@ const RAW_SYSTEMS = [
         ref: 1.0,
         max: 2.5,
         dp: 2,
-        base: 0.8167, spread: 0.055,
+        base: 0.8167,
+        spread: 0.055,
       },
       {
         name: "UACR",
@@ -415,7 +434,8 @@ const RAW_SYSTEMS = [
         ref: 30,
         max: 120,
         dp: 0,
-        base: 9.3333, spread: 3.3,
+        base: 9.3333,
+        spread: 3.3,
       },
       {
         name: "Uric acid",
@@ -423,7 +443,8 @@ const RAW_SYSTEMS = [
         ref: 7.0,
         max: 12,
         dp: 1,
-        base: 5.8, spread: 0.66,
+        base: 5.8,
+        spread: 0.66,
       },
     ],
   },
@@ -441,7 +462,8 @@ const RAW_SYSTEMS = [
         max: 18,
         dp: 1,
         dir: "low",
-        base: 14.7333, spread: 0.9724,
+        base: 14.7333,
+        spread: 0.9724,
       },
       {
         name: "Haematocrit",
@@ -450,7 +472,8 @@ const RAW_SYSTEMS = [
         max: 55,
         dp: 1,
         dir: "low",
-        base: 43.6333, spread: 2.8798,
+        base: 43.6333,
+        spread: 2.8798,
       },
       {
         name: "WBC",
@@ -458,7 +481,8 @@ const RAW_SYSTEMS = [
         ref: 10,
         max: 18,
         dp: 1,
-        base: 6.1667, spread: 0.55,
+        base: 6.1667,
+        spread: 0.55,
       },
       {
         name: "Platelets",
@@ -476,7 +500,8 @@ const RAW_SYSTEMS = [
         max: 300,
         dp: 0,
         dir: "low",
-        base: 88.0, spread: 13.2,
+        base: 88.0,
+        spread: 13.2,
       },
       {
         name: "MCV",
@@ -485,7 +510,8 @@ const RAW_SYSTEMS = [
         max: 100,
         dp: 1,
         dir: "low",
-        base: 89.7667, spread: 5.9246,
+        base: 89.7667,
+        spread: 5.9246,
       },
     ],
   },
@@ -502,7 +528,8 @@ const RAW_SYSTEMS = [
         ref: 300,
         max: 900,
         dp: 0,
-        base: 147.0, spread: 31.9,
+        base: 147.0,
+        spread: 31.9,
       },
       {
         name: "Total IgE",
@@ -510,7 +537,8 @@ const RAW_SYSTEMS = [
         ref: 100,
         max: 400,
         dp: 0,
-        base: 42.3333, spread: 9.9,
+        base: 42.3333,
+        spread: 9.9,
       },
       {
         name: "α1-antitrypsin",
@@ -519,7 +547,8 @@ const RAW_SYSTEMS = [
         max: 200,
         dp: 0,
         dir: "low",
-        base: 128.3333, spread: 8.47,
+        base: 128.3333,
+        spread: 8.47,
       },
       {
         name: "SpO₂",
@@ -528,7 +557,8 @@ const RAW_SYSTEMS = [
         max: 100,
         dp: 0,
         dir: "low",
-        base: 97.6667, spread: 6.446,
+        base: 97.6667,
+        spread: 6.446,
       },
       {
         name: "KL-6",
@@ -536,7 +566,8 @@ const RAW_SYSTEMS = [
         ref: 500,
         max: 1500,
         dp: 0,
-        base: 212.0, spread: 15.4,
+        base: 212.0,
+        spread: 15.4,
       },
     ],
   },
@@ -553,7 +584,8 @@ const RAW_SYSTEMS = [
         ref: 20,
         max: 60,
         dp: 0,
-        base: 10.6667, spread: 3.3,
+        base: 10.6667,
+        spread: 3.3,
       },
       {
         name: "Rheumatoid factor",
@@ -561,7 +593,8 @@ const RAW_SYSTEMS = [
         ref: 14,
         max: 60,
         dp: 1,
-        base: 4.1667, spread: 0.77,
+        base: 4.1667,
+        spread: 0.77,
       },
       {
         name: "Anti-CCP",
@@ -569,7 +602,8 @@ const RAW_SYSTEMS = [
         ref: 20,
         max: 100,
         dp: 1,
-        base: 2.1333, spread: 0.33,
+        base: 2.1333,
+        spread: 0.33,
       },
       {
         name: "ANA titre",
@@ -577,7 +611,8 @@ const RAW_SYSTEMS = [
         ref: 80,
         max: 640,
         dp: 0,
-        base: 40.0, spread: 2.64,
+        base: 40.0,
+        spread: 2.64,
       },
       {
         name: "IL-6",
@@ -585,7 +620,8 @@ const RAW_SYSTEMS = [
         ref: 7,
         max: 25,
         dp: 1,
-        base: 2.4333, spread: 0.77,
+        base: 2.4333,
+        spread: 0.77,
       },
       {
         name: "Complement C3",
@@ -594,7 +630,8 @@ const RAW_SYSTEMS = [
         max: 180,
         dp: 0,
         dir: "low",
-        base: 112.3333, spread: 7.414,
+        base: 112.3333,
+        spread: 7.414,
       },
     ],
   },
@@ -619,7 +656,8 @@ const RAW_SYSTEMS = [
         ref: 5.0,
         max: 15,
         dp: 1,
-        base: 1.8333, spread: 0.33,
+        base: 1.8333,
+        spread: 0.33,
       },
       {
         name: "CA19-9",
@@ -627,7 +665,8 @@ const RAW_SYSTEMS = [
         ref: 37,
         max: 100,
         dp: 0,
-        base: 11.0, spread: 2.2,
+        base: 11.0,
+        spread: 2.2,
       },
       {
         name: "AFP",
@@ -643,7 +682,8 @@ const RAW_SYSTEMS = [
         ref: 35,
         max: 120,
         dp: 0,
-        base: 11.0, spread: 2.2,
+        base: 11.0,
+        spread: 2.2,
       },
       {
         name: "PSA",
@@ -651,7 +691,8 @@ const RAW_SYSTEMS = [
         ref: 4.0,
         max: 10,
         dp: 2,
-        base: 0.7133, spread: 0.066,
+        base: 0.7133,
+        spread: 0.066,
       },
     ],
   },
@@ -678,7 +719,8 @@ const RAW_SYSTEMS = [
         max: 900,
         dp: 0,
         dir: "low",
-        base: 387.0, spread: 34.1,
+        base: 387.0,
+        spread: 34.1,
       },
       {
         name: "Folate",
@@ -687,7 +729,8 @@ const RAW_SYSTEMS = [
         max: 20,
         dp: 1,
         dir: "low",
-        base: 8.2333, spread: 0.77,
+        base: 8.2333,
+        spread: 0.77,
       },
       {
         name: "Iron",
@@ -696,7 +739,8 @@ const RAW_SYSTEMS = [
         max: 170,
         dp: 0,
         dir: "low",
-        base: 92.0, spread: 8.8,
+        base: 92.0,
+        spread: 8.8,
       },
       {
         name: "Magnesium",
@@ -705,7 +749,8 @@ const RAW_SYSTEMS = [
         max: 2.6,
         dp: 2,
         dir: "low",
-        base: 2.0167, spread: 0.1331,
+        base: 2.0167,
+        spread: 0.1331,
       },
       {
         name: "Zinc",
@@ -714,7 +759,8 @@ const RAW_SYSTEMS = [
         max: 130,
         dp: 0,
         dir: "low",
-        base: 88.0, spread: 6.6,
+        base: 88.0,
+        spread: 6.6,
       },
       {
         name: "Omega-3 index",
@@ -723,7 +769,8 @@ const RAW_SYSTEMS = [
         max: 12,
         dp: 1,
         dir: "low",
-        base: 5.4, spread: 0.44,
+        base: 5.4,
+        spread: 0.44,
       },
     ],
   },

@@ -44,7 +44,7 @@ export const en = {
 
   // Mind
   "mind.title": "Mind",
-  "mind.subtitle": "Five indices, derived from your blood markers",
+  "mind.subtitle": "Five indices, from markers that accumulate over months",
   "mind.summary": "Summary",
   "mind.allGood": "All five scales are in range",
   "mind.someGood": ({ ok }) => `${ok} of 5 scales in range`,
@@ -73,37 +73,113 @@ export const en = {
   "scale.stress": "Stress load",
   "scale.sleep": "Sleep",
   "scale.energy": "Energy",
-  "scale.mood.base": "Inflammation and the raw materials your brain uses to make serotonin.",
-  "scale.tension.base": "How hard your stress system is running, and what is left to buffer it.",
-  "scale.stress.base": "The wear that sustained stress leaves on blood sugar and inflammation.",
-  "scale.sleep.base": "How much sleep hormone you produced overnight, against your morning cortisol.",
-  "scale.energy.base": "Whether your blood can actually deliver oxygen and fuel to working cells.",
+  "scale.mood.base":
+    "How far your serotonin and plasticity genes have been dialled down, and the raw material left to work with.",
+  "scale.tension.base":
+    "How worn the brake on your stress response is, after the months behind you.",
+  "scale.stress.base":
+    "Accumulated stress-hormone exposure, read from the marks it left rather than from this morning's level.",
+  "scale.sleep.base":
+    "How far your body clock has drifted — measured over weeks, not from one night's sleep.",
+  "scale.energy.base":
+    "Whether your blood can actually deliver oxygen and fuel to working cells.",
 
-  "mech.inflammation": "Inflammation makes the brain conserve energy — that is felt as low motivation.",
-  "mech.tryptophan": "Inflammation diverts tryptophan away from serotonin, so less is available for mood.",
-  "mech.plasticity": "BDNF is the protein the brain uses to adapt. Low levels make recovery slower.",
-  "mech.cortisol": "Morning cortisol is the stress system's output. Persistently high means it is not switching off.",
-  "mech.dhea": "DHEA-S buffers cortisol. When it falls, the same stress hits harder.",
-  "mech.magnesium": "Magnesium calms nerve signalling. Low levels leave you more easily wound up.",
-  "mech.thyroid": "Thyroid hormone sets your metabolic pace, including mental pace.",
-  "mech.vitaminD": "Vitamin D receptors sit in mood-regulating regions of the brain.",
-  "mech.omega3": "Omega-3 keeps nerve cell membranes flexible enough to signal well.",
-  "mech.glucose": "Sustained stress pushes blood sugar up, which feeds back into fatigue.",
-  "mech.melatonin": "This is what your body actually made overnight — the direct read of sleep drive.",
-  "mech.cortisolRhythm": "Cortisol should peak in the morning. A flat or raised curve fragments sleep.",
-  "mech.iron": "Iron stores feed haemoglobin. Low stores show up as tiredness before anaemia does.",
-  "mech.oxygen": "Haemoglobin carries the oxygen your muscles and brain run on.",
-  "mech.b12": "B12 is needed to build the insulation around nerves and to make energy.",
-  "mech.insulin": "High fasting insulin means cells are resisting fuel — felt as an afternoon crash.",
+  // The methylation panel — plain names, technical loci, and what each one
+  // integrates over. The window is the reason each marker is here.
+  "sys.epigen": "Methylation panel",
+  "spec.epigen": "Psychiatry · laboratory medicine",
+  "epi.cortisolLoad": "90-day stress-hormone load",
+  "epi.nr3c1": "Stress receptor setting",
+  "epi.fkbp5": "Stress brake sensitivity",
+  "epi.inflammation": "90-day inflammation load",
+  "epi.slc6a4": "Serotonin transport setting",
+  "epi.bdnf": "Plasticity gene silencing",
+  "epi.circadian": "Body-clock drift",
+  "epi.comt": "Dopamine clearance speed",
+  "epi.oxtr": "Social buffering",
+  "epi.pace": "Pace of ageing",
+  "epi.tl": "Cell-age reserve",
+  "epi.window.weeks": "averages ~3 weeks",
+  "epi.window.90d": "averages ~90 days",
+  "epi.window.months": "averages 2–4 months",
+  "epi.window.year": "averages ~1 year",
+  "epi.window": "Averaging window",
+  "epi.badge": "Research panel",
+  "epi.hypothetical":
+    "These methylation assays are hypothetical. The loci are real and really are studied in stress and mood biology, but the tests, reference values and composite indices here are not clinically validated.",
+  "mind.whyCumulative": "Why not cortisol",
+  "mind.whyCumulativeBody":
+    "Cortisol swings two- to three-fold within one day. Two readings three months apart mostly differ because the two mornings differed. So the indices run on marks that build up instead: methylation changes over weeks to months, HbA1c averages a quarter of your blood sugar, the omega-3 index a quarter of your cell membranes. Each number is a summary of the months behind it, not a snapshot of the hour you were drawn.",
+  "mind.cumulativeTag": "cumulative",
+  "mind.snapshotTag": "snapshot",
+
+  "mech.cortisolLoad":
+    "The mark that months of stress hormone left on your genes. Unlike a blood cortisol, it cannot be moved by one bad morning.",
+  "mech.nr3c1":
+    "This setting controls how many stress receptors your cells build. Turned down, the off-switch for stress works less well.",
+  "mech.fkbp5":
+    "This is the brake on your stress response. Sustained stress wears the brake, so each new stress runs longer.",
+  "mech.dnamInflam":
+    "A running average of your inflammation over the last quarter, rather than the single day a CRP would catch.",
+  "mech.slc6a4":
+    "How far the serotonin recycling gene has been dialled down. It shifts over months of sustained load.",
+  "mech.bdnfMeth":
+    "The plasticity gene being quietened. When it is, the brain adapts and recovers more slowly.",
+  "mech.circadian":
+    "How far your clock genes have drifted from a clean day–night cycle. Drift shows up before you notice bad sleep.",
+  "mech.comt":
+    "How fast your brain clears dopamine. Slower clearance keeps you keyed up for longer after a stressor.",
+  "mech.oxtr":
+    "The oxytocin receptor setting — how much benefit you get from company and closeness.",
+  "mech.pace":
+    "How fast your biology is ageing per calendar year. Sustained load pushes it above 1.00.",
+  "mech.telomere":
+    "The reserve left on your cells' molecular clock. It falls faster under long-running load.",
+
+  "mech.inflammation":
+    "Inflammation makes the brain conserve energy — that is felt as low motivation.",
+  "mech.tryptophan":
+    "Inflammation diverts tryptophan away from serotonin, so less is available for mood.",
+  "mech.plasticity":
+    "BDNF is the protein the brain uses to adapt. Low levels make recovery slower.",
+  "mech.cortisol":
+    "Morning cortisol is the stress system's output. Persistently high means it is not switching off.",
+  "mech.dhea":
+    "DHEA-S buffers cortisol. When it falls, the same stress hits harder.",
+  "mech.magnesium":
+    "Magnesium calms nerve signalling. Low levels leave you more easily wound up.",
+  "mech.thyroid":
+    "Thyroid hormone sets your metabolic pace, including mental pace.",
+  "mech.vitaminD":
+    "Vitamin D receptors sit in mood-regulating regions of the brain.",
+  "mech.omega3":
+    "Omega-3 keeps nerve cell membranes flexible enough to signal well.",
+  "mech.glucose":
+    "Sustained stress pushes blood sugar up, which feeds back into fatigue.",
+  "mech.melatonin":
+    "This is what your body actually made overnight — the direct read of sleep drive.",
+  "mech.cortisolRhythm":
+    "Cortisol should peak in the morning. A flat or raised curve fragments sleep.",
+  "mech.iron":
+    "Iron stores feed haemoglobin. Low stores show up as tiredness before anaemia does.",
+  "mech.oxygen":
+    "Haemoglobin carries the oxygen your muscles and brain run on.",
+  "mech.b12":
+    "B12 is needed to build the insulation around nerves and to make energy.",
+  "mech.insulin":
+    "High fasting insulin means cells are resisting fuel — felt as an afternoon crash.",
 
   "mind.whyThis": "What moved this",
   "mind.pushesUp": "raising",
   "mind.pushesDown": "helping",
   "mind.index": "Index",
-  "mind.indexNote": "0 is the lowest biological load, 50 is the peer average, 100 the highest.",
-  "mind.derived": "Derived from blood markers",
-  "mind.cadenceNote": "These markers average over weeks to months, which is why a 1–3 month cadence reads them best. A daily number would be noise.",
-  "mind.notDiagnosis": "These indices describe biological load along a pathway. They are not a diagnosis of any mental health condition.",
+  "mind.indexNote":
+    "0 is the lowest biological load, 50 is the peer average, 100 the highest.",
+  "mind.derived": "Cumulative markers",
+  "mind.cadenceNote":
+    "Every marker here summarises the weeks or months before your draw, so two rounds three months apart are genuinely comparable. That is what a snapshot hormone could not do.",
+  "mind.notDiagnosis":
+    "These indices describe biological load along a pathway. They are not a diagnosis of any mental health condition.",
   "mind.showMarkers": "Show markers",
   "mind.hideMarkers": "Hide",
 
@@ -136,26 +212,34 @@ export const en = {
   "ib.legL": "Left leg",
   "ib.legR": "Right leg",
   "ib.crossRead": "CROSS-READ",
-  "ib.crossReadNote": "Where your composition changes how a blood value should be read. Both panels track the same body over the same rounds, which is what makes the comparison worth anything.",
+  "ib.crossReadNote":
+    "Where your composition changes how a blood value should be read. Both panels track the same body over the same rounds, which is what makes the comparison worth anything.",
   "ib.fromDevice": "device",
   "ib.fromBlood": "blood",
   "ib.link.loss.title": "Weight coming off without you trying",
-  "ib.link.loss.body": "You have lost weight over the last two rounds while phase angle — a measure of cell integrity — fell with it. Unintentional loss of this size is worth explaining, and it is happening in the same window as the liver markers.",
+  "ib.link.loss.body":
+    "You have lost weight over the last two rounds while phase angle — a measure of cell integrity — fell with it. Unintentional loss of this size is worth explaining, and it is happening in the same window as the liver markers.",
   "ib.link.creatinine.title": "Your creatinine is muscle, not kidney",
-  "ib.link.creatinine.body": "Creatinine is a muscle breakdown product, so a muscular body runs a higher creatinine and a lower estimated GFR without anything being wrong. Read against your skeletal muscle mass, this reading is expected rather than concerning.",
-  "ib.link.visceral.title": "Visceral fat is where the glucose drift is coming from",
-  "ib.link.visceral.body": "Visceral fat is metabolically active in a way subcutaneous fat is not — it drives insulin resistance directly. Your glucose markers track it more closely than they track weight, which is why the scale can stay flat while these move.",
+  "ib.link.creatinine.body":
+    "Creatinine is a muscle breakdown product, so a muscular body runs a higher creatinine and a lower estimated GFR without anything being wrong. Read against your skeletal muscle mass, this reading is expected rather than concerning.",
+  "ib.link.visceral.title":
+    "Visceral fat is where the glucose drift is coming from",
+  "ib.link.visceral.body":
+    "Visceral fat is metabolically active in a way subcutaneous fat is not — it drives insulin resistance directly. Your glucose markers track it more closely than they track weight, which is why the scale can stay flat while these move.",
   "ib.link.fluid.title": "Fluid shift alongside inflammation",
-  "ib.link.fluid.body": "The extracellular water ratio is at the top of its band while inflammation is raised. These usually move together: inflammation pulls water out of cells, and phase angle falls with it. Both should settle as the inflammatory marker does.",
+  "ib.link.fluid.body":
+    "The extracellular water ratio is at the top of its band while inflammation is raised. These usually move together: inflammation pulls water out of cells, and phase angle falls with it. Both should settle as the inflammatory marker does.",
   "ib.link.muscle.title": "Muscle down since the last round",
-  "ib.link.muscle.body": "Skeletal muscle and metabolic rate both fell this round. Iron stores and thyroid output are the two blood values that most often sit behind that, so they are worth reading next to it rather than on their own.",
+  "ib.link.muscle.body":
+    "Skeletal muscle and metabolic rate both fell this round. Iron stores and thyroid output are the two blood values that most often sit behind that, so they are worth reading next to it rather than on their own.",
 
   "body.composition": "Composition",
 
   // Cross-system, BETA
   "ix.title": "Cross-system signals",
   "ix.beta": "BETA",
-  "ix.note": "Patterns across two or more systems that no single panel would flag on its own. Heuristic, not a validated risk model.",
+  "ix.note":
+    "Patterns across two or more systems that no single panel would flag on its own. Heuristic, not a validated risk model.",
   "ix.none": "No cross-system patterns in this round.",
   "ix.evidence": "Built from",
   "ix.hepaticTrajectory.title": "Liver markers on a trajectory",
@@ -176,24 +260,35 @@ export const en = {
   "store.ctaMonthly": "Start monthly · 79,000 KRW per test",
 
   "ix.residualInflammation.title": "Inflammation without the lipid signal",
-  "ix.residualInflammation.body": "Your cholesterol looks handled, but the inflammatory side of vascular risk does not. Cardiology would pass this; the combination is what matters.",
-  "ix.residualInflammation.action": "Omega-3 intake and sleep move these fastest. Worth raising at your next check-up.",
+  "ix.residualInflammation.body":
+    "Your cholesterol looks handled, but the inflammatory side of vascular risk does not. Cardiology would pass this; the combination is what matters.",
+  "ix.residualInflammation.action":
+    "Omega-3 intake and sleep move these fastest. Worth raising at your next check-up.",
   "ix.stressGlycaemia.title": "Blood sugar tracking stress, not diet",
-  "ix.stressGlycaemia.body": "Glucose is drifting up while your adrenal reserve slips. That pattern usually responds to load and sleep rather than to cutting carbohydrates.",
-  "ix.stressGlycaemia.action": "Treat this as a recovery problem first: fixed wake time, and one genuinely unscheduled block a week.",
+  "ix.stressGlycaemia.body":
+    "Glucose is drifting up while your adrenal reserve slips. That pattern usually responds to load and sleep rather than to cutting carbohydrates.",
+  "ix.stressGlycaemia.action":
+    "Treat this as a recovery problem first: fixed wake time, and one genuinely unscheduled block a week.",
   "ix.inflammatoryMood.title": "Inflammation reaching mood",
-  "ix.inflammatoryMood.body": "Tryptophan is being pulled down the inflammatory branch instead of towards serotonin, while your neuroplasticity marker sits low. That is a physical route to low motivation, not a character one.",
-  "ix.inflammatoryMood.action": "Anti-inflammatory basics — sleep, omega-3, movement — act on both ends of this chain.",
+  "ix.inflammatoryMood.body":
+    "Tryptophan is being pulled down the inflammatory branch instead of towards serotonin, while your neuroplasticity marker sits low. That is a physical route to low motivation, not a character one.",
+  "ix.inflammatoryMood.action":
+    "Anti-inflammatory basics — sleep, omega-3, movement — act on both ends of this chain.",
   "ix.fatigueChain.title": "Three in-range values that add up to tiredness",
-  "ix.fatigueChain.body": "Iron stores, thyroid output and B12 are each individually fine, but all three sit in the lower part of their range at once. Energy is the sum, not any one of them.",
-  "ix.fatigueChain.action": "Worth rechecking together rather than one at a time.",
+  "ix.fatigueChain.body":
+    "Iron stores, thyroid output and B12 are each individually fine, but all three sit in the lower part of their range at once. Energy is the sum, not any one of them.",
+  "ix.fatigueChain.action":
+    "Worth rechecking together rather than one at a time.",
   "ix.sleepAxis.title": "Sleep timing, not sleep length",
-  "ix.sleepAxis.body": "Overnight melatonin output is low against a strong morning cortisol peak. That is a phase problem — the clock is shifted rather than the hours being short.",
-  "ix.sleepAxis.action": "Morning light and a fixed wake time shift this faster than an earlier bedtime does.",
+  "ix.sleepAxis.body":
+    "Overnight melatonin output is low against a strong morning cortisol peak. That is a phase problem — the clock is shifted rather than the hours being short.",
+  "ix.sleepAxis.action":
+    "Morning light and a fixed wake time shift this faster than an earlier bedtime does.",
   "ix.metabolicLiver.title": "Liver enzymes moving with insulin",
-  "ix.metabolicLiver.body": "GGT and ALT are drifting up alongside fasting insulin. Read separately these are unremarkable; together they are the early metabolic-liver pattern.",
-  "ix.metabolicLiver.action": "Alcohol, fructose and weight are the usual levers. Recheck next round before treating it as anything more.",
-
+  "ix.metabolicLiver.body":
+    "GGT and ALT are drifting up alongside fasting insulin. Read separately these are unremarkable; together they are the early metabolic-liver pattern.",
+  "ix.metabolicLiver.action":
+    "Alcohol, fructose and weight are the usual levers. Recheck next round before treating it as anything more.",
 
   "status.good": "In range",
   "status.watch": "Watch",
@@ -264,16 +359,23 @@ export const en = {
   "spec.oncology": "Oncology",
   "spec.nutrition": "Nutrition & metabolism",
 
-  "sys.neuro.note": "Proteins that leak into the blood when nerve cells are damaged or degenerating.",
+  "sys.neuro.note":
+    "Proteins that leak into the blood when nerve cells are damaged or degenerating.",
   "sys.cardio.note": "Vessel inflammation, lipid load and cardiac strain.",
-  "sys.endocrine.note": "Blood sugar control, thyroid output and the stress axis.",
+  "sys.endocrine.note":
+    "Blood sugar control, thyroid output and the stress axis.",
   "sys.hepatic.note": "Liver enzymes, bile handling and a fibrosis estimate.",
-  "sys.renal.note": "Filtration rate, waste clearance and protein leaking into urine.",
+  "sys.renal.note":
+    "Filtration rate, waste clearance and protein leaking into urine.",
   "sys.hematology.note": "Red cells, white cells, platelets and iron stores.",
-  "sys.pulmonary.note": "Airway inflammation, allergic load and oxygen carriage.",
-  "sys.immune.note": "Systemic inflammation and the antibodies behind autoimmune joint disease.",
-  "sys.oncology.note": "Tumour-related markers that circulate through the whole body rather than sitting in one organ — which is why the whole figure lights up.",
-  "sys.nutrition.note": "Vitamins, minerals and fatty acids absorbed through the gut.",
+  "sys.pulmonary.note":
+    "Airway inflammation, allergic load and oxygen carriage.",
+  "sys.immune.note":
+    "Systemic inflammation and the antibodies behind autoimmune joint disease.",
+  "sys.oncology.note":
+    "Tumour-related markers that circulate through the whole body rather than sitting in one organ — which is why the whole figure lights up.",
+  "sys.nutrition.note":
+    "Vitamins, minerals and fatty acids absorbed through the gut.",
 
   "cond.hypertension": "Hypertension",
   "cond.thyroid": "Thyroid disorder",
@@ -310,8 +412,8 @@ export const en = {
   "store.subtitle": "Draw at home, post it back, read the report here",
   "store.kit": "Full-panel test kit",
   "store.inStock": "In stock",
-  "store.kitDesc":
-    "One self-collection kit: 65 biomarkers across ten specialties, plus five mind indices derived from the same draw.",
+  "store.kitDesc": ({ n, e }) =>
+    `One self-collection kit: ${n} biomarkers across ten specialties, ${e} methylation markers, and five mind indices derived from the same draw.`,
   "store.choosePlan": "Choose a plan",
   "store.included": "What’s included",
   "store.single": "Single test",
@@ -325,7 +427,8 @@ export const en = {
   "store.incl1": "Self-collection kit and return envelope",
   "store.incl2": "QR registration and progress alerts",
   "store.incl3": "Five mind indices, derived from the same draw",
-  "store.incl4": "65 biomarkers across 10 specialties, with every reference shown",
+  "store.incl4": ({ n }) =>
+    `${n} biomarkers across 10 specialties, with every reference shown`,
   "store.incl5": "Round-over-round trend charts",
   "store.ctaSingle": "Pay 89,000 KRW for one test",
   "store.ctaQuarter": "Start quarterly · 59,000 KRW per test",
@@ -418,7 +521,7 @@ export const ko = {
   "round.n": ({ n }) => `${n}회차`,
 
   "mind.title": "마음",
-  "mind.subtitle": "혈액 지표에서 산출한 5개 지수",
+  "mind.subtitle": "몇 달에 걸쳐 쌓이는 지표로 산출한 5개 지수",
   "mind.summary": "종합",
   "mind.allGood": "5개 척도 모두 정상 범위",
   "mind.someGood": ({ ok }) => `5개 중 ${ok}개 정상 범위`,
@@ -440,44 +543,114 @@ export const ko = {
   "mind.crisis":
     "선별검사 결과이며 의학적 진단이 아닙니다. 힘든 상태가 이어진다면 정신건강상담전화 1577-0199 또는 의료기관을 이용하세요.",
 
-
   // 마음 지수 — 설문이 아니라 혈액에서 유도
   "scale.mood": "기분",
   "scale.tension": "긴장",
   "scale.stress": "스트레스 부하",
   "scale.sleep": "수면",
   "scale.energy": "에너지",
-  "scale.mood.base": "염증 수준과, 뇌가 세로토닌을 만드는 데 쓰는 재료를 봅니다.",
-  "scale.tension.base": "스트레스 시스템이 얼마나 세게 돌고 있는지와, 그걸 받아줄 여력이 얼마나 남았는지를 봅니다.",
-  "scale.stress.base": "지속된 스트레스가 혈당과 염증에 남긴 흔적을 봅니다.",
-  "scale.sleep.base": "밤새 수면 호르몬을 얼마나 만들었는지를 아침 코르티솔과 견줍니다.",
-  "scale.energy.base": "혈액이 실제로 산소와 연료를 세포까지 나르고 있는지를 봅니다.",
+  "scale.mood.base":
+    "세로토닌과 가소성 유전자가 얼마나 잠겼는지, 그리고 쓸 재료가 얼마나 남았는지를 봅니다.",
+  "scale.tension.base":
+    "지나온 몇 달을 거치며 스트레스 반응의 브레이크가 얼마나 닳았는지를 봅니다.",
+  "scale.stress.base":
+    "오늘 아침 수치가 아니라, 누적된 스트레스 호르몬 노출이 남긴 흔적을 읽습니다.",
+  "scale.sleep.base":
+    "생체시계가 얼마나 어긋났는지를 봅니다. 하룻밤이 아니라 몇 주치입니다.",
+  "scale.energy.base":
+    "혈액이 실제로 산소와 연료를 세포까지 나르고 있는지를 봅니다.",
 
-  "mech.inflammation": "염증이 있으면 뇌가 에너지를 아끼는 쪽으로 움직입니다. 그게 의욕 저하로 느껴집니다.",
-  "mech.tryptophan": "염증은 트립토판을 세로토닌이 아닌 다른 경로로 돌립니다. 기분에 쓸 재료가 줄어듭니다.",
-  "mech.plasticity": "BDNF는 뇌가 적응할 때 쓰는 단백질입니다. 낮으면 회복이 더뎌집니다.",
-  "mech.cortisol": "아침 코르티솔은 스트레스 시스템의 출력입니다. 계속 높다면 꺼지지 않고 있다는 뜻입니다.",
-  "mech.dhea": "DHEA-S는 코르티솔을 완충합니다. 떨어지면 같은 스트레스가 더 크게 옵니다.",
-  "mech.magnesium": "마그네슘은 신경 신호를 가라앉힙니다. 낮으면 더 쉽게 곤두섭니다.",
-  "mech.thyroid": "갑상선 호르몬이 대사 속도를 정하고, 여기엔 정신적 속도도 포함됩니다.",
+  // 메틸화 패널
+  "sys.epigen": "메틸화 패널",
+  "spec.epigen": "정신건강의학과 · 진단검사의학과",
+  "epi.cortisolLoad": "90일 누적 스트레스 호르몬",
+  "epi.nr3c1": "스트레스 수용체 설정값",
+  "epi.fkbp5": "스트레스 브레이크 민감도",
+  "epi.inflammation": "90일 누적 염증 부하",
+  "epi.slc6a4": "세로토닌 운반체 설정값",
+  "epi.bdnf": "가소성 유전자 잠김 정도",
+  "epi.circadian": "생체시계 어긋남",
+  "epi.comt": "도파민 처리 속도",
+  "epi.oxtr": "사회적 완충력",
+  "epi.pace": "노화 속도",
+  "epi.tl": "세포 나이 여력",
+  "epi.window.weeks": "약 3주 평균",
+  "epi.window.90d": "약 90일 평균",
+  "epi.window.months": "2~4개월 평균",
+  "epi.window.year": "약 1년 평균",
+  "epi.window": "평균 구간",
+  "epi.badge": "연구 패널",
+  "epi.hypothetical":
+    "이 메틸화 검사들은 가정입니다. 유전자 자리 자체는 실재하고 스트레스·기분 연구에서 실제로 다뤄지지만, 여기 쓰인 검사법과 기준치, 합성 지수는 임상적으로 검증된 것이 아닙니다.",
+  "mind.whyCumulative": "왜 코르티솔이 아닌가",
+  "mind.whyCumulativeBody":
+    "코르티솔은 하루 안에서도 2~3배씩 오르내립니다. 3개월 간격으로 잰 두 값은 대개 그 두 날 아침이 달랐다는 뜻일 뿐입니다. 그래서 지수는 쌓이는 흔적 위에서 계산합니다. 메틸화는 몇 주에서 몇 달에 걸쳐 변하고, 당화혈색소는 한 분기의 혈당을, 오메가-3 지수는 한 분기의 세포막을 평균 냅니다. 모든 숫자가 채혈한 그 시각이 아니라 그 앞의 몇 달을 요약합니다.",
+  "mind.cumulativeTag": "누적",
+  "mind.snapshotTag": "순간값",
+
+  "mech.cortisolLoad":
+    "몇 달치 스트레스 호르몬이 유전자에 남긴 흔적입니다. 혈중 코르티솔과 달리 하루 컨디션으로는 움직이지 않습니다.",
+  "mech.nr3c1":
+    "세포가 스트레스 수용체를 얼마나 만들지 정하는 설정값입니다. 낮아질수록 스트레스를 끄는 스위치가 잘 안 듣습니다.",
+  "mech.fkbp5":
+    "스트레스 반응의 브레이크입니다. 스트레스가 길게 이어지면 브레이크가 닳고, 다음 스트레스가 더 오래 갑니다.",
+  "mech.dnamInflam": "CRP가 잡는 하루가 아니라, 지난 분기 염증의 평균입니다.",
+  "mech.slc6a4":
+    "세로토닌 재활용 유전자가 얼마나 잠겼는지 봅니다. 몇 달에 걸친 부하에 따라 움직입니다.",
+  "mech.bdnfMeth":
+    "가소성 유전자가 조용해지고 있다는 신호입니다. 그만큼 적응과 회복이 느려집니다.",
+  "mech.circadian":
+    "시계 유전자가 낮밤 주기에서 얼마나 밀렸는지입니다. 잠이 나빠졌다고 느끼기 전에 먼저 나타납니다.",
+  "mech.comt":
+    "뇌가 도파민을 치우는 속도입니다. 느릴수록 자극이 지나간 뒤에도 오래 곤두서 있습니다.",
+  "mech.oxtr":
+    "옥시토신 수용체 설정값입니다. 사람과의 접촉에서 얻는 완충 효과가 얼마나 되는지를 봅니다.",
+  "mech.pace":
+    "달력 1년당 생물학적으로 몇 년을 늙는지입니다. 부하가 길어지면 1.00을 넘습니다.",
+  "mech.telomere":
+    "세포의 분자 시계에 남은 여력입니다. 부하가 오래가면 더 빨리 줄어듭니다.",
+
+  "mech.inflammation":
+    "염증이 있으면 뇌가 에너지를 아끼는 쪽으로 움직입니다. 그게 의욕 저하로 느껴집니다.",
+  "mech.tryptophan":
+    "염증은 트립토판을 세로토닌이 아닌 다른 경로로 돌립니다. 기분에 쓸 재료가 줄어듭니다.",
+  "mech.plasticity":
+    "BDNF는 뇌가 적응할 때 쓰는 단백질입니다. 낮으면 회복이 더뎌집니다.",
+  "mech.cortisol":
+    "아침 코르티솔은 스트레스 시스템의 출력입니다. 계속 높다면 꺼지지 않고 있다는 뜻입니다.",
+  "mech.dhea":
+    "DHEA-S는 코르티솔을 완충합니다. 떨어지면 같은 스트레스가 더 크게 옵니다.",
+  "mech.magnesium":
+    "마그네슘은 신경 신호를 가라앉힙니다. 낮으면 더 쉽게 곤두섭니다.",
+  "mech.thyroid":
+    "갑상선 호르몬이 대사 속도를 정하고, 여기엔 정신적 속도도 포함됩니다.",
   "mech.vitaminD": "비타민 D 수용체는 기분을 조절하는 뇌 부위에 분포합니다.",
-  "mech.omega3": "오메가-3는 신경세포 막을 신호가 잘 통할 만큼 유연하게 유지합니다.",
-  "mech.glucose": "스트레스가 이어지면 혈당이 올라가고, 그게 다시 피로로 돌아옵니다.",
-  "mech.melatonin": "밤사이 몸이 실제로 만든 양입니다. 수면 욕구를 가장 직접 보여줍니다.",
-  "mech.cortisolRhythm": "코르티솔은 아침에 솟아야 합니다. 평탄하거나 높으면 잠이 조각납니다.",
-  "mech.iron": "철 저장량이 헤모글로빈을 먹입니다. 빈혈로 가기 전에 피로로 먼저 나타납니다.",
+  "mech.omega3":
+    "오메가-3는 신경세포 막을 신호가 잘 통할 만큼 유연하게 유지합니다.",
+  "mech.glucose":
+    "스트레스가 이어지면 혈당이 올라가고, 그게 다시 피로로 돌아옵니다.",
+  "mech.melatonin":
+    "밤사이 몸이 실제로 만든 양입니다. 수면 욕구를 가장 직접 보여줍니다.",
+  "mech.cortisolRhythm":
+    "코르티솔은 아침에 솟아야 합니다. 평탄하거나 높으면 잠이 조각납니다.",
+  "mech.iron":
+    "철 저장량이 헤모글로빈을 먹입니다. 빈혈로 가기 전에 피로로 먼저 나타납니다.",
   "mech.oxygen": "헤모글로빈이 근육과 뇌가 쓰는 산소를 나릅니다.",
   "mech.b12": "B12는 신경 절연막을 만들고 에너지를 내는 데 필요합니다.",
-  "mech.insulin": "공복 인슐린이 높으면 세포가 연료를 거부한다는 뜻이고, 오후 급격한 처짐으로 느껴집니다.",
+  "mech.insulin":
+    "공복 인슐린이 높으면 세포가 연료를 거부한다는 뜻이고, 오후 급격한 처짐으로 느껴집니다.",
 
   "mind.whyThis": "무엇이 움직였나",
   "mind.pushesUp": "올림",
   "mind.pushesDown": "낮춤",
   "mind.index": "지수",
-  "mind.indexNote": "0이 생물학적 부하가 가장 낮고, 50이 또래 평균, 100이 가장 높습니다.",
-  "mind.derived": "혈액 지표에서 산출",
-  "mind.cadenceNote": "이 지표들은 수 주에서 수 개월을 평균 냅니다. 1~3개월 주기가 가장 잘 읽히는 이유이고, 매일 재면 잡음만 남습니다.",
-  "mind.notDiagnosis": "이 지수는 특정 경로의 생물학적 부하를 설명합니다. 정신질환의 진단이 아닙니다.",
+  "mind.indexNote":
+    "0이 생물학적 부하가 가장 낮고, 50이 또래 평균, 100이 가장 높습니다.",
+  "mind.derived": "누적 지표",
+  "mind.cadenceNote":
+    "여기 있는 지표는 전부 채혈 앞의 몇 주에서 몇 달을 요약합니다. 그래서 3개월 간격의 두 회차를 그대로 견줄 수 있습니다. 순간값 호르몬으로는 할 수 없던 일입니다.",
+  "mind.notDiagnosis":
+    "이 지수는 특정 경로의 생물학적 부하를 설명합니다. 정신질환의 진단이 아닙니다.",
   "mind.showMarkers": "지표 보기",
   "mind.hideMarkers": "접기",
 
@@ -510,26 +683,33 @@ export const ko = {
   "ib.legL": "왼다리",
   "ib.legR": "오른다리",
   "ib.crossRead": "교차 해석",
-  "ib.crossReadNote": "체성분이 혈액 수치의 해석을 바꾸는 지점입니다. 두 검사가 같은 몸을 같은 회차로 따라가기 때문에 비교에 의미가 생깁니다.",
+  "ib.crossReadNote":
+    "체성분이 혈액 수치의 해석을 바꾸는 지점입니다. 두 검사가 같은 몸을 같은 회차로 따라가기 때문에 비교에 의미가 생깁니다.",
   "ib.fromDevice": "기기",
   "ib.fromBlood": "혈액",
   "ib.link.loss.title": "의도하지 않은 체중 감소",
-  "ib.link.loss.body": "최근 두 회차에 걸쳐 체중이 빠졌고, 세포 건강도를 보는 위상각도 함께 떨어졌습니다. 이 정도의 의도하지 않은 감소는 원인을 확인할 필요가 있고, 간 지표가 움직인 기간과 겹칩니다.",
+  "ib.link.loss.body":
+    "최근 두 회차에 걸쳐 체중이 빠졌고, 세포 건강도를 보는 위상각도 함께 떨어졌습니다. 이 정도의 의도하지 않은 감소는 원인을 확인할 필요가 있고, 간 지표가 움직인 기간과 겹칩니다.",
   "ib.link.creatinine.title": "크레아티닌이 높은 건 신장이 아니라 근육 때문",
-  "ib.link.creatinine.body": "크레아티닌은 근육이 분해되며 나오는 물질입니다. 근육량이 많으면 신장이 멀쩡해도 크레아티닌이 높고 추정 사구체여과율이 낮게 나옵니다. 골격근량과 함께 읽으면 이 수치는 걱정할 것이 아니라 예상되는 값입니다.",
+  "ib.link.creatinine.body":
+    "크레아티닌은 근육이 분해되며 나오는 물질입니다. 근육량이 많으면 신장이 멀쩡해도 크레아티닌이 높고 추정 사구체여과율이 낮게 나옵니다. 골격근량과 함께 읽으면 이 수치는 걱정할 것이 아니라 예상되는 값입니다.",
   "ib.link.visceral.title": "혈당이 밀리는 원인은 내장지방 쪽",
-  "ib.link.visceral.body": "내장지방은 피하지방과 달리 대사적으로 활발해서 인슐린 저항성을 직접 만듭니다. 혈당 지표는 체중보다 내장지방을 더 가깝게 따라갑니다. 체중계 숫자는 그대로인데 혈당만 움직이는 이유입니다.",
+  "ib.link.visceral.body":
+    "내장지방은 피하지방과 달리 대사적으로 활발해서 인슐린 저항성을 직접 만듭니다. 혈당 지표는 체중보다 내장지방을 더 가깝게 따라갑니다. 체중계 숫자는 그대로인데 혈당만 움직이는 이유입니다.",
   "ib.link.fluid.title": "염증과 함께 움직인 수분 분포",
-  "ib.link.fluid.body": "염증이 올라간 상태에서 세포외수분비가 범위 위쪽에 있습니다. 보통 함께 움직입니다. 염증이 세포에서 물을 끌어내고, 위상각은 그에 따라 떨어집니다. 염증 지표가 잡히면 둘 다 돌아옵니다.",
+  "ib.link.fluid.body":
+    "염증이 올라간 상태에서 세포외수분비가 범위 위쪽에 있습니다. 보통 함께 움직입니다. 염증이 세포에서 물을 끌어내고, 위상각은 그에 따라 떨어집니다. 염증 지표가 잡히면 둘 다 돌아옵니다.",
   "ib.link.muscle.title": "직전 회차보다 줄어든 근육량",
-  "ib.link.muscle.body": "골격근량과 기초대사량이 함께 떨어졌습니다. 그 뒤에 가장 자주 있는 혈액 값이 철 저장량과 갑상선 출력이라, 따로가 아니라 이 둘과 나란히 읽을 만합니다.",
+  "ib.link.muscle.body":
+    "골격근량과 기초대사량이 함께 떨어졌습니다. 그 뒤에 가장 자주 있는 혈액 값이 철 저장량과 갑상선 출력이라, 따로가 아니라 이 둘과 나란히 읽을 만합니다.",
 
   "body.composition": "체성분",
 
   // 교차 신호, 베타
   "ix.title": "계열 간 신호",
   "ix.beta": "베타",
-  "ix.note": "두 계열 이상에 걸쳐 나타나는 패턴으로, 단일 분과 검사만으로는 잡히지 않습니다. 검증된 위험 모델이 아니라 휴리스틱입니다.",
+  "ix.note":
+    "두 계열 이상에 걸쳐 나타나는 패턴으로, 단일 분과 검사만으로는 잡히지 않습니다. 검증된 위험 모델이 아니라 휴리스틱입니다.",
   "ix.none": "이번 회차에는 계열 간 패턴이 없습니다.",
   "ix.evidence": "근거 지표",
   "ix.hepaticTrajectory.title": "추세를 그리고 있는 간 지표",
@@ -550,23 +730,34 @@ export const ko = {
   "store.ctaMonthly": "월간 구독 시작 · 회당 79,000원",
 
   "ix.residualInflammation.title": "지질은 잡혔는데 염증이 남음",
-  "ix.residualInflammation.body": "콜레스테롤은 관리된 것으로 보이지만 혈관 위험의 염증 쪽은 그렇지 않습니다. 순환기내과 단독으로는 넘어갈 수 있고, 중요한 건 이 조합입니다.",
-  "ix.residualInflammation.action": "오메가-3 섭취와 수면이 가장 빠르게 움직입니다. 다음 진료 때 언급할 만합니다.",
+  "ix.residualInflammation.body":
+    "콜레스테롤은 관리된 것으로 보이지만 혈관 위험의 염증 쪽은 그렇지 않습니다. 순환기내과 단독으로는 넘어갈 수 있고, 중요한 건 이 조합입니다.",
+  "ix.residualInflammation.action":
+    "오메가-3 섭취와 수면이 가장 빠르게 움직입니다. 다음 진료 때 언급할 만합니다.",
   "ix.stressGlycaemia.title": "식단이 아니라 스트레스를 따라가는 혈당",
-  "ix.stressGlycaemia.body": "부신 여력이 떨어지는 동안 혈당이 올라가고 있습니다. 이 패턴은 탄수화물을 줄이는 것보다 부하와 수면에 반응하는 경우가 많습니다.",
-  "ix.stressGlycaemia.action": "회복 문제로 먼저 다루세요. 기상 시간 고정, 그리고 주 1회는 정말 아무 일정 없는 시간.",
+  "ix.stressGlycaemia.body":
+    "부신 여력이 떨어지는 동안 혈당이 올라가고 있습니다. 이 패턴은 탄수화물을 줄이는 것보다 부하와 수면에 반응하는 경우가 많습니다.",
+  "ix.stressGlycaemia.action":
+    "회복 문제로 먼저 다루세요. 기상 시간 고정, 그리고 주 1회는 정말 아무 일정 없는 시간.",
   "ix.inflammatoryMood.title": "염증이 기분까지 닿음",
-  "ix.inflammatoryMood.body": "트립토판이 세로토닌 대신 염증 경로로 끌려가는 동안 신경가소성 지표가 낮게 있습니다. 의욕 저하로 가는 물리적 경로이지, 의지의 문제가 아닙니다.",
-  "ix.inflammatoryMood.action": "수면·오메가-3·움직임 같은 항염증 기본기가 이 사슬의 양쪽 끝에 동시에 작용합니다.",
+  "ix.inflammatoryMood.body":
+    "트립토판이 세로토닌 대신 염증 경로로 끌려가는 동안 신경가소성 지표가 낮게 있습니다. 의욕 저하로 가는 물리적 경로이지, 의지의 문제가 아닙니다.",
+  "ix.inflammatoryMood.action":
+    "수면·오메가-3·움직임 같은 항염증 기본기가 이 사슬의 양쪽 끝에 동시에 작용합니다.",
   "ix.fatigueChain.title": "정상 범위 세 개가 합쳐져 만든 피로",
-  "ix.fatigueChain.body": "철 저장량, 갑상선 출력, B12가 각각은 정상입니다. 다만 셋 다 범위의 아래쪽에 함께 있습니다. 에너지는 그 합이지 하나가 아닙니다.",
+  "ix.fatigueChain.body":
+    "철 저장량, 갑상선 출력, B12가 각각은 정상입니다. 다만 셋 다 범위의 아래쪽에 함께 있습니다. 에너지는 그 합이지 하나가 아닙니다.",
   "ix.fatigueChain.action": "따로가 아니라 함께 재검하는 것이 좋습니다.",
   "ix.sleepAxis.title": "수면 길이가 아니라 타이밍",
-  "ix.sleepAxis.body": "아침 코르티솔은 뚜렷한데 밤사이 멜라토닌 생산이 낮습니다. 시간이 부족한 게 아니라 생체시계가 밀린 위상 문제입니다.",
-  "ix.sleepAxis.action": "일찍 눕는 것보다 아침 빛과 기상 시간 고정이 더 빨리 당깁니다.",
+  "ix.sleepAxis.body":
+    "아침 코르티솔은 뚜렷한데 밤사이 멜라토닌 생산이 낮습니다. 시간이 부족한 게 아니라 생체시계가 밀린 위상 문제입니다.",
+  "ix.sleepAxis.action":
+    "일찍 눕는 것보다 아침 빛과 기상 시간 고정이 더 빨리 당깁니다.",
   "ix.metabolicLiver.title": "인슐린과 함께 움직이는 간 수치",
-  "ix.metabolicLiver.body": "GGT와 ALT가 공복 인슐린과 나란히 올라가고 있습니다. 따로 보면 대수롭지 않지만, 함께 보면 대사성 간질환의 초기 패턴입니다.",
-  "ix.metabolicLiver.action": "알코올·과당·체중이 보통의 지렛대입니다. 그 이상으로 보기 전에 다음 회차에서 재확인하세요.",
+  "ix.metabolicLiver.body":
+    "GGT와 ALT가 공복 인슐린과 나란히 올라가고 있습니다. 따로 보면 대수롭지 않지만, 함께 보면 대사성 간질환의 초기 패턴입니다.",
+  "ix.metabolicLiver.action":
+    "알코올·과당·체중이 보통의 지렛대입니다. 그 이상으로 보기 전에 다음 회차에서 재확인하세요.",
 
   "status.good": "양호",
   "status.watch": "주의",
@@ -635,7 +826,8 @@ export const ko = {
   "spec.oncology": "종양내과",
   "spec.nutrition": "영양대사",
 
-  "sys.neuro.note": "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 지표를 봅니다.",
+  "sys.neuro.note":
+    "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 지표를 봅니다.",
   "sys.cardio.note": "혈관 염증, 지질 부담, 심장 부하를 봅니다.",
   "sys.endocrine.note": "혈당 조절, 갑상선 기능, 스트레스 축을 봅니다.",
   "sys.hepatic.note": "간 효소, 담즙 대사, 섬유화 추정치를 봅니다.",
@@ -643,7 +835,8 @@ export const ko = {
   "sys.hematology.note": "적혈구·백혈구·혈소판과 철 저장량을 봅니다.",
   "sys.pulmonary.note": "기도 염증, 알레르기 부담, 산소 운반 능력을 봅니다.",
   "sys.immune.note": "전신 염증과 자가면역 관절질환의 항체를 봅니다.",
-  "sys.oncology.note": "특정 장기가 아니라 몸 전체를 도는 종양 관련 지표를 봅니다. 그래서 실루엣 전체가 반응합니다.",
+  "sys.oncology.note":
+    "특정 장기가 아니라 몸 전체를 도는 종양 관련 지표를 봅니다. 그래서 실루엣 전체가 반응합니다.",
   "sys.nutrition.note": "장에서 흡수되는 비타민·미네랄·지방산을 봅니다.",
 
   "cond.hypertension": "고혈압",
@@ -678,8 +871,8 @@ export const ko = {
   "store.subtitle": "집에서 채혈하고 보내면 결과는 여기서",
   "store.kit": "풀배터리 검사 키트",
   "store.inStock": "재고 있음",
-  "store.kitDesc":
-    "10개 분과 65개 바이오마커와, 같은 채혈에서 산출하는 마음 5개 지수를 한 번에 측정하는 자가 채혈 키트",
+  "store.kitDesc": ({ n, e }) =>
+    `10개 분과 ${n}개 바이오마커와 메틸화 ${e}종, 그리고 같은 채혈에서 산출하는 마음 5개 지수를 한 번에 측정하는 자가 채혈 키트`,
   "store.choosePlan": "플랜 선택",
   "store.included": "구성품",
   "store.single": "1회 검사",
@@ -693,7 +886,7 @@ export const ko = {
   "store.incl1": "자가 채혈 키트 · 회송 봉투",
   "store.incl2": "QR 등록 · 진행 상태 알림",
   "store.incl3": "같은 채혈에서 산출하는 마음 5개 지수",
-  "store.incl4": "10개 분과 65개 바이오마커 · 참고치 전부 공개",
+  "store.incl4": ({ n }) => `10개 분과 ${n}개 바이오마커 · 참고치 전부 공개`,
   "store.incl5": "회차별 추이 그래프",
   "store.ctaSingle": "89,000원 · 1회 검사 결제",
   "store.ctaQuarter": "분기 구독 시작 · 회당 59,000원",

@@ -88,7 +88,6 @@ export default function App() {
                 background: C.bg,
               }}
             >
-
               {/* Keying on the tab replays the staggered card entrance.
                   Bottom padding clears the floating glass bar — content keeps
                   scrolling underneath it, which is what the material blurs. */}
@@ -104,8 +103,6 @@ export default function App() {
                   <HomeTab
                     key="home"
                     onOpenSession={openSession}
-                    onGoMind={() => goTab("mind")}
-                    onGoBody={() => goTab("body")}
                     onGoStore={() => setSheet("store")}
                   />
                 )}
