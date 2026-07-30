@@ -228,61 +228,6 @@ export function Segmented({ items, value, onChange, style }) {
   );
 }
 
-/** Horizontal scrolling chip rail for switching subject. */
-export function ChipRail({ items, value, onChange, style }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        gap: 6,
-        overflowX: "auto",
-        scrollbarWidth: "none",
-        padding: "2px 18px",
-        margin: "0 -18px",
-        ...style,
-      }}
-    >
-      {items.map((item) => {
-        const on = item.key === value;
-        return (
-          <Pressable
-            key={item.key}
-            as="button"
-            type="button"
-            aria-pressed={on}
-            onClick={() => onChange(item.key)}
-            pressScale={0.96}
-            style={{
-              flex: "none",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "7px 11px",
-              borderRadius: R.control,
-              border: "none",
-              cursor: "pointer",
-              background: on ? C.ink : C.surface,
-              color: on ? "#fff" : C.body,
-              boxShadow: on ? "none" : `inset 0 0 0 1px ${C.hairline}`,
-              whiteSpace: "nowrap",
-              ...T.caption,
-            }}
-          >
-            {item.icon && (
-              <Icon
-                name={item.icon}
-                level={item.level}
-                size={19}
-                color={on ? "#fff" : undefined}
-              />
-            )}
-            {item.label}
-          </Pressable>
-        );
-      })}
-    </div>
-  );
-}
 
 /**
  * Count strip: four measured numbers over one proportional bar.

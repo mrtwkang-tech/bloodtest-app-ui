@@ -216,11 +216,7 @@ function Screen({ sel, onPickSession, children }) {
   const { t } = useLang();
   return (
     <div>
-      <Masthead
-        title={t("signal.title")}
-        sel={sel}
-        onPickSession={onPickSession}
-      />
+      <Masthead brand sel={sel} onPickSession={onPickSession} />
       {children}
     </div>
   );

@@ -1,69 +1,62 @@
-import { useCallback, useMemo, useState } from "react";
-import { Collapse, DisclosureButton } from "../components/Collapse";
+import { useCallback, useState } from "react";
 import BodyScene from "../three/BodyScene";
-import Icon from "../components/Icon";
-import NextStep from "../components/NextStep";
-import Pressable from "../components/Pressable";
 import Masthead from "../components/Masthead";
+import Pressable from "../components/Pressable";
 import TrendChart from "../components/TrendChart";
-import {
-  Card,
-  Caret,
-  ChipRail,
-  SectionTitle,
-  Status,
-} from "../components/primitives";
-import { C, CARD, LEVEL_COLOR, LEVEL_LAMP, R, T, fadeUp } from "../tokens";
-import {
-  BODY_STATUS_KEY,
-  deviationOf,
-  formatValue,
-  markerBand,
-  markerLeft,
-  markerLevel,
-} from "../data/body";
+import ZoneRow from "../components/ZoneRow";
+import { Card, Caret, SectionTitle } from "../components/primitives";
+import { C, LEVEL_COLOR, T, fadeUp } from "../tokens";
+import { BODY_STATUS_KEY, formatValue, markerLevel } from "../data/body";
 import {
   BODY_METRICS,
   SESSIONS,
   bodySeries,
   bodySummary,
-  pick,
 } from "../data/sessions";
 import { plainKeyOf } from "../data/plainNames";
+import { zoneSummaryLine } from "./ZoneDetail";
 import { useLang } from "../i18n";
 
 /**
- * The body screen is the 3D figure plus whatever the current selection is
- * about. The chip rail, a tap on the mesh, and a tap on a card all drive the
- * same piece of state, so the model and the list can never disagree.
+ * The body screen: the figure, then one row per system.
+ *
+ * WHAT THIS REPLACES, and why it is now the same shape as the mind screen.
+ *
+ * There used to be three renderings of the same ten systems stacked down one
+ * page — a horizontally-scrolling chip rail, the lit organs in the figure, and
+ * a two-column icon legend — followed by a ~300px essay for each flagged
+ * system. Four of those essays made the screen 3,400px long, and the systems
+ * that were clear appeared only as icons, so the ten never scanned as ten of
+ * the same thing.
+ *
+ * The mind screen had solved this already: one row per axis, identical height,
+ * detail in a sheet. So Body does the same. The rows subsume both the chip
+ * rail and the legend — they are that list, with the state written out instead
+ * of encoded in an icon's tint — and the figure keeps the job only it can do,
+ * which is saying WHERE.
+ *
+ * Tapping a row and tapping an organ do the same thing: light it, and open it.
  */
-export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
-  const { t, lang } = useLang();
+export default function BodyTab({
+  sel,
+  onPickSession,
+  onOpenComposition,
+  onOpenZone,
+}) {
+  const { t } = useLang();
   const [active, setActive] = useState(null);
   const [metric, setMetric] = useState(0);
 
   const session = SESSIONS[sel];
   const summary = bodySummary(session);
 
-  const pickZone = useCallback((key) => {
-    setActive((cur) => (cur === key ? null : key));
-  }, []);
-
-  const railItems = useMemo(
-    () => [
-      { key: "__all", label: t("body.summary") },
-      ...summary.zones.map(({ zone, level }) => ({
-        key: zone.key,
-        label: t(zone.nameKey),
-        icon: zone.icon,
-        level,
-      })),
-    ],
-    [summary.zones, t],
+  const openZone = useCallback(
+    (key) => {
+      setActive(key);
+      onOpenZone(key);
+    },
+    [onOpenZone],
   );
-
-  const activeEntry = summary.zones.find((z) => z.zone.key === active);
-  const shown = activeEntry ? [activeEntry] : summary.flagged;
 
   const pickMetric = BODY_METRICS[metric];
   // The trend chart picker listed assay names too — the same wall, in a control.
@@ -83,23 +76,15 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         onPickSession={onPickSession}
       />
 
-      <div style={fadeUp(40)}>
-        <ChipRail
-          items={railItems}
-          value={active ?? "__all"}
-          onChange={(k) => setActive(k === "__all" ? null : k)}
-        />
-      </div>
-
       <Card
         variant="group"
-        style={{ marginTop: 10, padding: "4px 0 11px", overflow: "hidden" }}
-        delay={80}
+        style={{ padding: "4px 0 11px", overflow: "hidden" }}
+        delay={40}
       >
         <BodyScene
           zones={summary.zones}
           activeZone={active}
-          onPickZone={pickZone}
+          onPickZone={openZone}
           height={340}
         />
         <div
@@ -110,55 +95,33 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
             padding: "0 18px",
           }}
         >
-          {summary.flagged.length === 0 && !active
+          {summary.flagged.length === 0
             ? t("body.allInRange")
             : t("body.tapOrgan")}
         </div>
       </Card>
 
-      {/* Ten systems and their state, all visible at once — which the chip
-          rail above cannot do, because it scrolls and shows four at 375px.
-          The "종합 9/17" label and the sentence under it were the redundant
-          part: the home screen's body row already says exactly that. */}
-      <Card pad="md" delay={120}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "9px 12px",
-          }}
-        >
-          {summary.zones.map(({ zone, level }) => (
-            <Status key={zone.key} icon={zone.icon} level={level}>
-              {t(zone.nameKey)}
-            </Status>
-          ))}
-        </div>
+      <SectionTitle value={`${summary.okConditions}/${summary.total}`}>
+        {t("body.systems")}
+      </SectionTitle>
+      {/* Ten rows of one shape. What varies is the sentence inside. */}
+      <Card
+        variant="group"
+        style={{ overflow: "hidden", padding: 0, ...fadeUp(90) }}
+      >
+        {summary.zones.map(({ zone, values, level }, i) => (
+          <ZoneRow
+            key={zone.key}
+            icon={zone.icon}
+            name={t(zone.nameKey)}
+            level={level}
+            statusLabel={t(BODY_STATUS_KEY[level])}
+            detail={zoneSummaryLine(zone, values, t)}
+            onOpen={() => openZone(zone.key)}
+            last={i === summary.zones.length - 1}
+          />
+        ))}
       </Card>
-
-      {shown.length > 0 && (
-        <>
-          <SectionTitle
-            value={shown.length > 1 ? String(shown.length) : undefined}
-          >
-            {activeEntry ? t(activeEntry.zone.nameKey) : t("body.watch")}
-          </SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {shown.map(({ zone, values, level }) => (
-              <ZonePanel
-                key={zone.key}
-                zone={zone}
-                values={values}
-                level={level}
-                note={pick(session.bodyNote?.[zone.key], lang)}
-                action={pick(session.bodyAction?.[zone.key], lang)}
-                onSelect={() => pickZone(zone.key)}
-                selected={active === zone.key}
-              />
-            ))}
-          </div>
-        </>
-      )}
 
       <Card
         variant="group"
@@ -220,282 +183,6 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         onPickOption={setMetric}
         formatValue={(v) => formatValue(v, pickMetric.marker.dp)}
       />
-    </div>
-  );
-}
-
-function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
-  const t = useLang().t;
-  const [showAll, setShowAll] = useState(false);
-  const over = zone.markers
-    .map((m, i) => ({ marker: m, value: values[i] }))
-    .filter((p) => markerLevel(p.marker, p.value) > 0)
-    // Worst first. Four out-of-range markers listed in panel order said nothing
-    // about which one to care about.
-    .sort(
-      (a, b) =>
-        deviationOf(b.marker, b.value).ratio -
-        deviationOf(a.marker, a.value).ratio,
-    );
-
-  return (
-    <Card
-      variant="group"
-      style={{
-        overflow: "hidden",
-        padding: 0,
-        boxShadow: selected
-          ? `inset 0 0 0 1.5px ${LEVEL_COLOR[level]}55`
-          : CARD,
-      }}
-    >
-      <Pressable
-        as="button"
-        type="button"
-        onClick={onSelect}
-        pressScale={0.995}
-        style={{
-          display: "block",
-          width: "100%",
-          textAlign: "left",
-          padding: "15px 17px 11px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Icon name={zone.icon} level={level} size={28} />
-          <span style={{ ...T.title3, color: C.ink }}>{t(zone.nameKey)}</span>
-          <span
-            style={{
-              marginLeft: "auto",
-              ...T.micro,
-              color: LEVEL_COLOR[level],
-            }}
-          >
-            {t(BODY_STATUS_KEY[level])}
-          </span>
-        </div>
-        {/* The specialty is the actionable part: it names the clinic. It used
-            to carry a tracked "SPECIALTY" label and a separate "N MARKERS"
-            counter — three typographic voices for one line of fact. */}
-        <div style={{ ...T.caption, color: C.body, marginTop: 8 }}>
-          {t(zone.specialtyKey)}
-        </div>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 4 }}>
-          {zone.conditionKeys.map((k) => t(k)).join(" · ")}
-        </div>
-        {over.length > 0 && (
-          <div
-            style={{
-              ...T.caption,
-              color: C.body,
-              marginTop: 7,
-              textWrap: "pretty",
-            }}
-          >
-            {t("body.outOfRange", {
-              names: over
-                .map((p) => {
-                  const k = plainKeyOf(p.marker);
-                  const name = k ? t(k) : p.marker.name;
-                  return `${name} ${deviationOf(p.marker, p.value).pct}%`;
-                })
-                .join(" · "),
-            })}
-          </div>
-        )}
-      </Pressable>
-
-      <div style={{ padding: "0 17px 15px" }}>
-        {/* What the panel is for, then what this reader's result means. The
-            two used to be introduced by tracked headings; they are a general
-            sentence and a personal one, and they already read that way. The
-            second heading also rendered over nothing whenever a zone had no
-            note of its own. */}
-        {/* Both in full. These are two and three lines; clamping them to two
-            and offering "더 보기" charged a tap for text that was going to fit
-            anyway, and put a second expander directly above the one that opens
-            the markers — so the card had two "more" affordances meaning
-            different things. */}
-        <p
-          style={{
-            ...T.bodyText,
-            color: C.body,
-            margin: 0,
-            paddingTop: 12,
-            boxShadow: `inset 0 1px 0 ${C.hairline}`,
-            textWrap: "pretty",
-          }}
-        >
-          {t(zone.noteKey)}
-        </p>
-
-        {(note || over.length === 0) && (
-          <p
-            style={{
-              ...T.bodyText,
-              color: C.ink,
-              margin: "10px 0 0",
-              textWrap: "pretty",
-            }}
-          >
-            {note || t("body.clearAll")}
-          </p>
-        )}
-
-        {/* Out-of-range markers stay visible; the rest fold away. */}
-        {over.length > 0 && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 13,
-              marginTop: 15,
-            }}
-          >
-            {over.map(({ marker, value }) => (
-              <MarkerBar key={marker.name} marker={marker} value={value} />
-            ))}
-          </div>
-        )}
-
-        <div style={{ marginTop: 13 }}>
-          <DisclosureButton
-            open={showAll}
-            onClick={() => setShowAll((v) => !v)}
-            label={
-              showAll
-                ? t("body.showLess")
-                : t("body.showAll", { n: zone.markers.length })
-            }
-            hint={
-              over.length
-                ? t("body.outOfRangeOnly", { n: over.length })
-                : undefined
-            }
-          />
-          <Collapse open={showAll}>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 13,
-                padding: "13px 2px 2px",
-              }}
-            >
-              {zone.markers.map((m, i) => (
-                <MarkerBar key={m.name} marker={m} value={values[i]} />
-              ))}
-            </div>
-          </Collapse>
-        </div>
-
-        {/* Last, after the evidence — and only when the zone has an action the
-            app cannot take for you. A level-1 zone ends here, which is honest:
-            "관찰 필요" is already on the badge above. */}
-        <NextStep label={t("body.consultNow")} where={t(zone.specialtyKey)}>
-          {action}
-        </NextStep>
-      </div>
-    </Card>
-  );
-}
-
-/**
- * One biomarker, read as distance from its limit rather than as a raw value.
- *
- * "33.2 μmol/mmol" asks the reader to know that the limit is 30 and to do the
- * subtraction, and it cannot be compared to the "178 10³/μL" two rows down. A
- * proportion of the limit is unitless, so every marker in the panel is suddenly
- * on one scale — which is the whole reason this is the headline number now and
- * the assay value sits underneath with the name.
- *
- * The copy deliberately never says "높음" or "낮음". For a `dir: "low"` marker
- * the reference is a floor, so eGFR at 98.7 against a limit of 90 is 9% of
- * headroom while being numerically higher. Safe-side versus past-the-limit is
- * the only framing that survives both directions.
- */
-function MarkerBar({ marker, value }) {
-  const t = useLang().t;
-  const level = markerLevel(marker, value);
-  const plain = plainKeyOf(marker);
-  const dev = deviationOf(marker, value);
-  return (
-    <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: 10,
-        }}
-      >
-        <span style={{ minWidth: 0 }}>
-          <span style={{ ...T.label, color: C.ink, display: "block" }}>
-            {plain ? t(plain) : marker.name}
-          </span>
-          <span
-            style={{
-              ...T.micro,
-              color: C.faintest,
-              display: "block",
-              marginTop: 2,
-            }}
-          >
-            {plain ? `${marker.name} · ` : ""}
-            {formatValue(value, marker.dp)}
-            {marker.unit ? ` ${marker.unit}` : ""}
-          </span>
-        </span>
-        <span
-          style={{
-            ...T.label,
-            fontWeight: 600,
-            color: LEVEL_COLOR[level],
-            flex: "none",
-            textAlign: "right",
-          }}
-        >
-          {dev.pct === 0
-            ? t("body.dev.at")
-            : t(dev.over ? "body.dev.over" : "body.dev.under", {
-                pct: dev.pct,
-              })}
-        </span>
-      </div>
-      {/* Same grammar as the mind scale: the band, where the limit is, and
-          where you are. The separate reference tick sat one pixel from the
-          colour change it was already marking. */}
-      <div
-        style={{
-          position: "relative",
-          height: 5,
-          borderRadius: 2,
-          background: markerBand(marker),
-          margin: "9px 0 5px",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            top: -3.5,
-            left: markerLeft(value, marker.max),
-            width: 3,
-            height: 12,
-            marginLeft: -1.5,
-            borderRadius: 1.5,
-            background: C.ink,
-            boxShadow: `0 0 0 2px ${C.bg}`,
-          }}
-        />
-      </div>
-      <div style={{ ...T.caption, color: C.faintest }}>
-        {t(marker.dir === "low" ? "body.referenceMin" : "body.reference", {
-          v: formatValue(marker.ref, marker.dp),
-        })}
-      </div>
     </div>
   );
 }

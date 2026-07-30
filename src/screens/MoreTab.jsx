@@ -38,7 +38,7 @@ export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
 
   return (
     <div>
-      <Masthead title={t("more.title")} />
+      <Masthead brand />
 
       <div
         style={{
