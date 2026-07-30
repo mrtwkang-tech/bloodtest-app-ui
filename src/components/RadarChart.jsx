@@ -37,13 +37,13 @@ const ringPoly = (v) =>
  * The graduated rings, spokes and per-axis readouts are what turn it from a
  * decorative blob into something you can actually take a measurement off.
  */
-export default function RadarChart({ percentiles, statuses, delay = 40 }) {
+export default function RadarChart({ values, statuses, delay = 40 }) {
   const t = useT();
 
   return (
     <Card style={{ padding: "15px 14px 12px" }} delay={delay}>
       <SectionLabel value={`${t("mind.me")} · ${t("mind.peer")}`}>
-        {t("mind.percentile")}
+        {t("mind.index")}
       </SectionLabel>
 
       <svg
@@ -52,7 +52,7 @@ export default function RadarChart({ percentiles, statuses, delay = 40 }) {
         role="img"
         style={{ display: "block", marginTop: 6 }}
         aria-label={SCALE_META.map(
-          (m, i) => `${t(`scale.${m.key}`)} ${percentiles[i]}`,
+          (m, i) => `${t(m.axisKey)} ${values[i]}`,
         ).join(", ")}
       >
         {/* Graduated rings — the scale you read the polygon against. */}
@@ -107,7 +107,7 @@ export default function RadarChart({ percentiles, statuses, delay = 40 }) {
 
         {/* You. */}
         <polygon
-          points={poly(percentiles)}
+          points={poly(values)}
           fill="rgba(63,99,41,.13)"
           stroke={C.accent}
           strokeWidth="1.75"
@@ -116,7 +116,7 @@ export default function RadarChart({ percentiles, statuses, delay = 40 }) {
         />
 
         {/* Vertices, coloured by that scale's own status. */}
-        {percentiles.map((v, i) => {
+        {values.map((v, i) => {
           const [x, y] = pt(
             AXES[i],
             (Math.max(3, Math.min(100, v)) / 100) * R_MAX,
@@ -153,7 +153,7 @@ export default function RadarChart({ percentiles, statuses, delay = 40 }) {
                 style={{ ...T.micro, fontSize: 9, letterSpacing: "0.05em" }}
                 fill={C.muted}
               >
-                {t(`scale.${m.key}`)}
+                {t(m.axisKey)}
               </text>
               <text
                 x={lx}
@@ -162,7 +162,7 @@ export default function RadarChart({ percentiles, statuses, delay = 40 }) {
                 style={{ ...T.num, fontSize: 12.5, fontWeight: 600 }}
                 fill={C.ink}
               >
-                {percentiles[i]}
+                {values[i]}
               </text>
             </g>
           );

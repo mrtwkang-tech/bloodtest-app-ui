@@ -83,7 +83,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
               const i = SCALE_META.findIndex((m) => m.key === k);
               return (
                 <Status key={k} color={STATUS_COLOR[session.status[i]]}>
-                  {t(`scale.${k}`)}
+                  {t(SCALE_META.find((x) => x.key === k).axisKey)}
                 </Status>
               );
             })}
@@ -103,15 +103,23 @@ export default function MindTab({ sel, onPickSession, showNew }) {
 
       <div style={{ marginTop: 10 }}>
         <RadarChart
-          percentiles={session.percentiles}
+          values={session.indices}
           statuses={session.status}
           delay={80}
         />
       </div>
 
-      <SectionTitle value={t("mind.percentile")}>
-        {t("mind.scales")}
-      </SectionTitle>
+      <SectionTitle value={t("mind.index")}>{t("mind.scales")}</SectionTitle>
+      <p
+        style={{
+          ...T.monoSm,
+          color: C.faint,
+          margin: "-2px 2px 10px",
+          textWrap: "pretty",
+        }}
+      >
+        {t("mind.cadenceNote")}
+      </p>
       <div
         style={{
           display: "flex",
@@ -124,27 +132,24 @@ export default function MindTab({ sel, onPickSession, showNew }) {
           <ScaleCard
             key={m.key}
             meta={m}
-            score={session.scores[i]}
+            index={session.indices[i]}
             status={session.status[i]}
-            percentile={session.percentiles[i]}
+            roundIndex={session.roundIndex}
           />
         ))}
       </div>
 
       <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
       <TrendChart
-        title={t(`scale.${meta.key}`)}
-        unit={meta.code}
-        series={rounds.map((s) => s.scores[metric])}
+        title={t(meta.axisKey)}
+        unit={t("mind.index")}
+        series={rounds.map((s) => s.indices[metric])}
         labels={rounds.map((s) => t("round.n", { n: s.round }))}
-        reference={meta.avg}
+        reference={50}
         referenceLabel={t("mind.peerAvg")}
         sel={sel}
         color={STATUS_COLOR[session.status[metric]]}
-        options={SCALE_META.map((m) => ({
-          key: m.key,
-          label: t(`scale.${m.key}`),
-        }))}
+        options={SCALE_META.map((m) => ({ key: m.key, label: t(m.axisKey) }))}
         selectedOption={metric}
         onPickOption={setMetric}
       />
@@ -200,7 +205,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
             textWrap: "pretty",
           }}
         >
-          {t("mind.crisis")}
+          {t("mind.notDiagnosis")} {t("mind.crisis")}
         </p>
       </Card>
     </div>

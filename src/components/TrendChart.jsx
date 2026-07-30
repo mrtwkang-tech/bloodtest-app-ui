@@ -50,7 +50,7 @@ export default function TrendChart({
         <span style={{ ...T.title3, color: C.ink }}>
           {title}{" "}
           {unit ? (
-            <span style={{ ...T.micro, color: C.faintest }}>{unit}</span>
+            <span style={{ ...T.unit, color: C.faintest }}>{unit}</span>
           ) : null}
         </span>
         <span style={{ ...T.micro, color: deltaColor, whiteSpace: "nowrap" }}>

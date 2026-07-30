@@ -645,17 +645,20 @@ function buildSystemic(color, bodyParts) {
 
 /** Organ systems keyed to the ten specialty panels. */
 export function buildOrgans(bodyParts) {
+  // Hues are spread around the wheel rather than clustered in earth tones:
+  // with ten systems, "which organ am I looking at" has to survive being
+  // answered by colour alone.
   return {
-    neuro: buildNeuro(0xd98f5a),
-    cardio: buildCardio(0xd1614f),
-    endocrine: buildEndocrine(0xc9a13f),
-    hepatic: buildHepatic(0xa8763f),
-    renal: buildRenal(0x8f7fc4),
-    hematology: buildHematology(0xc25f7a),
-    pulmonary: buildPulmonary(0x6fa3c4),
-    immune: buildImmune(0x64a88f),
-    oncology: buildSystemic(0x7f9fd1, bodyParts),
-    nutrition: buildNutrition(0x9aa84f),
+    neuro: buildNeuro(0x7c5cd6),      // violet
+    cardio: buildCardio(0xdc3f3f),    // red
+    endocrine: buildEndocrine(0xe8a01a), // amber
+    hepatic: buildHepatic(0xc2622a),  // burnt orange
+    renal: buildRenal(0x17a2a2),      // teal
+    hematology: buildHematology(0xd42a72), // magenta
+    pulmonary: buildPulmonary(0x2f8fd6),   // sky
+    immune: buildImmune(0x3fae55),    // green
+    oncology: buildSystemic(0x5f6bd8, bodyParts), // indigo shell
+    nutrition: buildNutrition(0x9ec219),  // lime
   };
 }
 

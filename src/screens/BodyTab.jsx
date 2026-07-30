@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { Collapse, DisclosureButton } from "../components/Collapse";
 import BodyScene from "../three/BodyScene";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
@@ -196,6 +197,7 @@ export default function BodyTab({ sel, onPickSession }) {
 
 function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
   const t = useLang().t;
+  const [showAll, setShowAll] = useState(false);
   const over = zone.markers
     .map((m, i) => ({ marker: m, value: values[i] }))
     .filter((p) => markerLevel(p.marker, p.value) > 0);
@@ -279,30 +281,37 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
       </Pressable>
 
       <div style={{ padding: "0 17px 15px" }}>
-        <p
-          style={{
-            ...T.monoSm,
-            color: C.muted,
-            margin: "2px 0 0",
-            paddingTop: 11,
-            boxShadow: `inset 0 1px 0 ${C.hairline}`,
-            textWrap: "pretty",
-          }}
-        >
-          {note || t(zone.noteKey)}
-        </p>
+        {/* What the panel is for, then what this reader's result means. */}
+        <div style={{ paddingTop: 12, boxShadow: `inset 0 1px 0 ${C.hairline}` }}>
+          <div style={{ ...T.micro, color: C.faintest }}>
+            {t("body.whatThisIs")}
+          </div>
+          <p
+            style={{
+              ...T.bodyText,
+              color: C.body,
+              margin: "5px 0 0",
+              textWrap: "pretty",
+            }}
+          >
+            {t(zone.noteKey)}
+          </p>
+        </div>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 13,
-            marginTop: 15,
-          }}
-        >
-          {zone.markers.map((m, i) => (
-            <MarkerBar key={m.name} marker={m} value={values[i]} />
-          ))}
+        <div style={{ marginTop: 14 }}>
+          <div style={{ ...T.micro, color: C.faintest }}>
+            {t("body.whatItMeans")}
+          </div>
+          <p
+            style={{
+              ...T.bodyText,
+              color: C.ink,
+              margin: "5px 0 0",
+              textWrap: "pretty",
+            }}
+          >
+            {note || (over.length === 0 ? t("body.clearAll") : "")}
+          </p>
         </div>
 
         {level > 0 && action && (
@@ -311,7 +320,7 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
               background: LEVEL_TINT[level],
               borderRadius: R.inner,
               padding: "11px 13px",
-              marginTop: 15,
+              marginTop: 13,
             }}
           >
             <div style={{ ...T.micro, color: LEVEL_COLOR[level] }}>
@@ -329,6 +338,53 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             </p>
           </div>
         )}
+
+        {/* Out-of-range markers stay visible; the rest fold away. */}
+        {over.length > 0 && (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 13,
+              marginTop: 15,
+            }}
+          >
+            {over.map(({ marker, value }) => (
+              <MarkerBar key={marker.name} marker={marker} value={value} />
+            ))}
+          </div>
+        )}
+
+        <div style={{ marginTop: 13 }}>
+          <DisclosureButton
+            open={showAll}
+            onClick={() => setShowAll((v) => !v)}
+            label={
+              showAll
+                ? t("body.showLess")
+                : t("body.showAll", { n: zone.markers.length })
+            }
+            hint={
+              over.length
+                ? t("body.outOfRangeOnly", { n: over.length })
+                : undefined
+            }
+          />
+          <Collapse open={showAll}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 13,
+                padding: "13px 2px 2px",
+              }}
+            >
+              {zone.markers.map((m, i) => (
+                <MarkerBar key={m.name} marker={m} value={values[i]} />
+              ))}
+            </div>
+          </Collapse>
+        </div>
       </div>
     </Card>
   );

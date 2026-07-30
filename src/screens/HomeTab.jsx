@@ -1,4 +1,6 @@
+import { useState } from "react";
 import Pressable from "../components/Pressable";
+import { Collapse, DisclosureButton } from "../components/Collapse";
 import {
   Card,
   CountStrip,
@@ -7,6 +9,7 @@ import {
   SectionLabel,
   SectionTitle,
   Status,
+  Badge,
 } from "../components/primitives";
 import {
   C,
@@ -19,6 +22,8 @@ import {
   fadeUp,
 } from "../tokens";
 import { SCALE_META } from "../data/scales";
+import { interactionsFor } from "../data/interactions";
+import { formatValue } from "../data/body";
 import {
   PROFILE,
   SESSIONS,
@@ -43,6 +48,7 @@ export default function HomeTab({
   const counts = biomarkerCounts(latest);
   const mind = mindSummary(latest);
   const body = bodySummary(latest);
+  const signals = interactionsFor(latest.roundIndex);
 
   const leadKey =
     score >= 82
@@ -142,9 +148,9 @@ export default function HomeTab({
           color={STATUS_COLOR[mind.worst]}
           rows={SCALE_META.map((m, i) => ({
             key: m.key,
-            label: t(`scale.${m.key}`),
+            label: t(m.axisKey),
             color: STATUS_COLOR[latest.status[i]],
-            value: latest.percentiles[i],
+            value: latest.indices[i],
           }))}
           onClick={onGoMind}
         />
@@ -197,6 +203,35 @@ export default function HomeTab({
           <div style={{ ...T.title3, marginTop: 7 }}>{t("home.buyKit")}</div>
           <div style={{ ...T.monoSm, opacity: 0.66, marginTop: 3 }}>→</div>
         </Pressable>
+      </div>
+
+      {/* Cross-system signals — combinations a single panel would not flag. */}
+      <SectionTitle
+        value={signals.length ? String(signals.length) : undefined}
+        style={{ marginBottom: 8 }}
+      >
+        {t("ix.title")}
+      </SectionTitle>
+      <div style={{ marginBottom: 4, ...fadeUp(200) }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7, margin: "0 2px 9px" }}>
+          <Badge color={C.accent} tint={C.accentSoft}>
+            {t("ix.beta")}
+          </Badge>
+          <span style={{ ...T.micro, color: C.faintest, flex: 1, lineHeight: 1.5 }}>
+            {t("ix.note")}
+          </span>
+        </div>
+        {signals.length === 0 ? (
+          <Card style={{ padding: "14px 16px" }}>
+            <Status color={C.optimal}>{t("ix.none")}</Status>
+          </Card>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {signals.map((sig) => (
+              <SignalCard key={sig.key} signal={sig} />
+            ))}
+          </div>
+        )}
       </div>
 
       <SectionTitle value={`${SESSIONS.length}`}>
@@ -331,5 +366,74 @@ function DomainCard({ label, headline, color, rows, onClick }) {
         ))}
       </div>
     </Pressable>
+  );
+}
+
+/**
+ * One cross-system pattern. The evidence list is the point: a claim about a
+ * combination has to show the readings it was built from.
+ */
+function SignalCard({ signal }) {
+  const { t } = useLang();
+  const [open, setOpen] = useState(false);
+  const color = LEVEL_COLOR[signal.severity];
+
+  return (
+    <Card style={{ padding: "14px 16px 12px" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: color,
+            flex: "none",
+            marginTop: 6,
+          }}
+        />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ ...T.title3, color: C.ink }}>{t(signal.titleKey)}</div>
+          <div style={{ ...T.micro, color: C.faintest, marginTop: 4 }}>
+            {signal.systems.map((k) => t(`sys.${k}`)).join(" · ")}
+          </div>
+        </div>
+      </div>
+
+      <p style={{ ...T.bodyText, color: C.body, margin: "10px 0 0", textWrap: "pretty" }}>
+        {t(signal.bodyKey)}
+      </p>
+
+      <div style={{ marginTop: 11 }}>
+        <DisclosureButton
+          open={open}
+          onClick={() => setOpen((v) => !v)}
+          label={t("ix.evidence")}
+          hint={`${signal.evidence.length}`}
+        />
+        <Collapse open={open}>
+          <div style={{ padding: "11px 2px 2px" }}>
+            {signal.evidence.map((e) => (
+              <div
+                key={e.marker.name}
+                style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}
+              >
+                <span style={{ ...T.monoSm, color: C.ink, flex: 1 }}>
+                  {e.marker.name}
+                </span>
+                <span style={{ ...T.num, fontSize: 12, color: LEVEL_COLOR[e.level] }}>
+                  {formatValue(e.value, e.marker.dp)}
+                </span>
+                <span style={{ ...T.micro, color: C.faintest, width: 58, textAlign: "right" }}>
+                  {e.marker.unit || "—"}
+                </span>
+              </div>
+            ))}
+            <p style={{ ...T.monoSm, color: C.muted, margin: "12px 0 0", textWrap: "pretty" }}>
+              {t(signal.actionKey)}
+            </p>
+          </div>
+        </Collapse>
+      </div>
+    </Card>
   );
 }

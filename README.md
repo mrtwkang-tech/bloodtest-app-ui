@@ -1,15 +1,38 @@
 # Full Panel — blood test subscription app
 
-At-home blood testing mockup: five mental health scales plus 65 biomarkers
-covering 17 conditions, grouped into ten organ systems — one per medical
-specialty — and read through a 3D anatomy viewer. React + Vite + three.js,
+At-home blood testing mockup: 69 biomarkers covering 17 conditions across ten
+organ systems — one per medical specialty — read through a 3D anatomy viewer,
+plus five mind indices derived from the same draw. React + Vite + three.js,
 English base with a full Korean dictionary.
 
 ## Design decisions
 
-**Mind and body are separate tabs.** The scales are *state* (continuous,
-fluctuating); the screenings are *risk* (mostly-null, heavy). They answer
-different questions, so they never share one chart.
+**The mind indices come out of the blood, not a questionnaire.** This is a
+blood test, so a PHQ-9 score had no business being here — it is a number the
+panel cannot produce. Each index is instead a weighted composite of markers
+the draw actually measures, along pathways known to move mood: inflammation
+(hs-CRP, IL-6), tryptophan diversion (Kyn/Trp), neuroplasticity (BDNF), the
+stress axis (cortisol, DHEA-S), overnight melatonin output, oxygen delivery
+and thyroid. Every card shows the chain — *marker → mechanism → index* — in
+plain language, because the index alone is uninterpretable to a non-specialist.
+
+This is also why a 1–3 month cadence is the right one: these markers integrate
+over weeks to months. HbA1c averages 2–3 months of glucose; ferritin and the
+omega-3 index shift over months; BDNF and cortisol over weeks. A daily reading
+would be noise. An index describes biological load along a pathway — it is not
+a diagnosis, and the UI says so.
+
+**Mind and body are separate tabs.** The indices are *state*; the screenings
+are *risk* (mostly-null, heavy). They answer different questions.
+
+**Cross-system signals (BETA).** A per-specialty panel can only ask "is this
+marker out of range?". It cannot ask whether three in-range markers, in this
+combination, are a pattern — and that is where the interesting findings live:
+residual inflammatory risk behind handled lipids, glucose tracking stress
+rather than diet, inflammation reaching mood, three normal values that add up
+to fatigue. Six conservative rules, each showing the readings it was built
+from. Labelled BETA because these are heuristics over demo data, not a
+validated risk model.
 
 **Every percentage is computed.** Scale scores convert to peer percentiles
 via a normal CDF (`src/lib/stats.js`); the radar plots percentiles on

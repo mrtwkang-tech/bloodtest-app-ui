@@ -1,4 +1,4 @@
-import { SCALE_META, scalePercentile, statusOf } from "./scales";
+import { SCALE_META, scaleIndex, statusOf } from "./scales";
 import {
   SYSTEMS,
   TOTAL_CONDITIONS,
@@ -24,7 +24,6 @@ const RAW = [
     round: 3,
     date: "07.03",
     fullDate: { en: "3 July 2026", ko: "2026년 7월 3일" },
-    scores: [4, 5, 21, 7, 28],
     bodyNote: {
       endocrine: {
         en: "Average blood sugar edged just past the upper limit. Nothing needs action today, but the direction matters at the next round.",
@@ -72,7 +71,6 @@ const RAW = [
     round: 2,
     date: "04.02",
     fullDate: { en: "2 April 2026", ko: "2026년 4월 2일" },
-    scores: [6, 5, 17, 8, 30],
     bodyNote: {},
     bodyAction: {},
     summary: {
@@ -102,7 +100,6 @@ const RAW = [
     round: 1,
     date: "01.08",
     fullDate: { en: "8 January 2026", ko: "2026년 1월 8일" },
-    scores: [7, 8, 15, 10, 36],
     bodyNote: {
       cardio: {
         en: "Vessel inflammation and LDL went over the range together. That combination is worth looking at from lifestyle first.",
@@ -154,11 +151,13 @@ export const SESSIONS = RAW.map((s, i) => ({
   ...s,
   // RAW is newest-first; the marker demo arrays are oldest-first.
   roundIndex: RAW.length - 1 - i,
-  status: s.scores.map((score, i) => statusOf(SCALE_META[i], score)),
-  percentiles: s.scores.map((score, i) =>
-    scalePercentile(SCALE_META[i], score),
-  ),
-}));
+}))
+  // Indices are computed from the blood markers, then status from the index,
+  // so a number on screen can never disagree with the marker behind it.
+  .map((s) => {
+    const indices = SCALE_META.map((meta) => scaleIndex(meta, s.roundIndex));
+    return { ...s, indices, status: indices.map(statusOf) };
+  });
 
 /** Pick the language variant of a content field. */
 export function pick(field, lang) {
@@ -206,12 +205,6 @@ export function biomarkerCounts(session) {
   let inRange = 0;
   let out = 0;
 
-  session.status.forEach((s, i) => {
-    if (s !== "good") out += 1;
-    else if (session.percentiles[i] <= 35) optimal += 1;
-    else inRange += 1;
-  });
-
   SYSTEMS.forEach((system) => {
     const values = valuesAt(system, session.roundIndex);
     system.markers.forEach((m, i) => {
@@ -222,7 +215,9 @@ export function biomarkerCounts(session) {
     });
   });
 
-  return { total: SCALE_META.length + TOTAL_MARKERS, optimal, inRange, out };
+  // Mind indices are derived from these same markers, so counting them again
+  // would double-count the draw.
+  return { total: TOTAL_MARKERS, optimal, inRange, out };
 }
 
 /**
@@ -237,10 +232,6 @@ export function healthScore(session) {
   const base = (c.optimal * 1 + c.inRange * 0.82) / c.total;
 
   let penalty = 0;
-  session.status.forEach((s) => {
-    if (s === "watch") penalty += 0.02;
-    if (s === "alert") penalty += 0.05;
-  });
   SYSTEMS.forEach((system) => {
     const values = valuesAt(system, session.roundIndex);
     system.markers.forEach((m, i) => {

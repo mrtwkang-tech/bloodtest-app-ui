@@ -1,24 +1,28 @@
+import { useState } from "react";
 import { Card } from "./primitives";
-import { C, EASE, R, STATUS_COLOR, T } from "../tokens";
-import { burnoutBand } from "../data/scales";
+import { Collapse, DisclosureButton } from "./Collapse";
+import { C, EASE, STATUS_COLOR, T } from "../tokens";
+import { formatValue } from "../data/body";
+import { scaleDrivers } from "../data/scales";
 import { useT } from "../i18n";
 
-// Where the peer average and the screening threshold fall on a percentile axis.
+// Where the peer average and the referral threshold fall on the 0–100 index.
 const AVG_AT = 50;
-const WATCH_AT = 80;
+const WATCH_AT = 66;
 
 /**
- * One scale: the raw score, its position in the peer distribution, and what
- * that position means.
+ * One mind index, and the chain that produced it.
  *
- * The percentile is computed from the score, so the number and the marker can
- * never disagree.
+ * The index alone is uninterpretable to anyone who is not a biochemist, so
+ * the card always shows the top driver's mechanism in plain language, and
+ * opens to the full marker list on request.
  */
-export default function ScaleCard({ meta, score, status, percentile }) {
+export default function ScaleCard({ meta, index, status, roundIndex }) {
   const t = useT();
+  const [open, setOpen] = useState(false);
   const color = STATUS_COLOR[status];
-  const scoreText =
-    meta.key === "burnout" ? t(`burnout.${burnoutBand(score)}`) : `${score}`;
+  const drivers = scaleDrivers(meta, roundIndex);
+  const lead = drivers[0];
 
   return (
     <Card style={{ padding: "14px 16px 13px" }}>
@@ -30,10 +34,10 @@ export default function ScaleCard({ meta, score, status, percentile }) {
           gap: 10,
         }}
       >
-        <span style={{ ...T.title3, color: C.ink }}>
-          {t(`scale.${meta.key}`)}
+        <span style={{ ...T.title3, color: C.ink }}>{t(meta.axisKey)}</span>
+        <span style={{ ...T.micro, color: C.faintest }}>
+          {t("mind.derived")}
         </span>
-        <span style={{ ...T.micro, color: C.faintest }}>{meta.code}</span>
       </div>
 
       <div
@@ -53,29 +57,133 @@ export default function ScaleCard({ meta, score, status, percentile }) {
             lineHeight: 1,
           }}
         >
-          {scoreText}
+          {index}
         </span>
         <span style={{ ...T.monoSm, color, paddingBottom: 2 }}>
           {t(`status.${status}`)}
         </span>
         <span
-          style={{ marginLeft: "auto", textAlign: "right", paddingBottom: 1 }}
+          style={{
+            marginLeft: "auto",
+            ...T.micro,
+            color: C.faintest,
+            paddingBottom: 2,
+          }}
         >
-          <span
-            style={{ ...T.num, fontSize: 15, fontWeight: 600, color: C.ink }}
-          >
-            {percentile}
-          </span>
-          <span style={{ ...T.micro, color: C.faintest, marginLeft: 4 }}>
-            {t("mind.pct")}
-          </span>
+          {t("mind.index")}
         </span>
       </div>
 
-      <Ruler percentile={percentile} color={color} />
+      <Ruler index={index} color={color} />
 
-      <div style={{ ...T.monoSm, color: C.faint, marginTop: 9 }}>
-        {t("mind.peerAvg")} {meta.avg} · {t("mind.percentileSentence", { p: percentile })}
+      {/* The mechanism, not the number: this is the part a reader can use. */}
+      <div style={{ marginTop: 11 }}>
+        <div style={{ ...T.micro, color: C.faintest }}>{t("mind.whyThis")}</div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            gap: 7,
+            marginTop: 6,
+          }}
+        >
+          <span style={{ ...T.label, color: C.ink }}>{lead.marker.name}</span>
+          <span
+            style={{
+              ...T.num,
+              fontSize: 12,
+              color: lead.pushesUp ? C.watch : C.optimal,
+            }}
+          >
+            {formatValue(lead.value, lead.marker.dp)}
+            {lead.marker.unit ? ` ${lead.marker.unit}` : ""}
+          </span>
+          <span style={{ ...T.micro, color: C.faintest }}>
+            {lead.pushesUp ? t("mind.pushesUp") : t("mind.pushesDown")}
+          </span>
+        </div>
+        <p
+          style={{
+            ...T.monoSm,
+            color: C.muted,
+            margin: "6px 0 0",
+            textWrap: "pretty",
+          }}
+        >
+          {t(lead.mechanismKey)}
+        </p>
+      </div>
+
+      <div style={{ marginTop: 11 }}>
+        <DisclosureButton
+          open={open}
+          onClick={() => setOpen((v) => !v)}
+          label={open ? t("mind.hideMarkers") : t("mind.showMarkers")}
+          hint={`${drivers.length}`}
+        />
+        <Collapse open={open}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 11,
+              padding: "12px 2px 2px",
+            }}
+          >
+            {drivers.map((d) => (
+              <div key={d.marker.name}>
+                <div
+                  style={{ display: "flex", alignItems: "baseline", gap: 8 }}
+                >
+                  <span
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: "50%",
+                      background: d.pushesUp ? C.watch : C.optimal,
+                      flex: "none",
+                      transform: "translateY(-2px)",
+                    }}
+                  />
+                  <span style={{ ...T.monoSm, color: C.ink }}>
+                    {d.marker.name}
+                  </span>
+                  <span
+                    style={{
+                      marginLeft: "auto",
+                      ...T.num,
+                      fontSize: 12,
+                      color: C.body,
+                    }}
+                  >
+                    {formatValue(d.value, d.marker.dp)}
+                  </span>
+                  <span
+                    style={{
+                      ...T.unit,
+                      color: C.faintest,
+                      width: 56,
+                      textAlign: "right",
+                    }}
+                  >
+                    {d.marker.unit || "—"}
+                  </span>
+                </div>
+                <p
+                  style={{
+                    ...T.micro,
+                    color: C.faint,
+                    margin: "4px 0 0 13px",
+                    lineHeight: 1.6,
+                    textWrap: "pretty",
+                  }}
+                >
+                  {t(d.mechanismKey)}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Collapse>
       </div>
 
       <p
@@ -88,21 +196,18 @@ export default function ScaleCard({ meta, score, status, percentile }) {
           textWrap: "pretty",
         }}
       >
-        {t(`scale.${meta.key}.base`)} {t(`status.line.${status}`)}
+        {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
       </p>
     </Card>
   );
 }
 
 /**
- * A measured axis rather than a decorative gradient.
- *
- * The bar fills to the percentile so length carries the value, the two
- * reference points that matter (peer average, screening threshold) are marked
- * on the axis itself, and the ticks below let you read a position off it
- * instead of estimating one.
+ * A measured axis rather than a decorative gradient. The fill carries the
+ * value, the peer average and referral threshold are marked on the axis, and
+ * the ticks let you read a position instead of estimating one.
  */
-function Ruler({ percentile, color }) {
+function Ruler({ index, color }) {
   return (
     <div style={{ marginTop: 13 }}>
       <div
@@ -111,30 +216,25 @@ function Ruler({ percentile, color }) {
           height: 6,
           borderRadius: 2,
           background: C.surfaceSunken,
-          overflow: "visible",
         }}
       >
         <div
           style={{
             position: "absolute",
             inset: "0 auto 0 0",
-            width: `${percentile}%`,
+            width: `${index}%`,
             background: color,
             borderRadius: 2,
             transition: `width 520ms ${EASE}, background 240ms ${EASE}`,
           }}
         />
-
-        {/* Reference marks sit on the axis, labelled below. */}
         <Mark at={AVG_AT} strong />
         <Mark at={WATCH_AT} />
-
-        {/* The reading. */}
         <div
           style={{
             position: "absolute",
             top: -3,
-            left: `${percentile}%`,
+            left: `${index}%`,
             width: 3,
             height: 12,
             marginLeft: -1.5,
@@ -146,7 +246,6 @@ function Ruler({ percentile, color }) {
         />
       </div>
 
-      {/* Ruler: a tick every 10, taller at the quarters. */}
       <div style={{ position: "relative", height: 6, marginTop: 3 }}>
         {Array.from({ length: 11 }, (_, i) => i * 10).map((v) => (
           <span

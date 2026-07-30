@@ -161,6 +161,18 @@ export const T = {
     letterSpacing: "0.09em",
     textTransform: "uppercase",
   },
+  /**
+   * Units are never uppercased: `textTransform` would turn μg into MG and
+   * mg/dL into MG/DL, which are different quantities.
+   */
+  unit: {
+    fontFamily: FONT_MONO,
+    fontSize: 10,
+    fontWeight: 500,
+    lineHeight: 1.4,
+    letterSpacing: "0.01em",
+  },
+
   /** Numerals that must align in a column. */
   num: {
     fontFamily: FONT_MONO,
