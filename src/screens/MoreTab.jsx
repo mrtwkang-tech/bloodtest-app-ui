@@ -11,6 +11,7 @@ import {
 } from "../data/legal";
 import { PLANS, PROFILE, pick } from "../data/sessions";
 import { LANGS, DICTS } from "../i18n/dict";
+import { SESSIONS } from "../data/sessions";
 import { useLang } from "../i18n";
 import {
   ACCENTS,
@@ -28,7 +29,7 @@ const LEGAL_ORDER = [
   "opensource",
 ];
 
-export default function MoreTab({ onOpenDoc, onGoStore }) {
+export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
   const { t, lang, setLang } = useLang();
   const [accent, setAccent] = useState(storedAccent);
   // The notice is written per jurisdiction, not translated.
@@ -153,6 +154,11 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
         <MenuRow label={t("more.subscription")} value={t("store.quarter")} />
         <MenuRow label={t("more.address")} />
         <MenuRow label={t("more.notifications")} value={t("more.on")} />
+        <MenuRow
+          label={t("more.historyRow")}
+          value={String(SESSIONS.length)}
+          onClick={onOpenHistory}
+        />
         <MenuRow label={t("more.export")} />
         <MenuRow label={t("store.title")} onClick={onGoStore} last />
       </Card>

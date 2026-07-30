@@ -1,12 +1,11 @@
 import { useState } from "react";
 import RadarChart from "../components/RadarChart";
-import Clamp from "../components/Clamp";
+import { withEmphasis } from "../components/Emphasis";
 import ScaleRow from "../components/ScaleRow";
 import { band } from "../components/ScaleRow";
 import TrendChart from "../components/TrendChart";
 import SessionChips from "../components/SessionChips";
 import {
-  Badge,
   Card,
   SectionLabel,
   SectionTitle,
@@ -70,9 +69,18 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
             })}
           </div>
         )}
-        <Clamp lines={3} style={{ marginTop: 12 }}>
-          {pick(session.summary, lang)}
-        </Clamp>
+        {/* In full. A "더 보기" on a three-line paragraph asks the reader to
+            work for text that was going to fit anyway. */}
+        <p
+          style={{
+            ...T.bodyText,
+            color: C.body,
+            margin: "12px 0 0",
+            textWrap: "pretty",
+          }}
+        >
+          {withEmphasis(pick(session.summary, lang))}
+        </p>
       </Card>
 
       <div style={{ marginTop: 10 }}>
@@ -165,37 +173,27 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
 
       <SectionTitle>{t("mind.state")}</SectionTitle>
       <Card pad="md">
-        <Clamp lines={3}>{pick(session.mind, lang)}</Clamp>
-        {/* The two things a reader must not leave this screen without: these
-            assays are not validated, and none of this is a diagnosis. The
-            research-panel badge used to sit further up beside an essay about
-            why cortisol was the wrong marker; the essay is gone and the badge
-            belongs with the other caveats rather than alone. */}
-        <div
+        <p style={{ ...T.bodyText, color: C.body, margin: 0, textWrap: "pretty" }}>
+          {withEmphasis(pick(session.mind, lang))}
+        </p>
+        {/* The caveats, as a footnote rather than a badge. A tinted pill made
+            the disclaimer look like a status the reader had earned; it is not
+            a result, it is the terms these numbers come under. The sentences
+            themselves stay — the assays really are hypothetical and none of
+            this is a diagnosis, and dropping either claim would misrepresent
+            what the panel is. */}
+        <p
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: 8,
-            marginTop: 12,
+            ...T.caption,
+            color: C.faintest,
+            margin: "12px 0 0",
             paddingTop: 11,
             boxShadow: `inset 0 1px 0 ${C.hairline}`,
+            textWrap: "pretty",
           }}
         >
-          <Badge color={C.watch} tint={C.watchTint}>
-            {t("epi.badge")}
-          </Badge>
-          <p
-            style={{
-              ...T.caption,
-              color: C.faint,
-              margin: 0,
-              textWrap: "pretty",
-            }}
-          >
-            {t("epi.hypothetical")} {t("mind.notDiagnosis")} {t("mind.crisis")}
-          </p>
-        </div>
+          {t("epi.hypothetical")} {t("mind.notDiagnosis")} {t("mind.crisis")}
+        </p>
       </Card>
     </div>
   );

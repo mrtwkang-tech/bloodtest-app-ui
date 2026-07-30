@@ -172,6 +172,60 @@ const P = {
 };
 
 export const ICON_KEYS = Object.keys(P);
+
+/**
+ * Navigation marks.
+ *
+ * Kept apart from `P` because these name places rather than subject matter,
+ * and they render without a glow. They live here rather than inside TabBar so
+ * the home screen's domain rows and the bar itself cannot drift apart — one
+ * destination, one mark.
+ */
+const NAV = {
+  home: <><path d="M3.6 10.4 12 3.6l8.4 6.8" /><path d="M5.9 9.6V20h12.2V9.6" /></>,
+  mind: (
+    <>
+      <path d="M15.4 20.4v-2.3a5.5 5.5 0 0 0 3.9-5.2c0-3.9-3.2-7.1-7.1-7.1S5.1 9 5.1 12.9c0 1.2.4 2.1 1 2.9l-1 1.7h2v2.9h8.3Z" />
+      <circle cx="12" cy="12.6" r="2.3" />
+    </>
+  ),
+  body: (
+    <>
+      <circle cx="12" cy="4.9" r="2.5" />
+      <path d="M8.5 20.2v-4.6H7V11a2.4 2.4 0 0 1 2.4-2.4h5.2A2.4 2.4 0 0 1 17 11v4.6h-1.5v4.6" />
+    </>
+  ),
+  // Two panels and the lens where they overlap.
+  signal: <><circle cx="8.9" cy="12" r="5.9" /><circle cx="15.1" cy="12" r="5.9" /></>,
+  more: (
+    <>
+      <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+      <circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+};
+
+export function NavIcon({ name, size = 23, strokeWidth = 1.7 }) {
+  const path = NAV[name];
+  if (!path) return null;
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ flex: "none" }}
+    >
+      {path}
+    </svg>
+  );
+}
 /**
  * One icon over its glow.
  *

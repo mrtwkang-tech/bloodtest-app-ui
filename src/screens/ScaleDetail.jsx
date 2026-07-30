@@ -1,4 +1,4 @@
-import Clamp from "../components/Clamp";
+import Emphasis, { withEmphasis } from "../components/Emphasis";
 import { Dot } from "../components/primitives";
 import { band } from "../components/ScaleRow";
 import { C, DIVIDER_TOP, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
@@ -40,7 +40,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
         <span style={{ ...T.bodyText, color: C.ink }}>
-          {t(`mind.vsPeer.${band(index)}`)}
+          <Emphasis>{t(`mind.vsPeer.${band(index)}`)}</Emphasis>
         </span>
         <span
           style={{
@@ -100,7 +100,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
           textWrap: "pretty",
         }}
       >
-        {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
+        {t(`${meta.axisKey}.base`)} {withEmphasis(t(`status.line.${status}`))}
       </p>
 
       {context.length > 0 && (
@@ -163,9 +163,16 @@ export default function ScaleDetail({ scaleKey, sel }) {
               <span style={{ opacity: 0.45 }}>·</span>
               <span>{t(windowKeyOf(d.marker))}</span>
             </div>
-            <Clamp lines={2} tone={C.faint} style={{ margin: "5px 0 0 13px" }}>
+            <p
+              style={{
+                ...T.caption,
+                color: C.faint,
+                margin: "5px 0 0 13px",
+                textWrap: "pretty",
+              }}
+            >
               {t(d.mechanismKey)}
-            </Clamp>
+            </p>
           </div>
         ))}
       </div>

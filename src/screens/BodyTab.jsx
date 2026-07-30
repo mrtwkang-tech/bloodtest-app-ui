@@ -9,6 +9,7 @@ import SessionChips from "../components/SessionChips";
 import TrendChart from "../components/TrendChart";
 import {
   Card,
+  Caret,
   ChipRail,
   SectionLabel,
   SectionTitle,
@@ -38,7 +39,7 @@ import { useLang } from "../i18n";
  * about. The chip rail, a tap on the mesh, and a tap on a card all drive the
  * same piece of state, so the model and the list can never disagree.
  */
-export default function BodyTab({ sel, onPickSession }) {
+export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
   const { t, lang } = useLang();
   const [active, setActive] = useState(null);
   const [metric, setMetric] = useState(0);
@@ -173,6 +174,32 @@ export default function BodyTab({ sel, onPickSession }) {
           </div>
         </>
       )}
+
+      <Card variant="group" style={{ overflow: "hidden", padding: 0, marginTop: 14 }}>
+        <Pressable
+          as="button"
+          type="button"
+          onClick={onOpenComposition}
+          pressScale={0.995}
+          hoverStyle={{ background: C.surfaceHover }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            width: "100%",
+            padding: "14px 16px",
+            background: "transparent",
+            border: "none",
+            textAlign: "left",
+            cursor: "pointer",
+          }}
+        >
+          <span style={{ ...T.label, color: C.ink, flex: 1 }}>
+            {t("body.compositionRow")}
+          </span>
+          <Caret />
+        </Pressable>
+      </Card>
 
       <p
         style={{

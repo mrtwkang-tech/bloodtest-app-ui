@@ -39,8 +39,8 @@ const RAW = [
     fullDate: { en: "3 July 2026", ko: "2026년 7월 3일" },
     bodyNote: {
       hepatic: {
-        en: "AFP has now crossed its reference range, after climbing at every one of twelve monthly draws — a little over fourfold across the year. GGT and the fibrosis estimate rose with it while platelets fell: the combination that warrants imaging rather than another wait.",
-        ko: "AFP가 12번의 월간 채혈에서 한 번도 빠짐없이 올랐고, 1년 사이 네 배가 넘었습니다. 이번에 참고 범위를 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 함께 올라가고 혈소판은 떨어졌습니다. 한 번 더 기다릴 게 아니라 영상 검사가 필요한 조합입니다.",
+        en: "AFP has now crossed its reference range, *after climbing at every one of twelve monthly draws* — a little over fourfold across the year. GGT and the fibrosis estimate rose with it while platelets fell: the combination that warrants imaging rather than another wait.",
+        ko: "*AFP가 12번의 월간 채혈에서 한 번도 빠짐없이 올랐습니다.* 1년 사이 네 배가 넘었습니다. 이번에 참고 범위를 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 함께 올라가고 혈소판은 떨어졌습니다. 한 번 더 기다릴 게 아니라 영상 검사가 필요한 조합입니다.",
       },
       endocrine: {
         en: "Average blood sugar edged past the upper limit. Small on its own, but it has moved in the same direction for four rounds.",
@@ -54,8 +54,8 @@ const RAW = [
       },
     },
     summary: {
-      en: "The liver panel is the finding this round. AFP crossed its range for the first time, and it did so at the end of a year-long climb that GGT, the fibrosis estimate and a falling platelet count all track. Blood sugar also crossed. Everything else is inside range.",
-      ko: "이번 회차의 핵심은 간입니다. AFP가 처음으로 참고 범위를 넘었고, 그것도 1년에 걸친 상승의 끝에서 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 오르고 혈소판이 떨어졌습니다. 혈당도 상한을 넘었습니다. 나머지는 모두 범위 안입니다.",
+      en: "*The liver panel is the finding this round.* AFP crossed its range for the first time, and it did so at the end of a year-long climb that GGT, the fibrosis estimate and a falling platelet count all track. Blood sugar also crossed. Everything else is inside range.",
+      ko: "*이번 회차의 핵심은 간입니다.* AFP가 처음으로 참고 범위를 넘었고, 그것도 1년에 걸친 상승의 끝에서 넘었습니다. 같은 기간 GGT와 섬유화 추정치가 오르고 혈소판이 떨어졌습니다. 혈당도 상한을 넘었습니다. 나머지는 모두 범위 안입니다.",
     },
     mindActivities: {
       en: [
@@ -105,8 +105,8 @@ const RAW = [
       },
     },
     summary: {
-      en: "The liver markers are still individually mild, but four of them have moved the same way for four rounds. That consistency is the signal here, not any single value.",
-      ko: "간 지표들은 아직 각각으로는 경미합니다. 다만 네 개가 네 회차 동안 같은 방향으로 움직였습니다. 여기서의 신호는 어느 한 수치가 아니라 그 일관성입니다.",
+      en: "The liver markers are still individually mild, but four of them have moved the same way for four rounds. *That consistency is the signal here, not any single value.*",
+      ko: "간 지표들은 아직 각각으로는 경미합니다. 다만 네 개가 네 회차 동안 같은 방향으로 움직였습니다. *여기서의 신호는 어느 한 수치가 아니라 그 일관성입니다.*",
     },
     mindActivities: {
       en: ["Keep the sleep and activity pattern you have."],
@@ -400,8 +400,9 @@ export const PROFILE = {
   // fixture makes rather than something derivable — change this one line and the
   // age-and-sex cohort relabels itself.
   sex: { en: "male", ko: "남성" },
-  nextInDays: 52,
-  roundsSoFar: 6,
-  monthsTracked: 18,
-  nextDate: { en: "2 October 2026", ko: "2026년 10월 2일" },
+  // Monthly now. These were still describing the quarterly schedule.
+  nextInDays: 30,
+  roundsSoFar: 12,
+  monthsTracked: 12,
+  nextDate: { en: "3 August 2026", ko: "2026년 8월 3일" },
 };

@@ -1,31 +1,26 @@
 import { useState } from "react";
 import Pressable from "../components/Pressable";
-import {
-  Card,
-  Caret,
-  CountStrip,
-  Display,
-  SectionLabel,
-  SectionTitle,
-  Segmented,
-} from "../components/primitives";
+import { NavIcon } from "../components/Icon";
+import { Caret, Display, Segmented } from "../components/primitives";
 import {
   C,
   DIVIDER,
-  DIVIDER_TOP,
-  LEVEL_COLOR,
+  LEVEL_LAMP,
   R,
+  STATUS_LAMP,
   T,
   backlight,
   fadeUp,
 } from "../tokens";
-import { COMPOSITION, DEVICE, metricLevel } from "../data/inbody";
-import { formatValue } from "../data/body";
+import { interactionsFor } from "../data/interactions";
+import { riskEstimates } from "../data/bayes";
+import { inbodyLinksFor } from "../data/inbody";
 import {
   PROFILE,
   SESSIONS,
-  biomarkerCounts,
+  bodySummary,
   healthScore,
+  mindSummary,
   pick,
 } from "../data/sessions";
 import {
@@ -37,42 +32,73 @@ import {
 import { useLang } from "../i18n";
 
 const latest = SESSIONS[0];
-
-/** The three composition numbers worth a place on the first screen. */
-const HOME_METRICS = ["smm", "bodyFat", "visceral"];
+const previous = SESSIONS[1];
 
 /**
- * Home carries the whole-person view: one score, the panel's shape, body
- * composition, and the cross-system signals.
+ * Home: the verdict, and the state of every place you can go.
  *
- * It deliberately does NOT restate the individual mind indices or organ
- * systems. Those lists lived here as two dense summary cards, which meant the
- * first screen was a table of contents for two other screens — the reader had
- * to parse fifteen labels before reaching anything Home alone could tell them.
- * The tab bar already navigates; Home now says something.
+ * WHAT THIS SCREEN IS FOR, after three attempts at it.
+ *
+ * The first version was a table of contents — fifteen labels restating two
+ * other screens. The second traded that for a score, a four-column inventory
+ * of marker counts with a proportional bar under it, three body-composition
+ * numbers, and a link group headed "더 보기". That is a landing page: a stack
+ * of unrelated blocks, each answering a question nobody arriving had.
+ *
+ * The inventory was the clearest symptom. "69 total · 36 optimal · 24 in range
+ * · 9 out" said the same thing three ways — numeral, label, bar segment — and
+ * left the reader holding a statistic they could not act on. Nine out of range
+ * of WHAT? The composition trio was a fourth domain wedged in beside it, and
+ * "더 보기" is not a heading, it is a drawer.
+ *
+ * THE CONSTRAINT THAT SHAPED THIS VERSION: the structure must not change
+ * between visits. A card that appears only when something is wrong makes the
+ * app look different every month and turns the home screen into an alarm. So
+ * there are no conditional blocks here. One row per domain, always present,
+ * always the same shape — what varies is the sentence inside it. Adding a
+ * sixth domain later means adding a row, not redesigning the screen.
+ *
+ * The rows carry what the tab bar cannot: not that Body exists, but what state
+ * Body is in. That is the difference between a table of contents and a
+ * dashboard, and it is the whole reason this screen gets to exist.
  */
-export default function HomeTab({ onGoStore, onOpen }) {
+export default function HomeTab({ onGoStore, onGoTab }) {
   const { t, lang } = useLang();
   const [cohort, setCohort] = useState(DEFAULT_COHORT);
+
   const score = healthScore(latest);
-  const counts = biomarkerCounts(latest);
+  // The month-on-month move. At a quarterly cadence a delta was noise; at a
+  // monthly one it is the single most useful number on the screen, and it was
+  // missing entirely.
+  const delta = score - healthScore(previous);
+
+  const mind = mindSummary(latest);
+  const body = bodySummary(latest);
+  const crossPanel =
+    inbodyLinksFor(latest.roundIndex).length +
+    interactionsFor(latest.roundIndex).length +
+    riskEstimates(latest.roundIndex).length;
 
   return (
-    <div>
+    <div style={{ display: "flex", flexDirection: "column", minHeight: "100%" }}>
       <header
         style={{
           display: "flex",
           alignItems: "center",
           gap: 12,
-          marginBottom: 14,
+          marginBottom: 18,
           ...fadeUp(0),
         }}
       >
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ ...T.micro, color: C.faint }}>
-            {t("home.drawnOn", { date: pick(latest.fullDate, lang) })}
+          {/* Sans, not tracked monospace. A date is a word, not a measurement,
+              and the mono treatment was one of three type voices competing in
+              the top forty pixels of the app. */}
+          <div style={{ ...T.caption, color: C.faint }}>
+            {t("home.drawnOn", { date: pick(latest.fullDate, lang) })} ·{" "}
+            {t("round.n", { n: latest.round })}
           </div>
-          <h1 style={{ ...T.title1, color: C.ink, margin: "5px 0 0" }}>
+          <h1 style={{ ...T.title1, color: C.ink, margin: "4px 0 0" }}>
             {t("home.greeting", { name: pick(PROFILE.name, lang) })}
           </h1>
         </div>
@@ -94,39 +120,23 @@ export default function HomeTab({ onGoStore, onOpen }) {
         </div>
       </header>
 
-      {/* The one number the whole panel resolves to.
-          There used to be a progress ring beside it, which restated 62 as an
-          arc length — a second encoding of a number that was already legible,
-          and it answered nothing a reader actually wonders. 62 out of 100 means
-          nothing without a group to sit in, so the space goes to the comparison
-          instead. */}
-      <Card pad="md" delay={40}>
+      {/* The verdict. One display numeral — the only one in the product — with
+          the month's move beside it and the comparison underneath. */}
+      <div style={fadeUp(40)}>
         <div style={{ ...T.caption, color: C.faint }}>{t("home.myScore")}</div>
         <div
           style={{
             display: "flex",
             alignItems: "baseline",
-            gap: 8,
+            gap: 10,
             marginTop: 2,
           }}
         >
           <Display size={60}>{score}</Display>
-          <span style={{ ...T.caption, color: C.faintest }}>
-            {t("home.scoreOutOf")}
-          </span>
+          <Delta value={delta} />
         </div>
-        {/* The comparison, and it replaces a prose summary that used to sit
-            here ("a few values need attention"). That sentence was stranded
-            between two quantitative statements — the score above it and the
-            in-range counts immediately below, which say the same thing with
-            actual numbers and put the 9 in red. */}
-        <div
-          style={{
-            marginTop: 12,
-            paddingTop: 11,
-            boxShadow: `inset 0 1px 0 ${C.hairline}`,
-          }}
-        >
+
+        <div style={{ marginTop: 14 }}>
           <Segmented
             items={cohortsFor().map((c) => ({
               key: c.key,
@@ -142,142 +152,132 @@ export default function HomeTab({ onGoStore, onOpen }) {
             {t("home.percentile", { pct: cohortPercentile(score, cohort) })}
           </div>
         </div>
-      </Card>
+      </div>
 
-      <Card pad="sm" style={{ boxShadow: DIVIDER_TOP }} delay={80}>
-        <SectionLabel>{t("home.biomarkers")}</SectionLabel>
-        <div style={{ marginTop: 13 }}>
-          <CountStrip
-            counts={counts}
-            labels={{
-              total: t("home.total"),
-              optimal: t("home.optimal"),
-              inRange: t("home.inRange"),
-              out: t("home.outOfRange"),
-            }}
-          />
-        </div>
-      </Card>
-
-      {/* Three composition numbers, not the whole device panel. Enough to
-          see the body has been measured; the rest is a tap away. */}
-      <Card pad="sm" style={{ boxShadow: DIVIDER_TOP }} delay={120}>
-        <SectionLabel value={DEVICE.brand}>{t("ib.title")}</SectionLabel>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: 10,
-            marginTop: 12,
-          }}
-        >
-          {HOME_METRICS.map((key) => {
-            const m = COMPOSITION.find((c) => c.key === key);
-            const value = m.demo[latest.roundIndex];
-            const lv = metricLevel(m, value);
-            return (
-              <div key={key}>
-                <div style={{ ...T.caption, color: C.faintest }}>
-                  {t(m.nameKey)}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    gap: 3,
-                    marginTop: 5,
-                  }}
-                >
-                  <span
-                    style={{
-                      ...T.num,
-                      fontSize: 18,
-                      fontWeight: 600,
-                      color: m.band ? LEVEL_COLOR[lv] : C.ink,
-                    }}
-                  >
-                    {formatValue(value, m.dp)}
-                  </span>
-                  <span style={{ ...T.unit, color: C.faintest }}>{m.unit}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      {/* Cross-reading, cross-system signals and condition estimates used to be
-          three rows here. They are one destination now — everything that only
-          exists when panels are read together — so this list is what is left:
-          the body panel in full, and the archive. */}
-      <SectionTitle style={{ margin: "14px 2px 8px" }}>
-        {t("home.more")}
-      </SectionTitle>
-      <Card
-        variant="group"
-        style={{ overflow: "hidden", padding: 0 }}
-        delay={160}
-      >
-        <MoreRow
-          label={t("home.compositionRow")}
-          onClick={() => onOpen("composition")}
+      {/* One row per destination, always all of them. The tab bar says these
+          places exist; these rows say what is in them. */}
+      <div style={{ marginTop: 26, ...fadeUp(90) }}>
+        <DomainRow
+          icon="mind"
+          label={t("mind.title")}
+          state={
+            mind.warn === 0
+              ? t("home.state.mindClear", { n: 5 })
+              : t("home.state.mindWatch", { n: mind.warn })
+          }
+          lamp={mind.warn ? STATUS_LAMP[mind.worst] : null}
+          onClick={() => onGoTab("mind")}
         />
-        <MoreRow
-          label={t("home.historyRow")}
-          count={SESSIONS.length}
-          onClick={() => onOpen("history")}
+        <DomainRow
+          icon="body"
+          label={t("body.title")}
+          state={
+            body.flagged.length === 0
+              ? t("home.state.bodyClear", { n: body.total })
+              : t("home.state.bodyWatch", {
+                  total: body.total,
+                  n: body.flagged.length,
+                })
+          }
+          lamp={body.flagged.length ? LEVEL_LAMP[body.worst] : null}
+          onClick={() => onGoTab("body")}
+        />
+        <DomainRow
+          icon="signal"
+          label={t("signal.title")}
+          state={t("home.state.signals", { n: crossPanel })}
+          onClick={() => onGoTab("signal")}
           last
         />
-      </Card>
+      </div>
 
-      {/* The kit-registration button sat beside this one until QR came out.
-          Buying is the only action left on the screen, so it takes the width. */}
+      <div style={{ flex: 1, minHeight: 20 }} />
+
+      {/* "12회차" appeared twice on this screen meaning two different things —
+          the round just drawn, and the number drawn so far. The header owns
+          the first; this line owns the tally. */}
       <div
         style={{
           ...T.caption,
           color: C.faint,
-          margin: "16px 2px 8px",
-          ...fadeUp(180),
+          margin: "24px 2px 10px",
+          ...fadeUp(140),
         }}
       >
-        {t("home.nextTest")} D-{PROFILE.nextInDays} ·{" "}
-        {t("home.tracked", {
-          n: PROFILE.roundsSoFar,
-          m: PROFILE.monthsTracked,
-        })}
+        {t("home.nextOn", { date: pick(PROFILE.nextDate, lang) })} ·{" "}
+        {t("home.trackedSoFar", { m: PROFILE.monthsTracked })}
       </div>
 
-      <div style={{ ...fadeUp(190) }}>
-        <Pressable
-          as="button"
-          type="button"
-          onClick={onGoStore}
-          pressScale={0.98}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%",
-            padding: "14px 15px",
-            borderRadius: R.card,
-            border: "none",
-            cursor: "pointer",
-            background: C.accent,
-            boxShadow: backlight(C.accent),
-            color: C.onAccent,
-            textAlign: "left",
-          }}
-        >
-          <span style={{ ...T.title3 }}>{t("home.buyKit")}</span>
-        </Pressable>
-      </div>
+      <Pressable
+        as="button"
+        type="button"
+        onClick={onGoStore}
+        pressScale={0.98}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: "100%",
+          padding: "14px 15px",
+          borderRadius: R.card,
+          border: "none",
+          cursor: "pointer",
+          background: C.accent,
+          boxShadow: backlight(C.accent),
+          color: C.onAccent,
+          ...fadeUp(160),
+        }}
+      >
+        <span style={{ ...T.title3 }}>{t("home.buyKit")}</span>
+      </Pressable>
     </div>
   );
 }
 
-/** One way deeper. Label, how many things are in there, chevron. */
-function MoreRow({ label, count, beta, onClick, last }) {
-  const { t } = useLang();
+/**
+ * The month's move.
+ *
+ * Direction is the fact; the arrow carries it and the numeral confirms it. No
+ * status colour — a three-point drop is not a result out of range, and
+ * spending the alert palette on it would be the same borrowing of urgency the
+ * advice blocks were guilty of.
+ */
+function Delta({ value }) {
+  const t = useLang().t;
+  if (!value) {
+    return (
+      <span style={{ ...T.caption, color: C.faintest }}>
+        {t("home.deltaFlat")}
+      </span>
+    );
+  }
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "baseline",
+        gap: 4,
+        ...T.caption,
+        color: C.faint,
+      }}
+    >
+      <span style={{ ...T.num, fontSize: 14, color: C.ink }}>
+        {value > 0 ? "▲" : "▼"}
+        {Math.abs(value)}
+      </span>
+      {t("home.deltaSince")}
+    </span>
+  );
+}
+
+/**
+ * One destination and the state it is in.
+ *
+ * Rendered unconditionally, including when there is nothing to report — the
+ * screen has to look the same on a quiet month as on a loud one, and "all
+ * clear" is itself the answer to the question the row asks.
+ */
+function DomainRow({ icon, label, state, lamp, onClick, last }) {
   return (
     <Pressable
       as="button"
@@ -288,9 +288,9 @@ function MoreRow({ label, count, beta, onClick, last }) {
       style={{
         display: "flex",
         alignItems: "center",
-        gap: 8,
+        gap: 11,
         width: "100%",
-        padding: "12px 16px",
+        padding: "14px 2px",
         background: "transparent",
         border: "none",
         textAlign: "left",
@@ -298,18 +298,36 @@ function MoreRow({ label, count, beta, onClick, last }) {
         boxShadow: last ? "none" : DIVIDER,
       }}
     >
-      <span style={{ ...T.label, color: C.ink }}>{label}</span>
-      {beta && (
-        <span style={{ ...T.micro, color: C.accent }}>{t("ix.beta")}</span>
-      )}
-      {count != null && (
+      <span style={{ color: C.body, display: "flex", flex: "none" }}>
+        <NavIcon name={icon} size={22} />
+      </span>
+      <span style={{ flex: 1, minWidth: 0 }}>
         <span
-          style={{ marginLeft: "auto", ...T.num, fontSize: 12, color: C.faint }}
+          style={{
+            ...T.label,
+            color: C.ink,
+            display: "block",
+            marginBottom: 2,
+          }}
         >
-          {count}
+          {label}
         </span>
+        <span style={{ ...T.caption, color: C.faint, display: "block" }}>
+          {state}
+        </span>
+      </span>
+      {lamp && (
+        <span
+          style={{
+            width: 7,
+            height: 7,
+            borderRadius: "50%",
+            background: lamp,
+            flex: "none",
+          }}
+        />
       )}
-      <Caret style={count != null ? null : { marginLeft: "auto" }} />
+      <Caret />
     </Pressable>
   );
 }

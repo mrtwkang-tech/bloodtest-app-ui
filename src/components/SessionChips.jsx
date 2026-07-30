@@ -71,42 +71,57 @@ export default function SessionChips({ sel, onPick }) {
         />
       </div>
 
-      {/* Direct access, at the size the feature deserves: six dots. Position in
-          the series is worth showing — it is the thing the arrows cannot say. */}
-      <div style={{ display: "flex", gap: 4, flex: "none" }}>
-        {SESSIONS.map((r, i) => (
-          <Pressable
-            key={r.round}
-            as="button"
-            type="button"
-            aria-label={t("round.n", { n: r.round })}
-            aria-current={i === sel ? "true" : undefined}
-            onClick={() => onPick(i)}
-            pressScale={0.9}
-            style={{
-              width: 14,
-              height: 22,
-              padding: 0,
-              border: "none",
-              background: "none",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span
+      {/* Position in the series, which the arrows cannot say. Six dots fit; at
+          twelve they crowd the arrow and each becomes too small to aim at, so
+          past eight rounds the count carries it instead. */}
+      {SESSIONS.length > 8 ? (
+        <span
+          style={{
+            ...T.num,
+            fontSize: 12,
+            color: C.faint,
+            flex: "none",
+            marginLeft: 8,
+          }}
+        >
+          {SESSIONS.length - sel}/{SESSIONS.length}
+        </span>
+      ) : (
+        <div style={{ display: "flex", gap: 4, flex: "none" }}>
+          {SESSIONS.map((r, i) => (
+            <Pressable
+              key={r.round}
+              as="button"
+              type="button"
+              aria-label={t("round.n", { n: r.round })}
+              aria-current={i === sel ? "true" : undefined}
+              onClick={() => onPick(i)}
+              pressScale={0.9}
               style={{
-                width: i === sel ? 7 : 5,
-                height: i === sel ? 7 : 5,
-                borderRadius: "50%",
-                background: i === sel ? C.ink : C.hairlineStrong,
-                transition: `all 220ms ${EASE}`,
+                width: 14,
+                height: 22,
+                padding: 0,
+                border: "none",
+                background: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
-          </Pressable>
-        ))}
-      </div>
+            >
+              <span
+                style={{
+                  width: i === sel ? 7 : 5,
+                  height: i === sel ? 7 : 5,
+                  borderRadius: "50%",
+                  background: i === sel ? C.ink : C.hairlineStrong,
+                  transition: `all 220ms ${EASE}`,
+                }}
+              />
+            </Pressable>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

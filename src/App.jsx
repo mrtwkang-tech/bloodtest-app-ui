@@ -51,9 +51,10 @@ export default function App() {
   const scaleKey = sheet?.startsWith("scale:") ? sheet.slice(6) : null;
   const scaleMeta = SCALE_META.find((m) => m.key === scaleKey);
   // Each of Home's second-layer views is a sheet with its own title.
+  // Home no longer owns these; the tabs whose subject they are do.
   const HOME_TITLES = {
-    composition: "home.compositionRow",
-    history: "home.historyRow",
+    composition: "body.compositionRow",
+    history: "more.historyRow",
   };
 
   return (
@@ -85,7 +86,7 @@ export default function App() {
               {tab === "home" && (
                 <HomeTab
                   key="home"
-                  onOpen={(v) => setSheet(`home:${v}`)}
+                  onGoTab={goTab}
                   onGoStore={() => setSheet("store")}
                 />
               )}
@@ -98,7 +99,12 @@ export default function App() {
                 />
               )}
               {tab === "body" && (
-                <BodyTab key={`body-${sel}`} sel={sel} onPickSession={setSel} />
+                <BodyTab
+                  key={`body-${sel}`}
+                  sel={sel}
+                  onPickSession={setSel}
+                  onOpenComposition={() => setSheet("home:composition")}
+                />
               )}
               {tab === "signal" && (
                 <SignalTab
@@ -112,6 +118,7 @@ export default function App() {
                   key="more"
                   onOpenDoc={(k) => setSheet(`doc:${k}`)}
                   onGoStore={() => setSheet("store")}
+                  onOpenHistory={() => setSheet("home:history")}
                 />
               )}
             </main>

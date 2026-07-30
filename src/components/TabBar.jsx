@@ -1,62 +1,15 @@
 import { useEffect, useRef } from "react";
 import Pressable from "./Pressable";
+import { NavIcon } from "./Icon";
 import { C, EASE, T } from "../tokens";
 import { useT } from "../i18n";
 
-const stroke = {
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 1.7,
-  strokeLinecap: "round",
-  strokeLinejoin: "round",
-};
-
-const HomeIcon = () => (
-  <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
-    <path d="M3.6 10.4 12 3.6l8.4 6.8" />
-    <path d="M5.9 9.6V20h12.2V9.6" />
-  </svg>
-);
-
-const MindIcon = () => (
-  <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
-    <path d="M15.4 20.4v-2.3a5.5 5.5 0 0 0 3.9-5.2c0-3.9-3.2-7.1-7.1-7.1S5.1 9 5.1 12.9c0 1.2.4 2.1 1 2.9l-1 1.7h2v2.9h8.3Z" />
-    <circle cx="12" cy="12.6" r="2.3" />
-  </svg>
-);
-
-const BodyIcon = () => (
-  <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
-    <circle cx="12" cy="4.9" r="2.5" />
-    <path d="M8.5 20.2v-4.6H7V11a2.4 2.4 0 0 1 2.4-2.4h5.2A2.4 2.4 0 0 1 17 11v4.6h-1.5v4.6" />
-  </svg>
-);
-
-// Signals: two panels and the lens where they overlap. A pair of converging
-// traces was the first attempt and it read as scissors at 23px — the strokes
-// cross, and the crossing wins. An intersection is also the more literal
-// picture: this screen is only what shows up in the overlap.
-const SignalIcon = () => (
-  <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
-    <circle cx="8.9" cy="12" r="5.9" />
-    <circle cx="15.1" cy="12" r="5.9" />
-  </svg>
-);
-
-const MoreIcon = () => (
-  <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
-    <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
-    <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
-    <circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
-  </svg>
-);
-
 const TABS = [
-  { key: "home", labelKey: "tab.home", Icon: HomeIcon },
-  { key: "mind", labelKey: "tab.mind", Icon: MindIcon },
-  { key: "body", labelKey: "tab.body", Icon: BodyIcon },
-  { key: "signal", labelKey: "tab.signal", Icon: SignalIcon },
-  { key: "more", labelKey: "tab.more", Icon: MoreIcon },
+  { key: "home", labelKey: "tab.home" },
+  { key: "mind", labelKey: "tab.mind" },
+  { key: "body", labelKey: "tab.body" },
+  { key: "signal", labelKey: "tab.signal" },
+  { key: "more", labelKey: "tab.more" },
 ];
 
 /** One cell per tab, so the sliding capsule stays exact as the count changes. */
@@ -72,7 +25,6 @@ const SLIDE = "cubic-bezier(.34,1.32,.5,1)";
 function TabItem({ tab, current, onSelect, dot }) {
   const t = useT();
   const on = current === tab.key;
-  const { Icon } = tab;
   return (
     <Pressable
       as="button"
@@ -100,7 +52,7 @@ function TabItem({ tab, current, onSelect, dot }) {
       }}
     >
       <span style={{ position: "relative", display: "flex" }}>
-        <Icon />
+        <NavIcon name={tab.key} />
         {dot && (
           <span
             style={{
