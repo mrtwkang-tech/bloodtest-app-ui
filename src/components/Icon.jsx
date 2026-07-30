@@ -170,6 +170,33 @@ const P = {
 export const ICON_KEYS = Object.keys(P);
 
 /**
+ * QR frame. Deliberately outside `P`: that set is subject matter — organs and
+ * mind indices — and every one of them renders inside a glow. This is a control
+ * affordance, so it takes its colour from whatever it sits in and nothing else.
+ */
+export function ScanGlyph({ size = 22, strokeWidth = 1.7 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M3.8 8.4V4.6a.9.9 0 0 1 .9-.9h3.7" />
+      <path d="M20.2 8.4V4.6a.9.9 0 0 0-.9-.9h-3.7" />
+      <path d="M3.8 15.6v3.8a.9.9 0 0 0 .9.9h3.7" />
+      <path d="M20.2 15.6v3.8a.9.9 0 0 1-.9.9h-3.7" />
+      <path d="M3.8 12h16.4" />
+    </svg>
+  );
+}
+
+/**
  * One icon over its glow.
  *
  * `level` drives both the stroke colour and the glow: neutral when a system is

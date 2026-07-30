@@ -98,6 +98,7 @@ export default function BodyTab({ sel, onPickSession }) {
       </div>
 
       <Card
+        variant="group"
         style={{ marginTop: 10, padding: "4px 0 11px", overflow: "hidden" }}
         delay={80}
       >
@@ -121,7 +122,7 @@ export default function BodyTab({ sel, onPickSession }) {
         </div>
       </Card>
 
-      <Card style={{ padding: "16px 18px", marginTop: 10 }} delay={120}>
+      <Card pad="md" delay={120}>
         <SectionLabel value={`${summary.okConditions}/${summary.total}`}>
           {t("body.summary")}
         </SectionLabel>
@@ -157,7 +158,7 @@ export default function BodyTab({ sel, onPickSession }) {
           >
             {activeEntry ? t(activeEntry.zone.nameKey) : t("body.watch")}
           </SectionTitle>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {shown.map(({ zone, values, level }) => (
               <ZonePanel
                 key={zone.key}
@@ -216,8 +217,10 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
 
   return (
     <Card
+      variant="group"
       style={{
         overflow: "hidden",
+        padding: 0,
         boxShadow: selected
           ? `inset 0 0 0 1.5px ${LEVEL_COLOR[level]}55`
           : CARD,
@@ -251,21 +254,13 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             {t(BODY_STATUS_KEY[level])}
           </span>
         </div>
-        {/* The specialty is the actionable part: it names the clinic. */}
-        <div
-          style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 9 }}
-        >
-          <span style={{ ...T.micro, color: C.faintest }}>
-            {t("body.specialty")}
-          </span>
-          <span style={{ ...T.caption, color: C.body }}>
-            {t(zone.specialtyKey)}
-          </span>
-          <span style={{ marginLeft: "auto", ...T.micro, color: C.faintest }}>
-            {t("body.markerCount", { n: zone.markers.length })}
-          </span>
+        {/* The specialty is the actionable part: it names the clinic. It used
+            to carry a tracked "SPECIALTY" label and a separate "N MARKERS"
+            counter — three typographic voices for one line of fact. */}
+        <div style={{ ...T.caption, color: C.body, marginTop: 8 }}>
+          {t(zone.specialtyKey)}
         </div>
-        <div style={{ ...T.caption, color: C.faint, marginTop: 6 }}>
+        <div style={{ ...T.caption, color: C.faint, marginTop: 4 }}>
           {zone.conditionKeys.map((k) => t(k)).join(" · ")}
         </div>
         {over.length > 0 && (
@@ -285,24 +280,22 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
       </Pressable>
 
       <div style={{ padding: "0 17px 15px" }}>
-        {/* What the panel is for, then what this reader's result means. */}
-        <div style={{ paddingTop: 12, boxShadow: `inset 0 1px 0 ${C.hairline}` }}>
-          <div style={{ ...T.micro, color: C.faintest }}>
-            {t("body.whatThisIs")}
-          </div>
-          <Clamp lines={2} style={{ marginTop: 5 }}>
-            {t(zone.noteKey)}
-          </Clamp>
+        {/* What the panel is for, then what this reader's result means. The
+            two used to be introduced by tracked headings; they are a general
+            sentence and a personal one, and they already read that way. The
+            second heading also rendered over nothing whenever a zone had no
+            note of its own. */}
+        <div
+          style={{ paddingTop: 12, boxShadow: `inset 0 1px 0 ${C.hairline}` }}
+        >
+          <Clamp lines={2}>{t(zone.noteKey)}</Clamp>
         </div>
 
-        <div style={{ marginTop: 14 }}>
-          <div style={{ ...T.micro, color: C.faintest }}>
-            {t("body.whatItMeans")}
-          </div>
-          <Clamp lines={2} tone={C.ink} style={{ marginTop: 5 }}>
-            {note || (over.length === 0 ? t("body.clearAll") : "")}
+        {(note || over.length === 0) && (
+          <Clamp lines={2} tone={C.ink} style={{ marginTop: 10 }}>
+            {note || t("body.clearAll")}
           </Clamp>
-        </div>
+        )}
 
         {level > 0 && action && (
           <div
@@ -413,25 +406,18 @@ function MarkerBar({ marker, value }) {
           )}
         </span>
       </div>
+      {/* Same grammar as the mind scale: the band, where the limit is, and
+          where you are. The separate reference tick sat one pixel from the
+          colour change it was already marking. */}
       <div
         style={{
           position: "relative",
           height: 5,
           borderRadius: 2,
           background: markerBand(marker),
-          margin: "10px 0 4px",
+          margin: "9px 0 5px",
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: -1,
-            left: markerLeft(marker.ref, marker.max),
-            width: 1,
-            height: 7,
-            background: "rgba(23,24,26,.45)",
-          }}
-        />
         <div
           style={{
             position: "absolute",
@@ -442,11 +428,11 @@ function MarkerBar({ marker, value }) {
             marginLeft: -1.5,
             borderRadius: 1.5,
             background: C.ink,
-            boxShadow: `0 0 0 2px ${C.surface}`,
+            boxShadow: `0 0 0 2px ${C.bg}`,
           }}
         />
       </div>
-      <div style={{ ...T.micro, color: C.faintest }}>
+      <div style={{ ...T.caption, color: C.faintest }}>
         {t("body.reference", { v: formatValue(marker.ref, marker.dp) })}
         {level > 0 ? ` · ${t("body.over")}` : ""}
       </div>

@@ -10,7 +10,7 @@ import { C, T } from "../tokens";
 export default function InfoDoc({ doc, onClose }) {
   return (
     <Sheet title={doc.title} subtitle={doc.updated} onClose={onClose}>
-      <Card style={{ padding: "18px 18px 20px" }}>
+      <Card pad="lg">
         {doc.sections.map((s, i) => (
           <section key={s.h} style={{ marginTop: i === 0 ? 0 : 20 }}>
             <h2 style={{ ...T.label, color: C.ink, margin: 0 }}>{s.h}</h2>

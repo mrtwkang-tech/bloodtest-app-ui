@@ -107,7 +107,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       </header>
 
       {/* The medical disclaimer is a standing notice, not buried in a doc. */}
-      <Card style={{ padding: "16px 18px", background: C.night }} delay={20}>
+      <Card variant="group" pad="lg" style={{ background: C.night }} delay={20}>
         <div style={{ ...T.micro, color: "rgba(255,255,255,.55)" }}>
           {notice.title}
         </div>
@@ -149,7 +149,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       </Card>
 
       <SectionTitle>{t("more.account")}</SectionTitle>
-      <Card style={{ overflow: "hidden" }} delay={40}>
+      <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={40}>
         <MenuRow label={t("more.subscription")} value={t("store.quarter")} />
         <MenuRow label={t("more.address")} />
         <MenuRow label={t("more.notifications")} value={t("more.on")} />
@@ -160,7 +160,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       {/* Accent picker. The rationale for each option is written out in
           theme/accents.js; this is the tweak surface for it. */}
       <SectionTitle>{t("accent.title")}</SectionTitle>
-      <Card style={{ padding: "14px 16px" }} delay={60}>
+      <Card pad="sm" delay={60}>
         <div style={{ display: "flex", gap: 10 }}>
           {ACCENT_KEYS.map((key) => {
             const a = ACCENTS[key];
@@ -212,7 +212,7 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       </Card>
 
       <SectionTitle>{t("more.legal")}</SectionTitle>
-      <Card style={{ overflow: "hidden" }} delay={80}>
+      <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={80}>
         {LEGAL_ORDER.map((key, i) => {
           const doc = DOCS.find((d) => d.key === key);
           return (
@@ -227,14 +227,14 @@ export default function MoreTab({ onOpenDoc, onGoStore }) {
       </Card>
 
       <SectionTitle>{t("more.support")}</SectionTitle>
-      <Card style={{ overflow: "hidden" }} delay={120}>
+      <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={120}>
         <MenuRow label={t("more.email")} value={COMPANY.supportEmail} />
         <MenuRow label={t("more.phone")} value={COMPANY.supportPhone} />
         <MenuRow label={t("more.hours")} value={t("more.hoursValue")} last />
       </Card>
 
       {/* Business registration block — the 통신판매업 disclosure. */}
-      <Card style={{ padding: "16px 18px", marginTop: 22 }} delay={160}>
+      <Card pad="md" style={{ marginTop: 12 }} delay={160}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ ...T.label, color: C.ink }}>{t("more.business")}</span>
         </div>

@@ -63,7 +63,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         </div>
       )}
 
-      <Card style={{ padding: "16px 18px" }} delay={40}>
+      <Card pad="md" delay={40}>
         <SectionLabel value={`${summary.ok}/${SCALE_META.length}`}>
           {t("mind.summary")}
         </SectionLabel>
@@ -113,7 +113,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
           57 deserves to know what was measured to get there — and, given the
           obvious objection, why it was not a hormone. */}
       <SectionTitle>{t("mind.whyCumulative")}</SectionTitle>
-      <Card style={{ padding: "15px 17px" }} delay={100}>
+      <Card pad="md" delay={100}>
         <Clamp lines={3}>{t("mind.whyCumulativeBody")}</Clamp>
         {/* Badge above rather than beside: a badge in a flex row steals a
             third of the measure and squeezes the sentence into a column. */}
@@ -147,7 +147,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         </div>
       </Card>
 
-      <SectionTitle value={t("mind.index")}>{t("mind.scales")}</SectionTitle>
+      <SectionTitle>{t("mind.scales")}</SectionTitle>
       <p
         style={{
           ...T.caption,
@@ -158,7 +158,14 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       >
         {t("mind.cadenceNote")}
       </p>
-      <Card style={{ overflow: "hidden", ...fadeUp(120) }}>
+      {/* An index that is fine does not need a bar, a driver, a mechanism and
+          a disclosure — it needs to be accounted for. The ones that are asking
+          for something stay open; the rest collapse to a line each and can
+          still be opened. */}
+      <Card
+        variant="group"
+        style={{ overflow: "hidden", padding: 0, ...fadeUp(120) }}
+      >
         {SCALE_META.map((m, i) => (
           <ScaleCard
             key={m.key}
@@ -166,6 +173,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
             index={session.indices[i]}
             status={session.status[i]}
             roundIndex={session.roundIndex}
+            collapsed={session.status[i] === "good"}
             last={i === SCALE_META.length - 1}
           />
         ))}
@@ -187,7 +195,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       />
 
       <SectionTitle>{t("mind.activities")}</SectionTitle>
-      <Card style={{ padding: "15px 17px" }}>
+      <Card pad="md">
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {pick(session.mindActivities, lang).map((text, i) => (
             <div
@@ -216,7 +224,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       </Card>
 
       <SectionTitle>{t("mind.state")}</SectionTitle>
-      <Card style={{ padding: "15px 17px" }}>
+      <Card pad="md">
         <Clamp lines={3}>{pick(session.mind, lang)}</Clamp>
         <p
           style={{

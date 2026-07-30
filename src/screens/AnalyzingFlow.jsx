@@ -80,7 +80,7 @@ export default function AnalyzingFlow({ onBackground }) {
           {t("analyzing.body")}
         </p>
 
-        <Card style={{ width: "100%", padding: "6px 4px", marginTop: 26 }}>
+        <Card variant="group" style={{ width: "100%", padding: "6px 4px", marginTop: 26 }}>
           {steps.map((s, i) => (
             <div
               key={s.key}

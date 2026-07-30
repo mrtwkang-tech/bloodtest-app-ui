@@ -76,14 +76,19 @@ export const ACCENTS = {
     onBase: "#FFFFFF",
     /**
      * No hue at all — chroma ≈ 0.01, warm-shifted so it never goes blue-black.
+     * THE DEFAULT.
      *
-     * The honest argument for this one: with three status hues already carrying
-     * meaning, a fourth hue has to compete with them for the reader's attention
-     * every time it appears. Make the brand achromatic and every coloured pixel
-     * on the screen is a result. Nothing else can be mistaken for one.
+     * With three status hues already carrying a clinical claim, a fourth hue
+     * competes with them every time it appears: the reader has to decide, at
+     * every coloured pixel, whether it is a result or a brand. Make the brand
+     * achromatic and that question disappears — the rule collapses to one line,
+     * *if it has colour, it is a result*, and nothing else can be mistaken for
+     * one.
      *
-     * The cost is that the product has no colour of its own, which is a real
-     * brand cost and the reason this is not the default.
+     * The cost is real: the product has no colour of its own. In a lab report
+     * that is the right trade. A consumer brand can afford to spend attention
+     * on itself; a page whose whole job is to tell you which of sixty-nine
+     * numbers needs looking at cannot.
      */
     contrast: "16.7:1 on white",
   },
@@ -128,8 +133,9 @@ export const ACCENTS = {
   },
 };
 
-export const ACCENT_KEYS = ["plum", "ink", "iris", "clay"];
-export const DEFAULT_ACCENT = "plum";
+// Picker order is recommendation order.
+export const ACCENT_KEYS = ["ink", "plum", "iris", "clay"];
+export const DEFAULT_ACCENT = "ink";
 
 const STORAGE_KEY = "pedia.accent";
 

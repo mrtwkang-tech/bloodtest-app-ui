@@ -33,7 +33,7 @@ export default function StoreTab({ plan, onPickPlan }) {
   const t = useT();
   return (
     <div>
-      <Card style={{ overflow: "hidden" }} delay={0}>
+      <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={0}>
         <div
           style={{
             height: 140,
@@ -171,7 +171,7 @@ export default function StoreTab({ plan, onPickPlan }) {
       </div>
 
       <SectionTitle>{t("store.included")}</SectionTitle>
-      <Card style={{ overflow: "hidden" }} delay={80}>
+      <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={80}>
         {INCLUDED_KEYS.map((k, i) => (
           <div
             key={k}

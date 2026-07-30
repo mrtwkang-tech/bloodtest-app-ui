@@ -129,6 +129,12 @@ button { font-family: inherit; color: inherit; }
 /* Translucency is decoration until it isn't legible — go frosty on request. */
 @media (prefers-reduced-transparency: reduce) {
   .material { background: #fff !important; backdrop-filter: none !important; }
-  .glassbar { background: #FBFBFA; box-shadow: 0 -1px 0 rgba(23, 24, 26, .1); }
+  /* The bar is a floating capsule now, so it needs a solid body and a ring —
+     a top rule would be drawing an edge that no longer exists. */
+  .glassbar {
+    background: #FBFBFA;
+    box-shadow: 0 0 0 1px rgba(23, 24, 26, .1), 0 6px 20px -10px rgba(23, 24, 26, .3);
+  }
   .glassbar-layer { display: none !important; }
+  .tab-pill { background: rgba(23, 24, 26, .07) !important; backdrop-filter: none !important; }
 }

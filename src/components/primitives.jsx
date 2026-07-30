@@ -14,17 +14,43 @@ import {
   tint,
 } from "../tokens";
 
+/** Two steps, so the choice is between them rather than per call site. */
+// 2px horizontal, matching SectionTitle, so plain blocks and their headings
+// share one left edge against the page's own 18px gutter.
+const PAD = { sm: "9px 2px", md: "13px 2px", lg: "17px 2px" };
+/** A filled group needs its own horizontal inset; a plain one aligns to the page. */
+const PAD_FILLED = { sm: "11px 15px", md: "15px 17px", lg: "18px 18px" };
+
 /**
- * Surface card: white, on a slightly deeper ground. No border, no bevel, no
- * shadow — the value step is the separation, the way a grouped list works.
+ * A block of content.
+ *
+ * `plain` is the default and it draws nothing — the content sits on the page
+ * and space separates it from its neighbours. The old default was `group`, a
+ * tinted panel, applied to all thirty-one blocks in the app; the result was
+ * that the screen read as a stack of boxes and the eye had to open each one
+ * before it could read anything. A tinted panel means "these rows belong to
+ * each other", so it is now reserved for what actually is a list.
+ *
+ * Padding is chosen here rather than passed in. Once the fill is gone, an
+ * ad-hoc `15px 17px` on one block and `16px 18px` on the next shows up as text
+ * that does not line up down the page — the fill used to hide it.
  */
-export function Card({ children, style, delay, ...rest }) {
+export function Card({
+  children,
+  variant = "plain",
+  pad = "md",
+  style,
+  delay,
+  ...rest
+}) {
+  const filled = variant === "group";
   return (
     <section
       style={{
-        background: SURFACE,
-        borderRadius: R.card,
-        boxShadow: CARD,
+        padding: (filled ? PAD_FILLED : PAD)[pad],
+        ...(filled
+          ? { background: SURFACE, borderRadius: R.card, boxShadow: CARD }
+          : null),
         ...(delay != null ? fadeUp(delay) : null),
         ...style,
       }}
@@ -56,9 +82,15 @@ export function Caret({ color = C.faintest, size = 15, style }) {
 }
 
 /**
- * Uppercase monospace section label, optionally with a right-side value.
- * This pairing — tracked label left, measured value right — is the spine of
- * the whole layout.
+ * A section heading, optionally with a measured value on the right.
+ *
+ * The heading used to be tracked uppercase monospace, like the value beside
+ * it. Two dozen of those down a screen is what made the app read as an
+ * instrument panel that happened to contain sentences: uppercase is slower to
+ * read, Hangul does not have a case distinction to carry it, and applying the
+ * measurement voice to the words *about* the measurements flattened the
+ * difference between the two. The value keeps the mono — it is a measurement,
+ * and that is the whole point of the pairing.
  */
 export function SectionLabel({ children, value, style }) {
   return (
@@ -71,7 +103,7 @@ export function SectionLabel({ children, value, style }) {
         ...style,
       }}
     >
-      <span style={{ ...T.micro, color: C.faint }}>{children}</span>
+      <span style={{ ...T.label, color: C.faint }}>{children}</span>
       {value != null && (
         <span style={{ ...T.micro, color: C.muted }}>{value}</span>
       )}
@@ -98,7 +130,14 @@ export function SectionTitle({ children, value, style }) {
  * Deliberately not a tinted capsule. Wrapping every value in a pill flattens
  * the hierarchy — everything shouts equally.
  */
-export function Status({ color, icon, level = 0, children, mono = true, style }) {
+export function Status({
+  color,
+  icon,
+  level = 0,
+  children,
+  mono = true,
+  style,
+}) {
   return (
     <span
       style={{
@@ -108,7 +147,11 @@ export function Status({ color, icon, level = 0, children, mono = true, style })
         ...style,
       }}
     >
-      {icon ? <Icon name={icon} level={level} size={22} /> : <Dot color={color} />}
+      {icon ? (
+        <Icon name={icon} level={level} size={22} />
+      ) : (
+        <Dot color={color} />
+      )}
       <span style={{ ...(mono ? T.caption : T.label), color: C.body }}>
         {children}
       </span>
@@ -300,7 +343,7 @@ function Count({ value, label, color }) {
       </div>
       <div
         style={{
-          ...T.micro,
+          ...T.caption,
           color: C.faint,
           marginTop: 3,
           // Wraps rather than truncating: a clipped "OUT OF RA…" is worse

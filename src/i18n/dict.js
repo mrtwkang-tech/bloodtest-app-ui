@@ -13,8 +13,8 @@ export const en = {
   "tab.home": "Home",
   "tab.mind": "Mind",
   "tab.body": "Body",
+  "tab.signal": "Signals",
   "tab.more": "More",
-  "tab.scan": "Scan",
 
   // Home
   "home.greeting": ({ name }) => `Hello, ${name}`,
@@ -24,7 +24,7 @@ export const en = {
   "home.scoreLead.great": "You’re ahead of most people your age.",
   "home.scoreLead.ok": "Solid, with a few things worth watching.",
   "home.scoreLead.watch": "A few markers need your attention.",
-  "home.biomarkers": "Biomarkers",
+  "home.biomarkers": "What we measured",
   "home.total": "Total",
   "home.optimal": "Optimal",
   "home.inRange": "In range",
@@ -34,13 +34,14 @@ export const en = {
   "home.nextTest": "Next test",
   "home.subscription": "Subscription",
   "home.buyKit": "Buy a kit",
+  "home.registerKit": "Register a kit",
   "home.history": "Past tests",
   // Bayesian risk — the arithmetic, stated as arithmetic
   "dx.title": "Condition estimates",
   "dx.beta": "Beta",
   "dx.note": "We do not diagnose. This is the base rate multiplied by how much each of your findings shifts the odds — a probability, on demo likelihood ratios.",
-  "dx.prior": "Base rate at your age",
-  "dx.posterior": "After your results",
+  "dx.prior": "Before the test",
+  "dx.posterior": "After the test",
   "dx.multiple": ({ n }) => `${n}× your base rate`,
   "dx.stillLow": "Still unlikely in absolute terms — the shift is the point, not the number.",
   "dx.worthAsking": "High enough to be worth a conversation.",
@@ -82,7 +83,15 @@ export const en = {
   "accent.iris": "Iris",
   "accent.clay": "Clay",
   "home.more": "More",
-  "home.crossRead": "Cross-read with body composition",
+  "signal.title": "Signals",
+  "signal.subtitle": ({ n }) =>
+    `${n} things that only show up when the panels are read together`,
+  "signal.none": "Nothing this round that needed two panels to see",
+  "signal.lead": ({ title }) => `Worth looking at first: ${title}.`,
+  "signal.leadNone": "Nothing here is asking for action right now.",
+  "signal.countLine": ({ check, watch, note }) =>
+    `${check} to check · ${watch} to watch · ${note} for context`,
+  "home.crossRead": "Read together with body composition",
   "home.signalsRow": "Cross-system signals",
   "home.risksRow": "Condition estimates",
   "home.compositionRow": "Full body composition",
@@ -96,7 +105,7 @@ export const en = {
 
   // Mind
   "mind.title": "Mind",
-  "mind.subtitle": "Five indices, from markers that accumulate over months",
+  "mind.subtitle": "Five readings, from traces that build up over months",
   "mind.summary": "Summary",
   "mind.allGood": "All five scales are in range",
   "mind.someGood": ({ ok }) => `${ok} of 5 scales in range`,
@@ -226,7 +235,10 @@ export const en = {
   "mind.index": "Index",
   "mind.indexNote":
     "0 is the lowest biological load, 50 is the peer average, 100 the highest.",
-  "mind.derived": "Cumulative markers",
+  "mind.vsPeer.low": "Well below the peer average",
+  "mind.vsPeer.avg": "About the same as your peers",
+  "mind.vsPeer.aboveAvg": "A little above the peer average",
+  "mind.vsPeer.high": "Clearly above the peer average",
   "mind.cadenceNote":
     "Every marker here summarises the weeks or months before your draw, so two rounds three months apart are genuinely comparable. That is what a snapshot hormone could not do.",
   "mind.notDiagnosis":
@@ -235,8 +247,6 @@ export const en = {
   "mind.hideMarkers": "Hide",
 
   // Body detail
-  "body.whatThisIs": "What this checks",
-  "body.whatItMeans": "What your result means",
   "body.allMarkers": ({ n }) => `All ${n} markers`,
   "body.showAll": ({ n }) => `Show all ${n}`,
   "body.showLess": "Show less",
@@ -262,7 +272,7 @@ export const en = {
   "ib.trunk": "Trunk",
   "ib.legL": "Left leg",
   "ib.legR": "Right leg",
-  "ib.crossRead": "CROSS-READ",
+  "ib.crossRead": "READ TOGETHER",
   "ib.crossReadNote":
     "Where your composition changes how a blood value should be read. Both panels track the same body over the same rounds, which is what makes the comparison worth anything.",
   "ib.fromDevice": "device",
@@ -291,7 +301,7 @@ export const en = {
   "ix.beta": "BETA",
   "ix.note": "Patterns across panels that no single specialty would flag. Heuristics, not a validated model.",
   "ix.none": "No cross-system patterns in this round.",
-  "ix.evidence": "Built from",
+  "ix.evidence": "Which readings this came from",
   "ix.hepaticTrajectory.title": "Liver markers on a trajectory",
   "ix.hepaticTrajectory.body": ({ rate }) =>
     `AFP has risen at every draw for the past year — around ${rate}% per round — while GGT and the fibrosis estimate climbed with it and platelets fell. Each of those readings was inside its reference range for most of that time, so a one-off test would have returned normal every visit. The shape across rounds is the finding.`,
@@ -349,7 +359,7 @@ export const en = {
 
   // Body
   "body.title": "Body",
-  "body.subtitle": "17 conditions across 10 specialties",
+  "body.subtitle": "17 conditions, across 10 kinds of clinic",
   "body.summary": "Summary",
   "body.allClear": ({ n }) => `All ${n} screenings clear`,
   "body.someFlagged": ({ ok, total, n }) =>
@@ -361,7 +371,7 @@ export const en = {
   "body.watch": "Watch",
   "body.consult": "See a specialist",
   "body.outOfRange": ({ names }) => `${names} outside the reference range`,
-  "body.reference": ({ v }) => `Reference ≤ ${v}`,
+  "body.reference": ({ v }) => `Normal range ≤ ${v}`,
   "body.over": "over",
   "body.refUpper": "Reference",
   "body.tapOrgan": "Tap an organ system to see the markers behind it",
@@ -439,8 +449,6 @@ export const en = {
   "cond.autoimmune": "Autoimmune disease",
   "cond.deficiency": "Nutrient deficiency",
 
-  "body.specialty": "Refer to",
-  "body.markerCount": ({ n }) => `${n} markers`,
   "body.systems": "Systems",
 
   // Conditions
@@ -478,7 +486,7 @@ export const en = {
   "store.incl2": "QR registration and progress alerts",
   "store.incl3": "Five mind indices, derived from the same draw",
   "store.incl4": ({ n }) =>
-    `${n} biomarkers across 10 specialties, with every reference shown`,
+    `${n} measurements across 10 specialties, every normal range shown`,
   "store.incl5": "Round-over-round trend charts",
   "store.ctaSingle": "Pay 89,000 KRW for one test",
   "store.ctaQuarter": "Start quarterly · 59,000 KRW per test",
@@ -546,8 +554,8 @@ export const ko = {
   "tab.home": "홈",
   "tab.mind": "마음",
   "tab.body": "몸",
+  "tab.signal": "시그널",
   "tab.more": "더보기",
-  "tab.scan": "등록",
 
   "home.greeting": ({ name }) => `${name}님, 안녕하세요`,
   "home.drawnOn": ({ date }) => `${date} 채혈`,
@@ -555,8 +563,8 @@ export const ko = {
   "home.scoreOutOf": "100점 만점",
   "home.scoreLead.great": "또래 대부분보다 앞서 있습니다.",
   "home.scoreLead.ok": "전반적으로 안정적이고, 몇 가지만 지켜보면 됩니다.",
-  "home.scoreLead.watch": "몇 개 지표에 주의가 필요합니다.",
-  "home.biomarkers": "바이오마커",
+  "home.scoreLead.watch": "몇 개 수치에 주의가 필요합니다.",
+  "home.biomarkers": "이번에 검사한 항목",
   "home.total": "전체",
   "home.optimal": "최적",
   "home.inRange": "정상",
@@ -566,13 +574,14 @@ export const ko = {
   "home.nextTest": "다음 검사",
   "home.subscription": "구독",
   "home.buyKit": "키트 구매",
+  "home.registerKit": "키트 등록",
   "home.history": "지난 검사",
   // 베이즈 위험 추정
   "dx.title": "예상 질환 추정",
   "dx.beta": "베타",
-  "dx.note": "우리는 진단하지 않습니다. 기본 확률에 각 소견이 확률을 움직이는 정도를 곱한 값이고, 데모용 우도비로 계산했습니다.",
-  "dx.prior": "같은 나이대 기본 확률",
-  "dx.posterior": "내 결과 반영 후",
+  "dx.note": "우리는 진단하지 않습니다. 같은 나이대의 기본 확률에서 출발해, 이번 결과가 그 확률을 얼마나 올리고 내리는지를 계산한 값입니다.",
+  "dx.prior": "검사 전",
+  "dx.posterior": "검사 후",
   "dx.multiple": ({ n }) => `기본 확률의 ${n}배`,
   "dx.stillLow": "절대적으로는 여전히 낮습니다. 중요한 건 숫자가 아니라 변화 폭입니다.",
   "dx.worthAsking": "한 번 상의해볼 만한 수준입니다.",
@@ -614,8 +623,15 @@ export const ko = {
   "accent.iris": "아이리스",
   "accent.clay": "클레이",
   "home.more": "더 보기",
-  "home.crossRead": "체성분 교차 해석",
-  "home.signalsRow": "계열 간 신호",
+  "signal.title": "시그널",
+  "signal.subtitle": ({ n }) => `같이 봐야 보이는 것 ${n}가지`,
+  "signal.none": "이번 회차에는 같이 봐야 보이는 것이 없습니다",
+  "signal.lead": ({ title }) => `먼저 볼 것은 «${title}»입니다.`,
+  "signal.leadNone": "지금 당장 조치가 필요한 항목은 없습니다.",
+  "signal.countLine": ({ check, watch, note }) =>
+    `확인 ${check} · 관찰 ${watch} · 참고 ${note}`,
+  "home.crossRead": "체성분과 같이 보기",
+  "home.signalsRow": "함께 움직인 수치",
   "home.risksRow": "예상 질환 추정",
   "home.compositionRow": "체성분 전체 보기",
   "home.historyRow": "지난 검사",
@@ -626,7 +642,7 @@ export const ko = {
   "round.n": ({ n }) => `${n}회차`,
 
   "mind.title": "마음",
-  "mind.subtitle": "몇 달에 걸쳐 쌓이는 지표로 산출한 5개 지수",
+  "mind.subtitle": "몇 달에 걸쳐 몸에 쌓인 흔적으로 읽은 다섯 가지",
   "mind.summary": "종합",
   "mind.allGood": "5개 척도 모두 정상 범위",
   "mind.someGood": ({ ok }) => `5개 중 ${ok}개 정상 범위`,
@@ -688,7 +704,7 @@ export const ko = {
   "epi.hypothetical": "이 검사들은 가정입니다. 유전자 자리는 실재하지만 검사법과 기준치는 임상 검증된 것이 아닙니다.",
   "mind.whyCumulative": "왜 코르티솔이 아닌가",
   "mind.whyCumulativeBody":
-    "코르티솔은 하루 안에서도 2~3배씩 오르내립니다. 3개월 간격으로 잰 두 값은 대개 그 두 날 아침이 달랐다는 뜻일 뿐입니다. 그래서 지수는 쌓이는 흔적 위에서 계산합니다. 메틸화는 몇 주에서 몇 달에 걸쳐 변하고, 당화혈색소는 한 분기의 혈당을, 오메가-3 지수는 한 분기의 세포막을 평균 냅니다. 모든 숫자가 채혈한 그 시각이 아니라 그 앞의 몇 달을 요약합니다.",
+    "코르티솔 같은 호르몬은 하루 안에서도 2~3배씩 오르내립니다. 3개월에 한 번 잰 값으로는 그날 아침의 기분밖에 알 수 없습니다. 그래서 몸에 몇 달째 쌓인 흔적을 대신 읽습니다.",
   "mind.cumulativeTag": "누적",
   "mind.snapshotTag": "순간값",
 
@@ -750,22 +766,23 @@ export const ko = {
   "mind.index": "지수",
   "mind.indexNote":
     "0이 생물학적 부하가 가장 낮고, 50이 또래 평균, 100이 가장 높습니다.",
-  "mind.derived": "누적 지표",
+  "mind.vsPeer.low": "또래보다 뚜렷하게 낮습니다",
+  "mind.vsPeer.avg": "또래와 비슷합니다",
+  "mind.vsPeer.aboveAvg": "또래보다 조금 높습니다",
+  "mind.vsPeer.high": "또래보다 뚜렷하게 높습니다",
   "mind.cadenceNote":
-    "여기 있는 지표는 전부 채혈 앞의 몇 주에서 몇 달을 요약합니다. 그래서 3개월 간격의 두 회차를 그대로 견줄 수 있습니다. 순간값 호르몬으로는 할 수 없던 일입니다.",
+    "여기 있는 수치는 전부 채혈 앞의 몇 주에서 몇 달을 요약합니다. 그래서 3개월 간격의 두 회차를 그대로 견줄 수 있습니다. 순간값 호르몬으로는 할 수 없던 일입니다.",
   "mind.notDiagnosis":
     "이 지수는 특정 경로의 생물학적 부하를 설명합니다. 정신질환의 진단이 아닙니다.",
-  "mind.showMarkers": "지표 보기",
+  "mind.showMarkers": "수치 보기",
   "mind.hideMarkers": "접기",
 
   // 몸 상세
-  "body.whatThisIs": "무엇을 보는가",
-  "body.whatItMeans": "내 결과의 의미",
-  "body.allMarkers": ({ n }) => `전체 ${n}개 지표`,
+  "body.allMarkers": ({ n }) => `전체 ${n}개 수치`,
   "body.showAll": ({ n }) => `${n}개 모두 보기`,
   "body.showLess": "접기",
   "body.outOfRangeOnly": ({ n }) => `${n}개 범위 밖`,
-  "body.clearAll": "이 계열의 모든 지표가 참고 범위 안입니다.",
+  "body.clearAll": "이 진료과의 모든 수치가 정상 범위 안입니다.",
 
   // 인바디
   "ib.title": "체성분",
@@ -786,23 +803,23 @@ export const ko = {
   "ib.trunk": "몸통",
   "ib.legL": "왼다리",
   "ib.legR": "오른다리",
-  "ib.crossRead": "교차 해석",
+  "ib.crossRead": "같이 보기",
   "ib.crossReadNote":
     "체성분이 혈액 수치의 해석을 바꾸는 지점입니다. 두 검사가 같은 몸을 같은 회차로 따라가기 때문에 비교에 의미가 생깁니다.",
   "ib.fromDevice": "기기",
   "ib.fromBlood": "혈액",
   "ib.link.loss.title": "의도하지 않은 체중 감소",
   "ib.link.loss.body":
-    "최근 두 회차에 걸쳐 체중이 빠졌고, 세포 건강도를 보는 위상각도 함께 떨어졌습니다. 이 정도의 의도하지 않은 감소는 원인을 확인할 필요가 있고, 간 지표가 움직인 기간과 겹칩니다.",
+    "최근 두 회차에 걸쳐 체중이 빠졌고, 세포 건강도를 보는 위상각도 함께 떨어졌습니다. 이 정도의 의도하지 않은 감소는 원인을 확인할 필요가 있고, 간 수치가 움직인 기간과 겹칩니다.",
   "ib.link.creatinine.title": "크레아티닌이 높은 건 신장이 아니라 근육 때문",
   "ib.link.creatinine.body":
     "크레아티닌은 근육이 분해되며 나오는 물질입니다. 근육량이 많으면 신장이 멀쩡해도 크레아티닌이 높고 추정 사구체여과율이 낮게 나옵니다. 골격근량과 함께 읽으면 이 수치는 걱정할 것이 아니라 예상되는 값입니다.",
   "ib.link.visceral.title": "혈당이 밀리는 원인은 내장지방 쪽",
   "ib.link.visceral.body":
-    "내장지방은 피하지방과 달리 대사적으로 활발해서 인슐린 저항성을 직접 만듭니다. 혈당 지표는 체중보다 내장지방을 더 가깝게 따라갑니다. 체중계 숫자는 그대로인데 혈당만 움직이는 이유입니다.",
+    "내장지방은 피하지방과 달리 대사적으로 활발해서 인슐린 저항성을 직접 만듭니다. 혈당 수치는 체중보다 내장지방을 더 가깝게 따라갑니다. 체중계 숫자는 그대로인데 혈당만 움직이는 이유입니다.",
   "ib.link.fluid.title": "염증과 함께 움직인 수분 분포",
   "ib.link.fluid.body":
-    "염증이 올라간 상태에서 세포외수분비가 범위 위쪽에 있습니다. 보통 함께 움직입니다. 염증이 세포에서 물을 끌어내고, 위상각은 그에 따라 떨어집니다. 염증 지표가 잡히면 둘 다 돌아옵니다.",
+    "염증이 올라간 상태에서 세포외수분비가 범위 위쪽에 있습니다. 보통 함께 움직입니다. 염증이 세포에서 물을 끌어내고, 위상각은 그에 따라 떨어집니다. 염증 수치가 잡히면 둘 다 돌아옵니다.",
   "ib.link.muscle.title": "직전 회차보다 줄어든 근육량",
   "ib.link.muscle.body":
     "골격근량과 기초대사량이 함께 떨어졌습니다. 그 뒤에 가장 자주 있는 혈액 값이 철 저장량과 갑상선 출력이라, 따로가 아니라 이 둘과 나란히 읽을 만합니다.",
@@ -810,21 +827,21 @@ export const ko = {
   "body.composition": "체성분",
 
   // 교차 신호, 베타
-  "ix.title": "계열 간 신호",
+  "ix.title": "함께 움직인 수치",
   "ix.beta": "베타",
   "ix.note": "한 분과만 봐서는 잡히지 않는 조합입니다. 검증된 모델이 아니라 휴리스틱입니다.",
-  "ix.none": "이번 회차에는 계열 간 패턴이 없습니다.",
-  "ix.evidence": "근거 지표",
-  "ix.hepaticTrajectory.title": "추세를 그리고 있는 간 지표",
+  "ix.none": "이번 회차에는 함께 움직인 수치가 없습니다.",
+  "ix.evidence": "어떤 수치에서 나왔나",
+  "ix.hepaticTrajectory.title": "한 방향으로 계속 움직인 간 수치",
   "ix.hepaticTrajectory.body": ({ rate }) =>
-    `AFP가 지난 1년 동안 매 채혈마다 올라갔습니다. 회차당 약 ${rate}%씩입니다. 같은 기간 GGT와 섬유화 추정치가 함께 오르고 혈소판은 떨어졌습니다. 이 수치들은 그 기간 대부분 참고 범위 안에 있었기 때문에, 한 번만 검사했다면 매번 정상으로 나왔을 것입니다. 여기서의 발견은 회차를 가로지르는 모양입니다.`,
+    `AFP가 지난 1년 동안 매 채혈마다 올라갔습니다. 회차당 약 ${rate}%씩입니다. 같은 기간 GGT와 섬유화 추정치가 함께 오르고 혈소판은 떨어졌습니다. 이 수치들은 그 기간 대부분 정상 범위 안에 있었기 때문에, 한 번만 검사했다면 매번 정상으로 나왔을 것입니다. 여기서의 발견은 회차를 가로지르는 모양입니다.`,
   "ix.hepaticTrajectory.action":
     "간암 감시에서 찾는 바로 그 패턴입니다. 소화기내과를 예약하고 간 초음파와 AFP 재검을 요청하세요. 오늘 수치가 아니라 전체 시계열을 가져가세요.",
-  "ix.crossedNow": "AFP가 참고 범위를 넘었습니다.",
-  "ix.notCrossedYet": "AFP는 아직 참고 범위 안입니다.",
+  "ix.crossedNow": "AFP가 정상 범위를 넘었습니다.",
+  "ix.notCrossedYet": "AFP는 아직 정상 범위 안입니다.",
   "ix.whyLongitudinal": "왜 6회차인가",
   "ix.trajectoryNote":
-    "한 번의 채혈은 값이 범위 안인지만 물을 수 있습니다. 여섯 번이면 어느 방향으로 얼마나 빨리 움직이는지를 물을 수 있습니다. 아직 수치상 정상인 지표가 발견이 되는 유일한 길입니다.",
+    "한 번 재면 지금 정상인지만 알 수 있습니다. 여섯 번 재면 어느 쪽으로 움직이는지가 보입니다. 아직 정상인 수치에서 미리 알아채는 유일한 방법입니다.",
 
   "home.inbody": "체성분",
   "home.tracked": ({ n, m }) => `${n}회차 · ${m}개월`,
@@ -844,7 +861,7 @@ export const ko = {
     "회복 문제로 먼저 다루세요. 기상 시간 고정, 그리고 주 1회는 정말 아무 일정 없는 시간.",
   "ix.inflammatoryMood.title": "염증이 기분까지 닿음",
   "ix.inflammatoryMood.body":
-    "트립토판이 세로토닌 대신 염증 경로로 끌려가는 동안 신경가소성 지표가 낮게 있습니다. 의욕 저하로 가는 물리적 경로이지, 의지의 문제가 아닙니다.",
+    "트립토판이 세로토닌 대신 염증 경로로 끌려가는 동안 신경가소성 수치가 낮게 있습니다. 의욕 저하로 가는 물리적 경로이지, 의지의 문제가 아닙니다.",
   "ix.inflammatoryMood.action":
     "수면·오메가-3·움직임 같은 항염증 기본기가 이 사슬의 양쪽 끝에 동시에 작용합니다.",
   "ix.fatigueChain.title": "정상 범위 세 개가 합쳐져 만든 피로",
@@ -870,7 +887,7 @@ export const ko = {
   "status.line.alert": "선별 기준을 넘었습니다. 전문가 상담을 권합니다.",
 
   "body.title": "몸",
-  "body.subtitle": "10개 분과 · 질환 17종",
+  "body.subtitle": "10개 진료과에서 질환 17종을 살펴봤습니다",
   "body.summary": "종합",
   "body.allClear": ({ n }) => `${n}개 항목 모두 이상 없음`,
   "body.someFlagged": ({ ok, total, n }) =>
@@ -881,14 +898,14 @@ export const ko = {
   "body.clear": "이상 없음",
   "body.watch": "관찰 필요",
   "body.consult": "전문의 상담 권장",
-  "body.outOfRange": ({ names }) => `${names} 지표가 참고 범위를 벗어났습니다`,
-  "body.reference": ({ v }) => `참고 범위 ${v} 이하`,
+  "body.outOfRange": ({ names }) => `${names} 수치가 정상 범위를 벗어났습니다`,
+  "body.reference": ({ v }) => `정상 범위 ${v} 이하`,
   "body.over": "초과",
-  "body.refUpper": "참고 상한",
-  "body.tapOrgan": "장기를 눌러 근거 지표를 확인하세요",
-  "body.allInRange": "모든 지표가 참고 범위 안입니다",
+  "body.refUpper": "정상 상한",
+  "body.tapOrgan": "장기를 눌러 근거 수치를 확인하세요",
+  "body.allInRange": "모든 수치가 정상 범위 안입니다",
   "body.disclaimer":
-    "스크리닝 결과는 의학적 진단이 아닙니다. 지표가 범위를 벗어났다는 뜻이며, 질환의 확진이나 배제를 의미하지 않습니다. 판단은 반드시 의료진과 함께 하세요.",
+    "스크리닝 결과는 의학적 진단이 아닙니다. 수치가 범위를 벗어났다는 뜻이며, 질환의 확진이나 배제를 의미하지 않습니다. 판단은 반드시 의료진과 함께 하세요.",
   "body.watchNext": "다음 회차까지 관찰하세요",
   "body.consultNow": "전문의 상담을 권합니다",
   "body.rotateHint": "드래그해서 돌려보세요",
@@ -898,13 +915,13 @@ export const ko = {
   "zone.metab": "대사",
   "zone.systemic": "전신",
   "zone.neuro.note":
-    "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 지표를 봅니다.",
+    "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 수치를 봅니다.",
   "zone.cardio.note":
-    "혈관 염증과 지질 축적 정도를 봅니다. 뇌졸중 위험과도 일부 지표를 공유합니다.",
+    "혈관 염증과 지질 축적 정도를 봅니다. 뇌졸중 위험과도 일부 수치를 공유합니다.",
   "zone.metab.note":
     "최근 2~3개월의 평균 혈당과 인슐린이 얼마나 잘 듣고 있는지를 봅니다.",
   "zone.systemic.note":
-    "특정 장기가 아니라 몸 전체를 도는 종양 관련 지표를 봅니다. 그래서 실루엣 전체가 반응합니다.",
+    "특정 장기가 아니라 몸 전체를 도는 종양 관련 수치를 봅니다. 그래서 실루엣 전체가 반응합니다.",
 
   // 분과별 계열
   "sys.neuro": "뇌·신경",
@@ -930,7 +947,7 @@ export const ko = {
   "spec.nutrition": "영양대사",
 
   "sys.neuro.note":
-    "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 지표를 봅니다.",
+    "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 수치를 봅니다.",
   "sys.cardio.note": "혈관 염증, 지질 부담, 심장 부하를 봅니다.",
   "sys.endocrine.note": "혈당 조절, 갑상선 기능, 스트레스 축을 봅니다.",
   "sys.hepatic.note": "간 효소, 담즙 대사, 섬유화 추정치를 봅니다.",
@@ -939,7 +956,7 @@ export const ko = {
   "sys.pulmonary.note": "기도 염증, 알레르기 부담, 산소 운반 능력을 봅니다.",
   "sys.immune.note": "전신 염증과 자가면역 관절질환의 항체를 봅니다.",
   "sys.oncology.note":
-    "특정 장기가 아니라 몸 전체를 도는 종양 관련 지표를 봅니다. 그래서 실루엣 전체가 반응합니다.",
+    "특정 장기가 아니라 몸 전체를 도는 종양 관련 수치를 봅니다. 그래서 실루엣 전체가 반응합니다.",
   "sys.nutrition.note": "장에서 흡수되는 비타민·미네랄·지방산을 봅니다.",
 
   "cond.hypertension": "고혈압",
@@ -954,9 +971,7 @@ export const ko = {
   "cond.autoimmune": "자가면역질환",
   "cond.deficiency": "영양결핍",
 
-  "body.specialty": "진료과",
-  "body.markerCount": ({ n }) => `지표 ${n}개`,
-  "body.systems": "계열",
+  "body.systems": "진료과",
 
   "cond.alzheimers": "알츠하이머",
   "cond.parkinsons": "파킨슨병",
@@ -975,7 +990,7 @@ export const ko = {
   "store.kit": "풀배터리 검사 키트",
   "store.inStock": "재고 있음",
   "store.kitDesc": ({ n, e }) =>
-    `10개 분과 ${n}개 바이오마커와 메틸화 ${e}종, 그리고 같은 채혈에서 산출하는 마음 5개 지수를 한 번에 측정하는 자가 채혈 키트`,
+    `10개 분과 ${n}개 검사 항목와 메틸화 ${e}종, 그리고 같은 채혈에서 산출하는 마음 5개 지수를 한 번에 측정하는 자가 채혈 키트`,
   "store.choosePlan": "플랜 선택",
   "store.included": "구성품",
   "store.single": "1회 검사",
@@ -989,7 +1004,7 @@ export const ko = {
   "store.incl1": "자가 채혈 키트 · 회송 봉투",
   "store.incl2": "QR 등록 · 진행 상태 알림",
   "store.incl3": "같은 채혈에서 산출하는 마음 5개 지수",
-  "store.incl4": ({ n }) => `10개 분과 ${n}개 바이오마커 · 참고치 전부 공개`,
+  "store.incl4": ({ n }) => `10개 분과 ${n}개 검사 항목 · 정상 범위 전부 공개`,
   "store.incl5": "회차별 추이 그래프",
   "store.ctaSingle": "89,000원 · 1회 검사 결제",
   "store.ctaQuarter": "분기 구독 시작 · 회당 59,000원",

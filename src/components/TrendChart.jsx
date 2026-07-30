@@ -38,7 +38,7 @@ export default function TrendChart({
         : t("trend.up", { p: tr.pctChange });
 
   return (
-    <Card style={{ padding: "16px 17px 15px" }} delay={delay}>
+    <Card pad="md" delay={delay}>
       <div
         style={{
           display: "flex",

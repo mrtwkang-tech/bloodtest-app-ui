@@ -1,4 +1,5 @@
 import Pressable from "../components/Pressable";
+import { ScanGlyph } from "../components/Icon";
 import {
   Card,
   Caret,
@@ -10,6 +11,7 @@ import {
 import {
   C,
   DIVIDER,
+  DIVIDER_TOP,
   EASE,
   LEVEL_COLOR,
   R,
@@ -17,9 +19,7 @@ import {
   backlight,
   fadeUp,
 } from "../tokens";
-import { interactionsFor } from "../data/interactions";
-import { riskEstimates } from "../data/bayes";
-import { COMPOSITION, DEVICE, inbodyLinksFor, metricLevel } from "../data/inbody";
+import { COMPOSITION, DEVICE, metricLevel } from "../data/inbody";
 import { formatValue } from "../data/body";
 import {
   PROFILE,
@@ -45,13 +45,10 @@ const HOME_METRICS = ["smm", "bodyFat", "visceral"];
  * to parse fifteen labels before reaching anything Home alone could tell them.
  * The tab bar already navigates; Home now says something.
  */
-export default function HomeTab({ onGoStore, onOpen }) {
+export default function HomeTab({ onGoStore, onOpen, onScan }) {
   const { t, lang } = useLang();
   const score = healthScore(latest);
   const counts = biomarkerCounts(latest);
-  const signals = interactionsFor(latest.roundIndex);
-  const risks = riskEstimates(latest.roundIndex);
-  const links = inbodyLinksFor(latest.roundIndex);
 
   const leadKey =
     score >= 82
@@ -100,7 +97,7 @@ export default function HomeTab({ onGoStore, onOpen }) {
       {/* The one number the whole panel resolves to. No tinted wash behind
           it: a coloured gradient under a number says nothing the number does
           not already say, and reads as decoration applied for its own sake. */}
-      <Card style={{ padding: "16px 18px 17px" }} delay={40}>
+      <Card pad="md" delay={40}>
         <SectionLabel value={t("home.scoreOutOf")}>
           {t("home.score")}
         </SectionLabel>
@@ -127,7 +124,7 @@ export default function HomeTab({ onGoStore, onOpen }) {
         </p>
       </Card>
 
-      <Card style={{ padding: "14px 18px 15px", marginTop: 9 }} delay={80}>
+      <Card pad="sm" style={{ boxShadow: DIVIDER_TOP }} delay={80}>
         <SectionLabel>{t("home.biomarkers")}</SectionLabel>
         <div style={{ marginTop: 13 }}>
           <CountStrip
@@ -144,7 +141,7 @@ export default function HomeTab({ onGoStore, onOpen }) {
 
       {/* Three composition numbers, not the whole device panel. Enough to
           see the body has been measured; the rest is a tap away. */}
-      <Card style={{ padding: "13px 18px 14px", marginTop: 9 }} delay={120}>
+      <Card pad="sm" style={{ boxShadow: DIVIDER_TOP }} delay={120}>
         <SectionLabel value={DEVICE.brand}>{t("ib.title")}</SectionLabel>
         <div
           style={{
@@ -160,7 +157,7 @@ export default function HomeTab({ onGoStore, onOpen }) {
             const lv = metricLevel(m, value);
             return (
               <div key={key}>
-                <div style={{ ...T.micro, color: C.faintest }}>
+                <div style={{ ...T.caption, color: C.faintest }}>
                   {t(m.nameKey)}
                 </div>
                 <div
@@ -189,30 +186,18 @@ export default function HomeTab({ onGoStore, onOpen }) {
         </div>
       </Card>
 
-      {/* Everything below the fold used to be here in full. It is all still
-          reachable, one tap deeper — the first screen should answer "how am
-          I?", not carry the whole report. */}
-      <SectionTitle style={{ margin: "16px 2px 8px" }}>
+      {/* Cross-reading, cross-system signals and condition estimates used to be
+          three rows here. They are one destination now — everything that only
+          exists when panels are read together — so this list is what is left:
+          the body panel in full, and the archive. */}
+      <SectionTitle style={{ margin: "14px 2px 8px" }}>
         {t("home.more")}
       </SectionTitle>
-      <Card style={{ overflow: "hidden" }} delay={160}>
-        <MoreRow
-          label={t("home.crossRead")}
-          count={links.length}
-          onClick={() => onOpen("crossread")}
-        />
-        <MoreRow
-          label={t("home.signalsRow")}
-          count={signals.length}
-          beta
-          onClick={() => onOpen("signals")}
-        />
-        <MoreRow
-          label={t("home.risksRow")}
-          count={risks.length}
-          beta
-          onClick={() => onOpen("risks")}
-        />
+      <Card
+        variant="group"
+        style={{ overflow: "hidden", padding: 0 }}
+        delay={160}
+      >
         <MoreRow
           label={t("home.compositionRow")}
           onClick={() => onOpen("composition")}
@@ -225,19 +210,50 @@ export default function HomeTab({ onGoStore, onOpen }) {
         />
       </Card>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 10, ...fadeUp(190) }}>
-        <Card style={{ flex: 1, padding: "13px 15px" }}>
-          <div style={{ ...T.micro, color: C.faint }}>{t("home.nextTest")}</div>
-          <div style={{ ...T.title2, ...T.num, color: C.ink, marginTop: 6 }}>
-            D-{PROFILE.nextInDays}
-          </div>
-          <div style={{ ...T.micro, color: C.faintest, marginTop: 4 }}>
-            {t("home.tracked", {
-              n: PROFILE.roundsSoFar,
-              m: PROFILE.monthsTracked,
-            })}
-          </div>
-        </Card>
+      {/* Registering a kit is the one thing on this screen that is an action
+          rather than a reading, and for a quarter of the year it is the only
+          reason to open the app at all. It gets the same weight as buying one —
+          a labelled button, not a glyph tucked into the header. */}
+      <div
+        style={{
+          ...T.caption,
+          color: C.faint,
+          margin: "16px 2px 8px",
+          ...fadeUp(180),
+        }}
+      >
+        {t("home.nextTest")} D-{PROFILE.nextInDays} ·{" "}
+        {t("home.tracked", {
+          n: PROFILE.roundsSoFar,
+          m: PROFILE.monthsTracked,
+        })}
+      </div>
+
+      <div style={{ display: "flex", gap: 10, ...fadeUp(190) }}>
+        <Pressable
+          as="button"
+          type="button"
+          onClick={onScan}
+          pressScale={0.98}
+          hoverStyle={{ background: C.surfaceHover }}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "14px 15px",
+            borderRadius: R.card,
+            border: "none",
+            cursor: "pointer",
+            background: C.surface,
+            boxShadow: `inset 0 0 0 1px ${C.hairline}`,
+            color: C.ink,
+            textAlign: "left",
+          }}
+        >
+          <ScanGlyph size={22} />
+          <span style={{ ...T.title3 }}>{t("home.registerKit")}</span>
+        </Pressable>
         <Pressable
           as="button"
           type="button"
@@ -245,7 +261,9 @@ export default function HomeTab({ onGoStore, onOpen }) {
           pressScale={0.98}
           style={{
             flex: 1,
-            padding: "13px 15px",
+            display: "flex",
+            alignItems: "center",
+            padding: "14px 15px",
             borderRadius: R.card,
             border: "none",
             cursor: "pointer",
@@ -255,10 +273,7 @@ export default function HomeTab({ onGoStore, onOpen }) {
             textAlign: "left",
           }}
         >
-          <div style={{ ...T.micro, opacity: 0.66 }}>
-            {t("home.subscription")}
-          </div>
-          <div style={{ ...T.title3, marginTop: 6 }}>{t("home.buyKit")}</div>
+          <span style={{ ...T.title3 }}>{t("home.buyKit")}</span>
         </Pressable>
       </div>
     </div>
@@ -293,7 +308,9 @@ function MoreRow({ label, count, beta, onClick, last }) {
         <span style={{ ...T.micro, color: C.accent }}>{t("ix.beta")}</span>
       )}
       {count != null && (
-        <span style={{ marginLeft: "auto", ...T.num, fontSize: 12, color: C.faint }}>
+        <span
+          style={{ marginLeft: "auto", ...T.num, fontSize: 12, color: C.faint }}
+        >
           {count}
         </span>
       )}

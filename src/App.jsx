@@ -4,6 +4,7 @@ import Sheet from "./components/Sheet";
 import HomeTab from "./screens/HomeTab";
 import MindTab from "./screens/MindTab";
 import BodyTab from "./screens/BodyTab";
+import SignalTab from "./screens/SignalTab";
 import MoreTab from "./screens/MoreTab";
 import StoreTab from "./screens/StoreTab";
 import HomeDetail from "./screens/HomeDetail";
@@ -67,9 +68,6 @@ export default function App() {
   const homeView = sheet?.startsWith("home:") ? sheet.slice(5) : null;
   // Each of Home's second-layer views is a sheet with its own title.
   const HOME_TITLES = {
-    crossread: "home.crossRead",
-    signals: "home.signalsRow",
-    risks: "home.risksRow",
     composition: "home.compositionRow",
     history: "home.historyRow",
   };
@@ -105,8 +103,10 @@ export default function App() {
                 ref={scrollerRef}
                 className="scroller scroll-mask"
                 style={{
+                  // Clears the floating capsule (62 tall, 12 off the bottom)
+                  // with room to spare, so the last row is never half-glassed.
                   padding:
-                    "calc(20px + var(--safe-top)) 18px calc(122px + var(--safe-bottom))",
+                    "calc(20px + var(--safe-top)) 18px calc(92px + var(--safe-bottom))",
                 }}
               >
                 {tab === "home" && (
@@ -114,6 +114,7 @@ export default function App() {
                     key="home"
                     onOpen={(v) => setSheet(`home:${v}`)}
                     onGoStore={() => setSheet("store")}
+                    onScan={() => setFlow("scan")}
                   />
                 )}
                 {tab === "mind" && (
@@ -131,6 +132,13 @@ export default function App() {
                     onPickSession={setSel}
                   />
                 )}
+                {tab === "signal" && (
+                  <SignalTab
+                    key={`signal-${sel}`}
+                    sel={sel}
+                    onPickSession={setSel}
+                  />
+                )}
                 {tab === "more" && (
                   <MoreTab
                     key="more"
@@ -143,7 +151,6 @@ export default function App() {
               <TabBar
                 tab={tab}
                 onSelect={goTab}
-                onScan={() => setFlow("scan")}
                 mindDot={mind.warn ? STATUS_LAMP[mind.worst] : null}
                 bodyDot={body.flagged.length ? LEVEL_LAMP[body.worst] : null}
                 scrollerRef={scrollerRef}

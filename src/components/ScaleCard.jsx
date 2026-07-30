@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
 import { Dot } from "./primitives";
+import Pressable from "./Pressable";
 import Clamp from "./Clamp";
 import Icon from "./Icon";
 import { C, DIVIDER, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
@@ -9,8 +10,25 @@ import { scaleDrivers } from "../data/scales";
 import { useT } from "../i18n";
 
 // Where the peer average and the referral threshold fall on the 0–100 index.
+// These are load scales: 50 is the peer average AND the point at which
+// `statusOf` in data/scales.js starts calling a result "watch". Being at the
+// average is already the beginning of a concern.
 const AVG_AT = 50;
 const WATCH_AT = 66;
+
+/**
+ * The index, as a comparison rather than a number.
+ *
+ * The cut points have to be `statusOf`'s own, or the sentence contradicts the
+ * badge beside it — an index of 52 read as "about the same as your peers" while
+ * the badge said 주의, because 50 is the average and the threshold at once.
+ */
+function band(index) {
+  if (index >= WATCH_AT) return "high";
+  if (index >= AVG_AT) return "aboveAvg";
+  if (index >= AVG_AT - 10) return "avg";
+  return "low";
+}
 
 /**
  * One mind index, and the chain that produced it.
@@ -18,16 +36,71 @@ const WATCH_AT = 66;
  * The index alone is uninterpretable to anyone who is not a biochemist, so
  * the card always shows the top driver's mechanism in plain language, and
  * opens to the full marker list on request.
+ *
+ * `collapsed` starts it as a single row. An index that is fine still takes a
+ * full card's worth of screen otherwise — bar, driver, value, disclosure —
+ * which is four fifths of the page spent on the four fifths of results that
+ * are not asking for anything. Tapping the row opens the card in place, so
+ * nothing is hidden, only deferred.
  */
-export default function ScaleCard({ meta, index, status, roundIndex, last }) {
+export default function ScaleCard({
+  meta,
+  index,
+  status,
+  roundIndex,
+  collapsed = false,
+  last,
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(!collapsed);
   const color = STATUS_COLOR[status];
   // An index that is fine gets a neutral bar. Five green bars down the screen
   // read as decoration; the amber one then has to shout to be noticed at all.
   const lamp = status === "good" ? C.ink2 : STATUS_LAMP[status];
   const drivers = scaleDrivers(meta, roundIndex);
   const lead = drivers[0];
+
+  const heading = (
+    <>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <Icon
+          name={meta.icon}
+          level={status === "alert" ? 2 : status === "watch" ? 1 : 0}
+          size={26}
+        />
+        <span style={{ ...T.title3, color: C.ink }}>{t(meta.axisKey)}</span>
+      </span>
+      <span style={{ ...T.caption, color }}>{t(`status.${status}`)}</span>
+    </>
+  );
+
+  if (!expanded) {
+    return (
+      <Pressable
+        as="button"
+        type="button"
+        onClick={() => setExpanded(true)}
+        pressScale={0.995}
+        hoverStyle={{ background: C.surfaceHover }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          width: "100%",
+          padding: "11px 16px",
+          background: "transparent",
+          border: "none",
+          textAlign: "left",
+          cursor: "pointer",
+          boxShadow: last ? "none" : DIVIDER,
+        }}
+      >
+        {heading}
+      </Pressable>
+    );
+  }
 
   return (
     <div
@@ -41,51 +114,15 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
           gap: 10,
         }}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <Icon
-            name={meta.icon}
-            level={status === "alert" ? 2 : status === "watch" ? 1 : 0}
-            size={26}
-          />
-          <span style={{ ...T.title3, color: C.ink }}>{t(meta.axisKey)}</span>
-        </span>
-        <span style={{ ...T.micro, color: C.faintest }}>
-          {t("mind.derived")}
-        </span>
+        {heading}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "flex-end",
-          gap: 10,
-          marginTop: 9,
-        }}
-      >
-        <span
-          style={{
-            ...T.num,
-            fontSize: 27,
-            fontWeight: 600,
-            color: C.ink,
-            lineHeight: 1,
-          }}
-        >
-          {index}
-        </span>
-        <span style={{ ...T.caption, color, paddingBottom: 2 }}>
-          {t(`status.${status}`)}
-        </span>
-        <span
-          style={{
-            marginLeft: "auto",
-            ...T.micro,
-            color: C.faintest,
-            paddingBottom: 2,
-          }}
-        >
-          {t("mind.index")}
-        </span>
+      {/* "57 · INDEX · DERIVED" said nothing to anyone who is not already
+          holding the scale in their head: there is no unit, and 57 of what was
+          never on screen. The comparison is the whole content, so the
+          comparison is what gets said. */}
+      <div style={{ ...T.bodyText, color: C.body, marginTop: 8 }}>
+        {t(`mind.vsPeer.${band(index)}`)}
       </div>
 
       <Ruler index={index} lamp={lamp} />
@@ -139,9 +176,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
             >
               {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
             </p>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: 11 }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
               {drivers.map((d) => (
                 <div key={d.marker.name}>
                   <div
@@ -214,108 +249,49 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
 }
 
 /**
- * A measured axis rather than a decorative gradient. The fill carries the
- * value, the peer average and referral threshold are marked on the axis, and
- * the ticks let you read a position instead of estimating one.
+ * Where this index sits, and where the average is.
+ *
+ * This used to be a full instrument scale: a fill, a thumb, two threshold
+ * marks, eleven tick rules and three numeric labels — seventeen elements, five
+ * times down the screen. Nobody reads a mind index off a ruler to the nearest
+ * unit; the only two facts anyone takes from it are "where am I" and "where is
+ * everyone else", so those are the only two things drawn.
  */
 function Ruler({ index, lamp }) {
   return (
-    <div style={{ marginTop: 13 }}>
-      <div
-        style={{
-          position: "relative",
-          height: 6,
-          borderRadius: 3,
-          background: C.surfaceSunken,
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            inset: "0 auto 0 0",
-            width: `${index}%`,
-            background: lamp,
-            borderRadius: 3,
-            transition: `width 520ms ${EASE}, background 240ms ${EASE}`,
-          }}
-        />
-        <Mark at={AVG_AT} strong />
-        <Mark at={WATCH_AT} />
-        <div
-          style={{
-            position: "absolute",
-            top: -3,
-            left: `${index}%`,
-            width: 3,
-            height: 12,
-            marginLeft: -1.5,
-            borderRadius: 1.5,
-            background: C.ink,
-            boxShadow: `0 0 0 2px ${C.surface}`,
-            transition: `left 520ms ${EASE}`,
-          }}
-        />
-      </div>
-
-      <div style={{ position: "relative", height: 6, marginTop: 3 }}>
-        {Array.from({ length: 11 }, (_, i) => i * 10).map((v) => (
-          <span
-            key={v}
-            style={{
-              position: "absolute",
-              left: `${v}%`,
-              top: 0,
-              width: 1,
-              height: v % 25 === 0 || v === 100 ? 5 : 3,
-              background: v % 50 === 0 ? C.hairlineStrong : C.hairline,
-            }}
-          />
-        ))}
-      </div>
-
-      <div style={{ position: "relative", height: 12, marginTop: 1 }}>
-        <Tick at={0} align="start" label="0" />
-        <Tick at={AVG_AT} align="middle" label="50" muted={false} />
-        <Tick at={100} align="end" label="100" />
-      </div>
-    </div>
-  );
-}
-
-function Mark({ at, strong }) {
-  return (
-    <span
+    <div
       style={{
-        position: "absolute",
-        top: -2,
-        left: `${at}%`,
-        width: 1,
-        height: 10,
-        background: strong ? "rgba(23,24,26,.42)" : C.hairlineStrong,
-      }}
-    />
-  );
-}
-
-function Tick({ at, align, label, muted = true }) {
-  const transform =
-    align === "start"
-      ? "none"
-      : align === "end"
-        ? "translateX(-100%)"
-        : "translateX(-50%)";
-  return (
-    <span
-      style={{
-        position: "absolute",
-        left: `${at}%`,
-        transform,
-        ...T.micro,
-        fontSize: 9,
-        color: muted ? C.faintest : C.faint,
+        position: "relative",
+        height: 6,
+        borderRadius: 3,
+        background: C.surfaceSunken,
+        marginTop: 12,
       }}
     >
-      {label}
-    </span>
+      <div
+        style={{
+          position: "absolute",
+          inset: "0 auto 0 0",
+          width: `${index}%`,
+          background: lamp,
+          borderRadius: 3,
+          transition: `width 520ms ${EASE}, background 240ms ${EASE}`,
+        }}
+      />
+      {/* The peer average, as a notch cut through the fill. */}
+      <span
+        style={{
+          position: "absolute",
+          top: -2,
+          left: `${AVG_AT}%`,
+          width: 2,
+          marginLeft: -1,
+          height: 10,
+          borderRadius: 1,
+          background: C.bg,
+          boxShadow: `0 0 0 1px ${C.hairlineStrong}`,
+        }}
+      />
+    </div>
   );
 }

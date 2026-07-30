@@ -41,7 +41,7 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
   const t = useT();
 
   return (
-    <Card style={{ padding: "15px 14px 12px" }} delay={delay}>
+    <Card pad="sm" delay={delay}>
       <SectionLabel value={`${t("mind.me")} · ${t("mind.peer")}`}>
         {t("mind.index")}
       </SectionLabel>

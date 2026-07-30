@@ -32,6 +32,17 @@ const BodyIcon = () => (
   </svg>
 );
 
+// Signals: two panels and the lens where they overlap. A pair of converging
+// traces was the first attempt and it read as scissors at 23px — the strokes
+// cross, and the crossing wins. An intersection is also the more literal
+// picture: this screen is only what shows up in the overlap.
+const SignalIcon = () => (
+  <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
+    <circle cx="8.9" cy="12" r="5.9" />
+    <circle cx="15.1" cy="12" r="5.9" />
+  </svg>
+);
+
 const MoreIcon = () => (
   <svg width="23" height="23" viewBox="0 0 24 24" {...stroke}>
     <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />
@@ -40,35 +51,23 @@ const MoreIcon = () => (
   </svg>
 );
 
-const ScanIcon = () => (
-  <svg width="24" height="24" viewBox="0 0 24 24" {...stroke} stroke="#fff">
-    <path d="M3.8 8.4V4.6a.9.9 0 0 1 .9-.9h3.7" />
-    <path d="M20.2 8.4V4.6a.9.9 0 0 0-.9-.9h-3.7" />
-    <path d="M3.8 15.6v3.8a.9.9 0 0 0 .9.9h3.7" />
-    <path d="M20.2 15.6v3.8a.9.9 0 0 1-.9.9h-3.7" />
-    <path d="M3.8 12h16.4" />
-  </svg>
-);
-
 const TABS = [
   { key: "home", labelKey: "tab.home", Icon: HomeIcon },
   { key: "mind", labelKey: "tab.mind", Icon: MindIcon },
   { key: "body", labelKey: "tab.body", Icon: BodyIcon },
+  { key: "signal", labelKey: "tab.signal", Icon: SignalIcon },
   { key: "more", labelKey: "tab.more", Icon: MoreIcon },
 ];
 
+/** One cell per tab, so the sliding capsule stays exact as the count changes. */
+const CELL = `${100 / TABS.length}%`;
+
 /**
- * Progressive blur: several backdrop-filter layers, each masked to a lower
- * band with a stronger radius. One flat blur reads as frosted plastic; a ramp
- * from ~0 at the content boundary to heavy at the bottom is what makes the
- * bar read as optical glass — content approaches the edge sharp, then melts.
+ * The capsule settles with a small overshoot. A pure ease reads as a rectangle
+ * being repositioned; the overshoot is what makes it read as a physical thing
+ * that was thrown and caught.
  */
-const BLUR_STACK = [
-  { blur: 2, sat: 1.05, from: 0, to: 32 },
-  { blur: 6, sat: 1.2, from: 18, to: 58 },
-  { blur: 14, sat: 1.5, from: 38, to: 100 },
-  { blur: 26, sat: 1.8, from: 62, to: 100 },
-];
+const SLIDE = "cubic-bezier(.34,1.32,.5,1)";
 
 function TabItem({ tab, current, onSelect, dot }) {
   const t = useT();
@@ -81,20 +80,23 @@ function TabItem({ tab, current, onSelect, dot }) {
       aria-current={on ? "page" : undefined}
       aria-label={t(tab.labelKey)}
       onClick={() => onSelect(tab.key)}
-      pressScale={0.9}
+      pressScale={0.92}
       style={{
         flex: 1,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        justifyContent: "center",
         gap: 3,
         cursor: "pointer",
-        color: on ? C.ink : "rgba(78,82,90,.66)",
-        transition: `color 200ms ${EASE}`,
+        color: on ? C.ink : "rgba(78,82,90,.7)",
+        // Faster than the capsule on purpose: the label lights up before the
+        // glass arrives, which is the order Apple's own bars resolve in.
+        transition: `color 190ms ${EASE}`,
         background: "none",
         border: "none",
-        padding: "2px 0",
-        minHeight: 44,
+        padding: 0,
+        minHeight: 46,
       }}
     >
       <span style={{ position: "relative", display: "flex" }}>
@@ -122,26 +124,39 @@ function TabItem({ tab, current, onSelect, dot }) {
 }
 
 /**
- * Glass tab bar.
+ * Floating glass tab bar.
  *
- * The material is live, not painted: it tracks the scroller underneath and
- * (a) firms up its tint and separation shadow only while there is content
- * left to pass under it, relaxing to near-clear at the end of the page, and
- * (b) slides a faint specular band as content moves, the way light shifts
- * across real glass when what is behind it moves. All of it is driven through
- * CSS custom properties from one rAF-throttled scroll handler — no re-renders.
+ * Two changes from the full-width slab this replaces, and they depend on each
+ * other. The bar is now an inset capsule, so the glass is an *object* sitting
+ * over the page rather than a wall drawn across it — which is what made the
+ * heavy material read as excessive before. And because it is one object with
+ * four equal cells, the selection can be a second piece of glass that slides
+ * between them, so switching tabs has a physical result instead of only a
+ * colour change.
+ *
+ * The material inside the capsule is a single uniform blur, not the progressive
+ * ramp the slab used. A ramp exists to melt content into an edge that spans the
+ * screen; a capsule has no such edge, and blurring its own top more than its
+ * bottom just looks like a gradient.
+ *
+ * Presence still tracks the scroller — tint and shadow firm up while there is
+ * content passing underneath and relax at the end of the page — driven through
+ * CSS custom properties from one rAF-throttled handler, so scrolling never
+ * re-renders React.
  */
 export default function TabBar({
   tab,
   onSelect,
-  onScan,
   mindDot,
   bodyDot,
   scrollerRef,
 }) {
-  const t = useT();
   const navRef = useRef(null);
   const dots = { mind: mindDot, body: bodyDot };
+  const index = Math.max(
+    0,
+    TABS.findIndex((x) => x.key === tab),
+  );
 
   useEffect(() => {
     const scroller = scrollerRef?.current;
@@ -159,7 +174,7 @@ export default function TabBar({
       // Specular drift: light travels opposite to content, slow and bounded.
       nav.style.setProperty(
         "--glass-shift",
-        `${-(scroller.scrollTop * 0.18) % 260}px`,
+        `${-(scroller.scrollTop * 0.16) % 220}px`,
       );
     };
     const onScroll = () => {
@@ -183,158 +198,130 @@ export default function TabBar({
       ref={navRef}
       className="glassbar"
       style={{
-        // Floats over the scroller instead of ending it — the approach zone
-        // in the top padding is where content melts into the material.
         position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
+        left: 14,
+        right: 14,
+        bottom: "calc(12px + var(--safe-bottom))",
         zIndex: 10,
-        padding: "40px 6px calc(14px + var(--safe-bottom))",
-        display: "flex",
-        alignItems: "flex-end",
-        pointerEvents: "none",
+        height: 62,
+        borderRadius: 31,
         "--glass-presence": 1,
         "--glass-shift": "0px",
+        boxShadow: `0 8px 30px -10px rgba(23,24,26,calc(.30 * var(--glass-presence))), 0 1px 2px rgba(23,24,26,.06)`,
       }}
     >
-      {/* Optical stack — everything below the content row is the material. */}
+      {/* Optical stack. Clipped to the capsule so the blur cannot leak. */}
       <div
         aria-hidden="true"
-        style={{ position: "absolute", inset: "30px 0 0", overflow: "hidden" }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "inherit",
+          overflow: "hidden",
+        }}
       >
-        {/* Progressive blur ramp. */}
-        {BLUR_STACK.map((l, i) => (
-          <div
-            key={i}
-            className="glassbar-layer"
-            style={{
-              position: "absolute",
-              inset: 0,
-              backdropFilter: `blur(${l.blur}px) saturate(${l.sat})`,
-              WebkitBackdropFilter: `blur(${l.blur}px) saturate(${l.sat})`,
-              maskImage: `linear-gradient(to bottom, transparent ${l.from}%, #000 ${l.to}%)`,
-              WebkitMaskImage: `linear-gradient(to bottom, transparent ${l.from}%, #000 ${l.to}%)`,
-            }}
-          />
-        ))}
-
-        {/* Tint — firmer while content runs underneath, near-clear at page end. */}
         <div
           className="glassbar-layer"
           style={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(to bottom, rgba(246,246,243,0) 0%, rgba(246,246,243,.46) 34%, rgba(246,246,243,.72) 100%)",
-            opacity: "calc(.55 + .45 * var(--glass-presence))",
+            backdropFilter: "blur(24px) saturate(1.35)",
+            WebkitBackdropFilter: "blur(24px) saturate(1.35)",
+          }}
+        />
+        {/* The tint has to carry most of the body. At a lower opacity the
+            accent button passing underneath tinted the whole bar violet — glass
+            that takes on the colour of one element behind it reads as a bug,
+            not as a material. */}
+        <div
+          className="glassbar-layer"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(251,251,249,.84)",
+            opacity: "calc(.86 + .14 * var(--glass-presence))",
             transition: `opacity 260ms ${EASE}`,
           }}
         />
-
         {/* Specular band — drifts with scroll, like light across moving glass. */}
         <div
           className="glassbar-layer"
           style={{
             position: "absolute",
-            inset: "-40% -60%",
+            inset: "-70% -60%",
             background:
-              "linear-gradient(112deg, transparent 34%, rgba(255,255,255,.55) 46%, rgba(255,255,255,.14) 52%, transparent 62%)",
+              "linear-gradient(112deg, transparent 34%, rgba(255,255,255,.6) 46%, rgba(255,255,255,.16) 52%, transparent 62%)",
             transform: "translate3d(var(--glass-shift), 0, 0)",
-            opacity: "calc(.16 + .22 * var(--glass-presence))",
+            opacity: "calc(.2 + .24 * var(--glass-presence))",
             willChange: "transform",
-          }}
-        />
-
-        {/* Top edge: light catching the lip of the material, then a hairline. */}
-        <div
-          className="glassbar-layer"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 1,
-            background:
-              "linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85) 30%, rgba(255,255,255,.85) 70%, rgba(255,255,255,0))",
-            opacity: "calc(.4 + .6 * var(--glass-presence))",
-          }}
-        />
-        <div
-          className="glassbar-layer"
-          style={{
-            position: "absolute",
-            top: -1,
-            left: 0,
-            right: 0,
-            height: 1,
-            background: "rgba(23,24,26,.09)",
-            opacity: "var(--glass-presence)",
           }}
         />
       </div>
 
-      {/* Content row sits above the optics and takes the pointer back. */}
+      {/* Rim: a lit top lip and a hairline all the way round, outside the
+          clip so it stays crisp at the curve. */}
       <div
+        aria-hidden="true"
         style={{
-          position: "relative",
-          display: "flex",
-          flex: 1,
-          pointerEvents: "auto",
+          position: "absolute",
+          inset: 0,
+          borderRadius: "inherit",
+          pointerEvents: "none",
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,.9), inset 0 0 0 .5px rgba(23,24,26,.1)",
+        }}
+      />
+
+      {/* The selection, as a second piece of glass. One cell-wide box slides
+          across the track; the pill is inset inside it, so translating by a
+          whole cell width lands it exactly over the next tab. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: "6px 6px",
+          pointerEvents: "none",
         }}
       >
-        <TabItem
-          tab={TABS[0]}
-          current={tab}
-          onSelect={onSelect}
-          dot={dots[TABS[0].key]}
-        />
-        <TabItem
-          tab={TABS[1]}
-          current={tab}
-          onSelect={onSelect}
-          dot={dots[TABS[1].key]}
-        />
-        <div style={{ flex: 1 }} />
-        <TabItem
-          tab={TABS[2]}
-          current={tab}
-          onSelect={onSelect}
-          dot={dots[TABS[2].key]}
-        />
-        <TabItem
-          tab={TABS[3]}
-          current={tab}
-          onSelect={onSelect}
-          dot={dots[TABS[3].key]}
-        />
-
-        <Pressable
-          as="button"
-          type="button"
-          onClick={onScan}
-          aria-label={t("tab.scan")}
-          pressScale={0.9}
+        <div
+          className="tab-cell"
           style={{
             position: "absolute",
-            left: "50%",
-            top: -14,
-            marginLeft: -27,
-            width: 54,
-            height: 54,
-            borderRadius: "50%",
-            background: C.accent,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            border: "none",
-            cursor: "pointer",
-            boxShadow:
-              "inset 0 1px 0 rgba(255,255,255,.16), 0 0 0 4px rgba(246,246,243,.7), 0 10px 24px -8px rgba(23,24,26,.5)",
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: CELL,
+            transform: `translate3d(${index * 100}%, 0, 0)`,
+            transition: `transform 420ms ${SLIDE}`,
+            willChange: "transform",
           }}
         >
-          <ScanIcon />
-        </Pressable>
+          <div
+            className="tab-pill"
+            style={{
+              position: "absolute",
+              inset: "0 3px",
+              borderRadius: 22,
+              background: "rgba(255,255,255,.58)",
+              backdropFilter: "blur(8px) saturate(1.6)",
+              WebkitBackdropFilter: "blur(8px) saturate(1.6)",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,.95), inset 0 0 0 .5px rgba(23,24,26,.07), 0 2px 8px -2px rgba(23,24,26,.22)",
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={{ position: "relative", display: "flex", height: "100%" }}>
+        {TABS.map((item) => (
+          <TabItem
+            key={item.key}
+            tab={item}
+            current={tab}
+            onSelect={onSelect}
+            dot={dots[item.key]}
+          />
+        ))}
       </div>
     </nav>
   );
