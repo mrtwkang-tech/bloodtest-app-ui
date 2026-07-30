@@ -51,6 +51,7 @@ export const SCALE_META = [
     // The pathway label shown instead of a questionnaire code.
     code: "composite",
     drivers: [
+      m("epigen", "cfDNA sgACC (SST-CpG)", 1.8, "mech.cfMood"),
       m("epigen", "SLC6A4 promoter", 1.5, "mech.slc6a4"),
       m("epigen", "BDNF promoter IV", 1.4, "mech.bdnfMeth"),
       m("epigen", "DNAm inflammation", 1.2, "mech.dnamInflam"),
@@ -65,6 +66,7 @@ export const SCALE_META = [
     icon: "tension",
     code: "composite",
     drivers: [
+      m("epigen", "cfDNA amygdala (GAD1-CpG)", 1.8, "mech.cfTension"),
       m("epigen", "FKBP5 intron 7", 1.5, "mech.fkbp5"),
       m("epigen", "NR3C1 exon 1F", 1.3, "mech.nr3c1"),
       m("epigen", "COMT Val158 CpG", 1.0, "mech.comt"),
@@ -79,6 +81,7 @@ export const SCALE_META = [
     icon: "stress",
     code: "composite",
     drivers: [
+      m("epigen", "cfDNA PVN (CRH-CpG)", 1.8, "mech.cfStress"),
       m("epigen", "DNAm cortisol (90d)", 1.6, "mech.cortisolLoad"),
       m("epigen", "NR3C1 exon 1F", 1.3, "mech.nr3c1"),
       m("endocrine", "HbA1c", 1.0, "mech.glucose"),
@@ -92,6 +95,7 @@ export const SCALE_META = [
     icon: "sleep",
     code: "composite",
     drivers: [
+      m("epigen", "cfDNA SCN (VIP-CpG)", 1.8, "mech.cfSleep"),
       m("epigen", "PER2/CLOCK index", 1.6, "mech.circadian"),
       m("epigen", "DNAm cortisol (90d)", 0.9, "mech.cortisolLoad"),
       m("neuro", "6-sulfatoxymelatonin", 0.8, "mech.melatonin"),
@@ -104,6 +108,7 @@ export const SCALE_META = [
     icon: "energy",
     code: "composite",
     drivers: [
+      m("epigen", "cfDNA oligodendrocyte (MBP-CpG)", 1.8, "mech.cfEnergy"),
       m("hematology", "Ferritin", 1.3, "mech.iron"),
       m("hematology", "Haemoglobin", 1.2, "mech.oxygen"),
       m("endocrine", "Free T4", 1.0, "mech.thyroid"),
@@ -119,9 +124,23 @@ export const SCALE_META = [
 export function cumulativeShare(meta) {
   const total = meta.drivers.reduce((n, d) => n + d.weight, 0);
   const slow = meta.drivers
-    .filter((d) => d.system === "epigen" || SLOW_BLOOD.has(d.marker))
+    .filter((d) => integrates(d.system, d.marker))
     .reduce((n, d) => n + d.weight, 0);
   return slow / total;
+}
+
+/**
+ * Does this marker summarise a span of time, or report the moment of the draw?
+ *
+ * Most of the methylation panel integrates over months. The cell-free DNA
+ * markers do not — cfDNA clears in hours — so they are excluded here even
+ * though they sit in the same panel. Asking `system === "epigen"` was the
+ * shortcut that would have quietly mislabelled them.
+ */
+function integrates(system, markerName) {
+  if (SLOW_BLOOD.has(markerName)) return true;
+  if (system !== "epigen") return false;
+  return !findMarker(system, markerName).marker.snapshot;
 }
 
 /** Blood markers whose value is already an average over weeks or months. */
@@ -182,7 +201,7 @@ export function scaleDrivers(meta, roundIndex) {
         systemNameKey: panel.nameKey,
         mechanismKey: d.mechanismKey,
         // Methylation markers integrate; plasma markers mostly do not.
-        cumulative: panel.key === "epigen" || SLOW_BLOOD.has(marker.name),
+        cumulative: integrates(d.system, d.marker),
         // Contribution to the index, so the ordering reflects the weighting.
         contribution: load * d.weight,
         pushesUp: load > 0.5,

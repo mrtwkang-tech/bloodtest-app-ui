@@ -5,35 +5,47 @@ import SessionChips from "../components/SessionChips";
 import { LinkBody } from "../components/InBodyPanel";
 import { Collapse, DisclosureButton } from "../components/Collapse";
 import { Badge, Card, SectionTitle } from "../components/primitives";
-import { C, LEVEL_COLOR, R, T, fadeUp } from "../tokens";
+import {
+  C,
+  DIVIDER_TOP,
+  LEVEL_COLOR,
+  LEVEL_LAMP,
+  R,
+  T,
+  fadeUp,
+} from "../tokens";
 import { formatValue } from "../data/body";
 import { interactionsFor } from "../data/interactions";
 import { riskEstimates } from "../data/bayes";
 import { inbodyLinksFor } from "../data/inbody";
+import { plainKeyOf } from "../data/plainNames";
 import { SESSIONS } from "../data/sessions";
 import { useLang } from "../i18n";
 
 /**
  * Everything that only exists when the panels are read together.
  *
- * Mind and Body each answer for their own measurements. This screen answers for
- * the ones that are only visible in combination — a blood value that means
- * something different once composition is known, two systems drifting together,
- * a condition whose odds move because several unremarkable findings point the
- * same way.
+ * NOT EVERYTHING DESERVES A ROW.
  *
- * TWELVE FINDINGS, TWELVE LINES.
+ * The first version of this screen printed all twelve findings as open cards
+ * and ran to 2843px. The second collapsed all twelve to rows, which halved the
+ * scrolling and was still wrong: twelve identical rows is twelve pieces of
+ * latent work, and a list of things to click is not the same as a clean screen.
+ * Folding is a way of storing information, not a way of deciding about it.
  *
- * The first version of this screen rendered every finding as a fully-open card
- * and ran to 2843px — three and a half screens of scrolling, with the first and
- * the twelfth given identical weight. The data was already ranked; the screen
- * was not showing it. So the screen now opens with the one thing worth acting
- * on, states the shape of the rest in a single line, and keeps everything else
- * one press away.
+ * So this version decides. Three tiers, shaped differently on purpose because
+ * they deserve different amounts of the reader's life:
  *
- * Ordered by how far each group reaches: what the numbers already say, then
- * what they say jointly, then what they might imply. The last of those is the
- * one that can frighten, so it is last.
+ *   THE LEAD    one finding, as prose, already open. No row, no chrome, no tap.
+ *               If the screen has a point, the point should be readable.
+ *   WATCH       the other findings that are asking for something. A row each,
+ *               because there are two or three and each is a real decision.
+ *   CONTEXT     everything that changes how a number reads without warning
+ *               about anything — the cross-reads, and any condition whose odds
+ *               barely moved. These were five rows. They are one line now,
+ *               because "five things that are fine" is one fact, not five.
+ *
+ * Twelve rows became one paragraph, a few rows, and a line.
  */
 export default function SignalTab({ sel, onPickSession }) {
   const { t } = useLang();
@@ -42,33 +54,166 @@ export default function SignalTab({ sel, onPickSession }) {
   const links = inbodyLinksFor(roundIndex);
   const signals = interactionsFor(roundIndex);
   const risks = riskEstimates(roundIndex);
-  const total = links.length + signals.length + risks.length;
 
-  // Cross-reads carry no severity of their own, and correctly so: they change
-  // how a number should be read rather than warning about it — one of them
-  // exists purely to say a high creatinine is muscle, not kidneys.
+  // One shape for all three sources, so tiering is a sort rather than a
+  // three-way branch repeated at every render site.
   const items = [
     ...signals.map((s) => ({
-      level: s.severity,
       id: `sig:${s.key}`,
+      level: s.severity,
       title: t(s.titleKey),
+      meta: s.systems.map((k) => t(`sys.${k}`)).join(" · "),
+      count: s.evidence.length,
+      body: <SignalBody signal={s} />,
     })),
     ...risks.map((r) => ({
-      level: riskLevel(r),
       id: `dx:${r.key}`,
+      level: riskLevel(r),
       title: t(r.nameKey),
+      meta: t(r.specialtyKey),
+      count: r.findings.length,
+      body: <RiskBody risk={r} />,
     })),
-  ];
-  // Identified by key, not by title. Two findings can legitimately be phrased
-  // the same way, and matching on the rendered string would open both.
-  const lead =
-    items.find((i) => i.level === 2) ?? items.find((i) => i.level === 1);
-  const counts = [0, 1, 2].map(
-    (lv) =>
-      items.filter((i) => i.level === lv).length +
-      (lv === 0 ? links.length : 0),
-  );
+    ...links.map((l) => ({
+      // Cross-reads carry no severity, and correctly so: they change how a
+      // number should be read rather than warning about it. One of them exists
+      // purely to say a high creatinine is muscle, not kidneys.
+      id: `link:${l.key}`,
+      level: 0,
+      title: t(l.titleKey),
+      count: l.blood.length + l.composition.length,
+      body: <LinkBody link={l} />,
+    })),
+  ].sort((a, b) => b.level - a.level);
 
+  if (items.length === 0) {
+    return (
+      <Screen sel={sel} onPickSession={onPickSession}>
+        <Card pad="md" delay={40}>
+          <p style={{ ...T.bodyText, color: C.ink, margin: 0 }}>
+            {t("signal.leadNone")}
+          </p>
+        </Card>
+      </Screen>
+    );
+  }
+
+  const [lead, ...rest] = items;
+  const watch = rest.filter((i) => i.level > 0);
+  const context = rest.filter((i) => i.level === 0);
+
+  return (
+    <Screen sel={sel} onPickSession={onPickSession}>
+      {/* The lead. Open, on the page, nothing between the reader and it. */}
+      <Card pad="md" delay={40}>
+        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          {lead.level > 0 && (
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: "50%",
+                flex: "none",
+                background: LEVEL_LAMP[lead.level],
+              }}
+            />
+          )}
+          <span style={{ ...T.caption, color: C.faint }}>
+            {t(lead.level > 0 ? "signal.leadLabel" : "signal.contextLabel")}
+          </span>
+        </div>
+        <h2 style={{ ...T.title2, color: C.ink, margin: "8px 0 0" }}>
+          {lead.title}
+        </h2>
+        {lead.meta && (
+          <div style={{ ...T.caption, color: C.faintest, marginTop: 4 }}>
+            {lead.meta}
+          </div>
+        )}
+        <div style={{ marginTop: 12 }}>{lead.body}</div>
+      </Card>
+
+      {watch.length > 0 && (
+        <>
+          <SectionTitle value={String(watch.length)}>
+            {t("signal.watchTitle")}
+          </SectionTitle>
+          <Card variant="group" style={{ overflow: "hidden", padding: 0 }}>
+            {watch.map((item, i) => (
+              <DisclosureRow
+                key={item.id}
+                level={item.level}
+                title={item.title}
+                meta={item.meta}
+                count={item.count}
+                last={i === watch.length - 1}
+              >
+                {item.body}
+              </DisclosureRow>
+            ))}
+          </Card>
+        </>
+      )}
+
+      {context.length > 0 && (
+        <div style={{ marginTop: 18 }}>
+          <Card variant="group" style={{ overflow: "hidden", padding: 0 }}>
+            {/* One line for the whole tier. Five things that are fine is one
+                fact about this round, not five things to work through. */}
+            <DisclosureRow
+              title={t("signal.contextTitle")}
+              meta={t("signal.contextNote")}
+              count={context.length}
+              last
+            >
+              {context.map((item, i) => (
+                <div
+                  key={item.id}
+                  style={
+                    i === 0
+                      ? null
+                      : {
+                          marginTop: 14,
+                          paddingTop: 14,
+                          boxShadow: DIVIDER_TOP,
+                        }
+                  }
+                >
+                  <div style={{ ...T.label, color: C.ink }}>{item.title}</div>
+                  <div style={{ marginTop: 7 }}>{item.body}</div>
+                </div>
+              ))}
+            </DisclosureRow>
+          </Card>
+        </div>
+      )}
+
+      {/* Conditions are estimated, not diagnosed, and the reader has now seen
+          at least one. Said once at the end rather than above every card. */}
+      {risks.length > 0 && (
+        <div style={{ margin: "16px 2px 0" }}>
+          <Badge color={C.watch} tint={C.watchTint}>
+            {t("dx.beta")}
+          </Badge>
+          <p
+            style={{
+              ...T.caption,
+              color: C.faint,
+              margin: "8px 0 0",
+              lineHeight: 1.6,
+              textWrap: "pretty",
+            }}
+          >
+            {t("dx.note")}
+          </p>
+        </div>
+      )}
+    </Screen>
+  );
+}
+
+function Screen({ sel, onPickSession, children }) {
+  const { t } = useLang();
   return (
     <div>
       <header style={fadeUp(0)}>
@@ -76,112 +221,12 @@ export default function SignalTab({ sel, onPickSession }) {
           {t("signal.title")}
         </h1>
         <div style={{ ...T.caption, color: C.faint, marginTop: 5 }}>
-          {total === 0 ? t("signal.none") : t("signal.subtitle", { n: total })}
+          {t("signal.subtitle2")}
         </div>
         <SessionChips sel={sel} onPick={onPickSession} />
       </header>
-
-      {total > 0 && (
-        <Card pad="md" delay={40}>
-          <p
-            style={{
-              ...T.bodyText,
-              color: C.ink,
-              margin: 0,
-              textWrap: "pretty",
-            }}
-          >
-            {lead
-              ? t("signal.lead", { title: lead.title })
-              : t("signal.leadNone")}
-          </p>
-          <div style={{ ...T.caption, color: C.faint, marginTop: 8 }}>
-            {t("signal.countLine", {
-              check: counts[2],
-              watch: counts[1],
-              note: counts[0],
-            })}
-          </div>
-        </Card>
-      )}
-
-      <Group title={t("home.crossRead")} n={links.length}>
-        {links.map((link, i) => (
-          <DisclosureRow
-            key={link.key}
-            title={t(link.titleKey)}
-            count={link.blood.length + link.composition.length}
-            last={i === links.length - 1}
-          >
-            <LinkBody link={link} />
-          </DisclosureRow>
-        ))}
-      </Group>
-
-      <Group title={t("home.signalsRow")} n={signals.length}>
-        {signals.map((sig, i) => (
-          <DisclosureRow
-            key={sig.key}
-            level={sig.severity}
-            title={t(sig.titleKey)}
-            meta={sig.systems.map((k) => t(`sys.${k}`)).join(" · ")}
-            count={sig.evidence.length}
-            defaultOpen={lead?.id === `sig:${sig.key}`}
-            last={i === signals.length - 1}
-          >
-            <SignalBody signal={sig} />
-          </DisclosureRow>
-        ))}
-      </Group>
-
-      {risks.length > 0 && (
-        <Group title={t("home.risksRow")} n={risks.length}>
-          {/* The disclaimer belongs above the conditions, not inside each one. */}
-          <div style={{ padding: "12px 16px 4px" }}>
-            <Badge color={C.watch} tint={C.watchTint}>
-              {t("dx.beta")}
-            </Badge>
-            <p
-              style={{
-                ...T.caption,
-                color: C.faint,
-                margin: "8px 0 0",
-                lineHeight: 1.6,
-                textWrap: "pretty",
-              }}
-            >
-              {t("dx.note")}
-            </p>
-          </div>
-          {risks.map((risk, i) => (
-            <DisclosureRow
-              key={risk.key}
-              level={riskLevel(risk)}
-              title={t(risk.nameKey)}
-              meta={t(risk.specialtyKey)}
-              count={risk.findings.length}
-              defaultOpen={lead?.id === `dx:${risk.key}`}
-              last={i === risks.length - 1}
-            >
-              <RiskBody risk={risk} />
-            </DisclosureRow>
-          ))}
-        </Group>
-      )}
+      {children}
     </div>
-  );
-}
-
-/** A heading and the rows under it. Renders nothing when the group is empty. */
-function Group({ title, n, children }) {
-  if (!n) return null;
-  return (
-    <>
-      <SectionTitle value={String(n)}>{title}</SectionTitle>
-      <Card variant="group" style={{ overflow: "hidden", padding: 0 }}>
-        {children}
-      </Card>
-    </>
   );
 }
 
@@ -196,12 +241,7 @@ function SignalBody({ signal }) {
   return (
     <div>
       <p
-        style={{
-          ...T.bodyText,
-          color: C.body,
-          margin: 0,
-          textWrap: "pretty",
-        }}
+        style={{ ...T.bodyText, color: C.body, margin: 0, textWrap: "pretty" }}
       >
         {t(signal.bodyKey, signal.stats)}
       </p>
@@ -226,7 +266,9 @@ function SignalBody({ signal }) {
                 }}
               >
                 <span style={{ ...T.caption, color: C.ink, flex: 1 }}>
-                  {e.marker.name}
+                  {plainKeyOf(e.marker)
+                    ? t(plainKeyOf(e.marker))
+                    : e.marker.name}
                 </span>
                 <span
                   style={{
@@ -249,8 +291,6 @@ function SignalBody({ signal }) {
                 </span>
               </div>
             ))}
-            {/* Why a pattern beats a single reading — it belongs with the
-                evidence, not above it as a standing disclaimer. */}
             {signal.stats && (
               <div
                 style={{

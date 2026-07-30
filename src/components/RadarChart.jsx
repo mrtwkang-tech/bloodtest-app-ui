@@ -1,6 +1,6 @@
 import { Card, SectionLabel } from "./primitives";
 import { AXES, SCALE_META } from "../data/scales";
-import { C, EASE, STATUS_LAMP, T } from "../tokens";
+import { C, EASE, STATUS_LAMP, T, tint } from "../tokens";
 import { useT } from "../i18n";
 
 const CX = 150;
@@ -82,20 +82,6 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
           );
         })}
 
-        {/* Ring values, printed once up the top spoke. */}
-        {RINGS.slice(0, 4).map((v) => (
-          <text
-            key={v}
-            x={CX - 6}
-            y={CY - (v / 100) * R_MAX + 3}
-            textAnchor="end"
-            style={{ ...T.micro, fontSize: 7.5, letterSpacing: "0.04em" }}
-            fill={C.faintest}
-          >
-            {v}
-          </text>
-        ))}
-
         {/* Peer average: an outline at 50, never a filled blob competing with you. */}
         <polygon
           points={ringPoly(50)}
@@ -105,30 +91,37 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
           strokeDasharray="3 3"
         />
 
-        {/* You. */}
+        {/* You. The fill was a hardcoded indigo — left behind by an accent that
+            was rejected two passes ago — which meant the shape carried a hue
+            belonging to nothing else on the screen. It takes the accent now, so
+            there is one brand colour and it is the same everywhere. */}
         <polygon
           points={poly(values)}
-          fill="rgba(67,56,202,.10)"
+          fill={tint(C.accent, 0.07)}
           stroke={C.accent}
           strokeWidth="1.75"
           strokeLinejoin="round"
           style={{ transition: `all 560ms ${EASE}` }}
         />
 
-        {/* Vertices, coloured by that scale's own status. */}
+        {/* Vertices. Five status-coloured dots put green on three or four of
+            them every round, which is the palette's one standing rule broken in
+            the one place it is most visible: in range is not a colour. Only the
+            axes that are asking for something are lit; the rest are ink. */}
         {values.map((v, i) => {
           const [x, y] = pt(
             AXES[i],
             (Math.max(3, Math.min(100, v)) / 100) * R_MAX,
           );
+          const lit = statuses[i] !== "good";
           return (
             <circle
               key={SCALE_META[i].key}
               cx={x}
               cy={y}
-              r="3.4"
-              fill={STATUS_LAMP[statuses[i]]}
-              stroke={C.surface}
+              r={lit ? 3.8 : 2.8}
+              fill={lit ? STATUS_LAMP[statuses[i]] : C.ink}
+              stroke={C.bg}
               strokeWidth="1.6"
               style={{ transition: `all 560ms ${EASE}` }}
             />

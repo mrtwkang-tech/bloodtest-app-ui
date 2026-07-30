@@ -4,18 +4,15 @@
  * Values may be strings or functions of an argument object, so a sentence can
  * put a number where its own grammar wants it rather than where English does.
  */
-
 export const en = {
   langName: "English",
   langShort: "EN",
-
   // Shell
   "tab.home": "Home",
   "tab.mind": "Mind",
   "tab.body": "Body",
   "tab.signal": "Signals",
   "tab.more": "More",
-
   // Home
   "home.greeting": ({ name }) => `Hello, ${name}`,
   "home.drawnOn": ({ date }) => `Drawn ${date}`,
@@ -39,11 +36,13 @@ export const en = {
   // Bayesian risk — the arithmetic, stated as arithmetic
   "dx.title": "Condition estimates",
   "dx.beta": "Beta",
-  "dx.note": "We do not diagnose. This is the base rate multiplied by how much each of your findings shifts the odds — a probability, on demo likelihood ratios.",
+  "dx.note":
+    "We do not diagnose. This is the base rate multiplied by how much each of your findings shifts the odds — a probability, on demo likelihood ratios.",
   "dx.prior": "Before the test",
   "dx.posterior": "After the test",
   "dx.multiple": ({ n }) => `${n}× your base rate`,
-  "dx.stillLow": "Still unlikely in absolute terms — the shift is the point, not the number.",
+  "dx.stillLow":
+    "Still unlikely in absolute terms — the shift is the point, not the number.",
   "dx.worthAsking": "High enough to be worth a conversation.",
   "dx.evidence": "How the odds moved",
   "dx.lrFor": "argues for",
@@ -75,7 +74,6 @@ export const en = {
   "dx.f.glu": "Fasting glucose at or above 100",
   "dx.f.vis": "Visceral fat elevated",
   "dx.f.ins": "Fasting insulin still normal",
-
   // Accent picker
   "accent.title": "Accent",
   "accent.plum": "Plum",
@@ -84,13 +82,14 @@ export const en = {
   "accent.clay": "Clay",
   "home.more": "More",
   "signal.title": "Signals",
-  "signal.subtitle": ({ n }) =>
-    `${n} things that only show up when the panels are read together`,
   "signal.none": "Nothing this round that needed two panels to see",
-  "signal.lead": ({ title }) => `Worth looking at first: ${title}.`,
+  "signal.subtitle2": "What shows up only when the panels are read together",
+  "signal.leadLabel": "Worth looking at first",
+  "signal.contextLabel": "Worth knowing",
+  "signal.watchTitle": "Also worth watching",
+  "signal.contextTitle": "Context for reading your numbers",
+  "signal.contextNote": "Nothing here is asking for action",
   "signal.leadNone": "Nothing here is asking for action right now.",
-  "signal.countLine": ({ check, watch, note }) =>
-    `${check} to check · ${watch} to watch · ${note} for context`,
   "home.crossRead": "Read together with body composition",
   "home.signalsRow": "Cross-system signals",
   "home.risksRow": "Condition estimates",
@@ -99,13 +98,14 @@ export const en = {
   "home.allClear": "All clear",
   "home.needsAttention": ({ n }) => `${n} need${n === 1 ? "s" : ""} attention`,
   "home.roundTest": ({ round }) => `${round} test`,
-
   // Rounds
   "round.n": ({ n }) => `Round ${n}`,
-
+  "round.older": "Earlier round",
+  "round.newer": "Later round",
   // Mind
   "mind.title": "Mind",
-  "mind.subtitle": "Five readings, from traces that build up over months",
+  "mind.subtitle":
+    "Five readings — what has built up, and what is happening now",
   "mind.summary": "Summary",
   "mind.allGood": "All five scales are in range",
   "mind.someGood": ({ ok }) => `${ok} of 5 scales in range`,
@@ -126,7 +126,6 @@ export const en = {
   "mind.newResult": "Your new results have arrived",
   "mind.crisis":
     "This is a screening result, not a diagnosis. If things stay hard, contact a clinician or a crisis line.",
-
   // Scales
   // Mind indices — derived from blood, not a questionnaire
   "scale.mood": "Mood",
@@ -144,7 +143,6 @@ export const en = {
     "How far your body clock has drifted — measured over weeks, not from one night's sleep.",
   "scale.energy.base":
     "Whether your blood can actually deliver oxygen and fuel to working cells.",
-
   // The methylation panel — plain names, technical loci, and what each one
   // integrates over. The window is the reason each marker is here.
   "sys.epigen": "Methylation panel",
@@ -160,19 +158,101 @@ export const en = {
   "epi.oxtr": "Social buffering",
   "epi.pace": "Pace of ageing",
   "epi.tl": "Cell-age reserve",
+  "pn.ptau217": "Alzheimer's tau protein",
+  "pn.nfl": "Nerve-fibre breakdown",
+  "pn.gfap": "Brain support-cell response",
+  "pn.abeta": "Amyloid balance",
+  "pn.asyn": "Parkinson's-related protein",
+  "pn.s100b": "Brain barrier condition",
+  "pn.kyntrp": "Serotonin raw material diverted",
+  "pn.bdnf": "Brain repair protein",
+  "pn.melatonin": "Melatonin made overnight",
+  "pn.crp": "Inflammation in the body",
+  "pn.ldl": "'Bad' cholesterol",
+  "pn.hdl": "'Good' cholesterol",
+  "pn.tg": "Blood fats",
+  "pn.apob": "Particles that lodge in vessels",
+  "pn.lpa": "Inherited vessel risk",
+  "pn.homocysteine": "Vessel-damaging amino acid",
+  "pn.bnp": "Strain on the heart",
+  "pn.troponin": "Heart-muscle damage",
+  "pn.hba1c": "Three-month average blood sugar",
+  "pn.glucose": "Fasting blood sugar",
+  "pn.insulin": "Fasting insulin",
+  "pn.homair": "How poorly insulin is working",
+  "pn.tsh": "Thyroid control signal",
+  "pn.ft4": "Thyroid hormone",
+  "pn.cortisol": "Morning stress hormone",
+  "pn.dheas": "Stress-buffering hormone",
+  "pn.alt": "Liver-cell damage",
+  "pn.ast": "Liver and muscle damage",
+  "pn.ggt": "Liver detox load",
+  "pn.alp": "Bile flow",
+  "pn.bilirubin": "Bile pigment",
+  "pn.albumin": "Protein the liver makes",
+  "pn.fib4": "Estimated liver stiffening",
+  "pn.creatinine": "Muscle waste product",
+  "pn.egfr": "How fast the kidneys filter",
+  "pn.bun": "Protein waste product",
+  "pn.cystatinc": "Kidney function (precise)",
+  "pn.uacr": "Protein leaking into urine",
+  "pn.uricacid": "Uric acid",
+  "pn.hb": "Oxygen-carrying pigment",
+  "pn.hct": "Red-cell share of blood",
+  "pn.wbc": "White-cell count",
+  "pn.platelets": "Platelet count",
+  "pn.ferritin": "Stored iron",
+  "pn.mcv": "Red-cell size",
+  "pn.eosinophils": "Allergy cells",
+  "pn.ige": "Allergy antibody",
+  "pn.a1at": "Lung-protecting protein",
+  "pn.spo2": "Oxygen saturation",
+  "pn.kl6": "Sign of lung scarring",
+  "pn.esr": "How fast inflammation settles",
+  "pn.rf": "Rheumatoid factor",
+  "pn.anticcp": "Rheumatoid-specific antibody",
+  "pn.ana": "Autoimmune antibody",
+  "pn.il6": "Inflammation signal",
+  "pn.c3": "Immune complement",
+  "pn.cfdna": "DNA floating in the blood",
+  "pn.cea": "Tumour marker (bowel, lung)",
+  "pn.ca199": "Tumour marker (pancreas, bile duct)",
+  "pn.afp": "Liver tumour marker",
+  "pn.ca125": "Tumour marker (ovary)",
+  "pn.psa": "Prostate marker",
+  "pn.vitd": "Vitamin D",
+  "pn.b12": "Vitamin B12",
+  "pn.folate": "Folate",
+  "pn.iron": "Iron in blood",
+  "pn.magnesium": "Magnesium",
+  "pn.zinc": "Zinc",
+  "pn.omega3": "Omega-3 index",
+  "epi.window.now": "what is happening now",
+  "epi.cfMood": "Mood-circuit activity",
+  "epi.cfTension": "Threat-circuit activity",
+  "epi.cfStress": "Stress-switch activity",
+  "epi.cfSleep": "Body-clock activity",
+  "epi.cfEnergy": "Brain maintenance load",
+  "mech.cfMood":
+    "Cells shed DNA into the blood when they die, and it keeps the marking pattern of the tissue it came from — the same trick liver-cancer screening uses. This counts fragments from the mood circuit of the frontal lobe.",
+  "mech.cfTension":
+    "Fragments from the amygdala's braking cells, the ones that shut off a threat response. More of them in circulation means the brake is being replaced faster than usual.",
+  "mech.cfStress":
+    "Fragments from the switch at the very top of the stress axis, upstream of every cortisol reading. This is the source rather than the output.",
+  "mech.cfSleep":
+    "Fragments from the pacemaker cells that set the body clock. They turn over faster when the clock is being pushed against.",
+  "mech.cfEnergy":
+    "Fragments from the cells that maintain the brain's insulation. Keeping it in repair is expensive, and it is the first upkeep a tired brain lets slide.",
   "epi.window.weeks": "averages ~3 weeks",
   "epi.window.90d": "averages ~90 days",
   "epi.window.months": "averages 2–4 months",
   "epi.window.year": "averages ~1 year",
   "epi.window": "Averaging window",
   "epi.badge": "Research panel",
-  "epi.hypothetical": "These assays are hypothetical. The loci are real and studied in stress biology; the tests and reference values are not clinically validated.",
-  "mind.whyCumulative": "Why not cortisol",
-  "mind.whyCumulativeBody":
-    "Cortisol swings two- to three-fold within one day. Two readings three months apart mostly differ because the two mornings differed. So the indices run on marks that build up instead: methylation changes over weeks to months, HbA1c averages a quarter of your blood sugar, the omega-3 index a quarter of your cell membranes. Each number is a summary of the months behind it, not a snapshot of the hour you were drawn.",
+  "epi.hypothetical":
+    "These assays are hypothetical. The loci are real and studied in stress biology; the tests and reference values are not clinically validated.",
   "mind.cumulativeTag": "cumulative",
   "mind.snapshotTag": "snapshot",
-
   "mech.cortisolLoad":
     "The mark that months of stress hormone left on your genes. Unlike a blood cortisol, it cannot be moved by one bad morning.",
   "mech.nr3c1":
@@ -195,7 +275,6 @@ export const en = {
     "How fast your biology is ageing per calendar year. Sustained load pushes it above 1.00.",
   "mech.telomere":
     "The reserve left on your cells' molecular clock. It falls faster under long-running load.",
-
   "mech.inflammation":
     "Inflammation makes the brain conserve energy — that is felt as low motivation.",
   "mech.tryptophan":
@@ -228,7 +307,6 @@ export const en = {
     "B12 is needed to build the insulation around nerves and to make energy.",
   "mech.insulin":
     "High fasting insulin means cells are resisting fuel — felt as an afternoon crash.",
-
   "mind.whyThis": "What moved this",
   "mind.pushesUp": "raising",
   "mind.pushesDown": "helping",
@@ -240,19 +318,17 @@ export const en = {
   "mind.vsPeer.aboveAvg": "A little above the peer average",
   "mind.vsPeer.high": "Clearly above the peer average",
   "mind.cadenceNote":
-    "Every marker here summarises the weeks or months before your draw, so two rounds three months apart are genuinely comparable. That is what a snapshot hormone could not do.",
+    "Each reading looks at two things at once: what has built up over the past months, and what that part of you is doing right now.",
   "mind.notDiagnosis":
     "These indices describe biological load along a pathway. They are not a diagnosis of any mental health condition.",
   "mind.showMarkers": "Show markers",
   "mind.hideMarkers": "Hide",
-
   // Body detail
   "body.allMarkers": ({ n }) => `All ${n} markers`,
   "body.showAll": ({ n }) => `Show all ${n}`,
   "body.showLess": "Show less",
   "body.outOfRangeOnly": ({ n }) => `${n} outside range`,
   "body.clearAll": "Everything in this panel is inside its reference range.",
-
   // InBody
   "ib.title": "Body composition",
   "ib.connected": "Device linked",
@@ -293,13 +369,12 @@ export const en = {
   "ib.link.muscle.title": "Muscle down since the last round",
   "ib.link.muscle.body":
     "Skeletal muscle and metabolic rate both fell this round. Iron stores and thyroid output are the two blood values that most often sit behind that, so they are worth reading next to it rather than on their own.",
-
   "body.composition": "Composition",
-
   // Cross-system, BETA
   "ix.title": "Cross-system signals",
   "ix.beta": "BETA",
-  "ix.note": "Patterns across panels that no single specialty would flag. Heuristics, not a validated model.",
+  "ix.note":
+    "Patterns across panels that no single specialty would flag. Heuristics, not a validated model.",
   "ix.none": "No cross-system patterns in this round.",
   "ix.evidence": "Which readings this came from",
   "ix.hepaticTrajectory.title": "Liver markers on a trajectory",
@@ -312,13 +387,11 @@ export const en = {
   "ix.whyLongitudinal": "Why six rounds",
   "ix.trajectoryNote":
     "A single draw can only ask whether a value is in range. Six can ask which way it is moving, and how fast — which is the only way a marker that is still technically normal can be a finding.",
-
   "home.inbody": "Body composition",
   "home.tracked": ({ n, m }) => `${n} rounds · ${m} months`,
   "store.monthly": "Monthly",
   "store.monthlyNote": "Ships every month · fastest trend resolution",
   "store.ctaMonthly": "Start monthly · 79,000 KRW per test",
-
   "ix.residualInflammation.title": "Inflammation without the lipid signal",
   "ix.residualInflammation.body":
     "Your cholesterol looks handled, but the inflammatory side of vascular risk does not. Cardiology would pass this; the combination is what matters.",
@@ -349,14 +422,12 @@ export const en = {
     "GGT and ALT are drifting up alongside fasting insulin. Read separately these are unremarkable; together they are the early metabolic-liver pattern.",
   "ix.metabolicLiver.action":
     "Alcohol, fructose and weight are the usual levers. Recheck next round before treating it as anything more.",
-
   "status.good": "In range",
   "status.watch": "Watch",
   "status.alert": "See someone",
   "status.line.good": "Below the peer average and not affecting daily life.",
   "status.line.watch": "Above the peer average — worth watching for now.",
   "status.line.alert": "Past the screening threshold. Talk to a professional.",
-
   // Body
   "body.title": "Body",
   "body.subtitle": "17 conditions, across 10 kinds of clinic",
@@ -381,7 +452,6 @@ export const en = {
   "body.watchNext": "Watch until the next round",
   "body.consultNow": "A specialist visit is recommended",
   "body.rotateHint": "Drag to rotate",
-
   // Zones
   "zone.neuro": "Brain & nerves",
   "zone.cardio": "Cardiovascular",
@@ -395,7 +465,6 @@ export const en = {
     "Your average blood sugar over 2–3 months, and how well insulin is working.",
   "zone.systemic.note":
     "Tumour-related markers that circulate through the whole body rather than sitting in one organ — which is why the whole figure lights up.",
-
   // Systems, one per medical specialty
   "sys.neuro": "Brain & nerves",
   "sys.cardio": "Heart & vessels",
@@ -407,7 +476,6 @@ export const en = {
   "sys.immune": "Joints & immunity",
   "sys.oncology": "Whole body",
   "sys.nutrition": "Nutrition",
-
   "spec.neuro": "Neurology",
   "spec.cardio": "Cardiology",
   "spec.endocrine": "Endocrinology",
@@ -418,7 +486,6 @@ export const en = {
   "spec.immune": "Rheumatology",
   "spec.oncology": "Oncology",
   "spec.nutrition": "Nutrition & metabolism",
-
   "sys.neuro.note":
     "Proteins that leak into the blood when nerve cells are damaged or degenerating.",
   "sys.cardio.note": "Vessel inflammation, lipid load and cardiac strain.",
@@ -436,7 +503,6 @@ export const en = {
     "Tumour-related markers that circulate through the whole body rather than sitting in one organ — which is why the whole figure lights up.",
   "sys.nutrition.note":
     "Vitamins, minerals and fatty acids absorbed through the gut.",
-
   "cond.hypertension": "Hypertension",
   "cond.thyroid": "Thyroid disorder",
   "cond.fattyLiver": "Fatty liver",
@@ -448,9 +514,7 @@ export const en = {
   "cond.ra": "Rheumatoid arthritis",
   "cond.autoimmune": "Autoimmune disease",
   "cond.deficiency": "Nutrient deficiency",
-
   "body.systems": "Systems",
-
   // Conditions
   "cond.alzheimers": "Alzheimer’s",
   "cond.parkinsons": "Parkinson’s",
@@ -458,13 +522,11 @@ export const en = {
   "cond.mi": "Heart attack",
   "cond.diabetes": "Diabetes",
   "cond.cancer": "Cancer",
-
   // Trend
   "trend.first": "First test · baseline",
   "trend.same": "Same as last round",
   "trend.down": ({ p }) => `Down ${p}% · improving`,
   "trend.up": ({ p }) => `Up ${p}%`,
-
   // Store
   "store.title": "Buy a kit",
   "store.subtitle": "Draw at home, post it back, read the report here",
@@ -491,7 +553,6 @@ export const en = {
   "store.ctaSingle": "Pay 89,000 KRW for one test",
   "store.ctaQuarter": "Start quarterly · 59,000 KRW per test",
   "store.ctaHalf": "Start half-yearly · 64,000 KRW per test",
-
   // Scan / analysis
   "scan.title": "Register your kit",
   "scan.help": "Help",
@@ -509,7 +570,6 @@ export const en = {
   "analyzing.running": "running",
   "analyzing.waiting": "waiting",
   "analyzing.background": "Leave it running",
-
   // More / settings
   "more.title": "More",
   "more.account": "Account",
@@ -539,24 +599,20 @@ export const en = {
   "biz.mailOrder": "Mail-order reg. no.",
   "biz.privacyOfficer": "Privacy officer",
   "biz.privacyEmail": "Privacy contact",
-
   "common.close": "Close",
   "common.back": "Back",
   "common.more": "Read more",
   "common.less": "Less",
   "common.detail": "Details",
 };
-
 export const ko = {
   langName: "한국어",
   langShort: "KO",
-
   "tab.home": "홈",
   "tab.mind": "마음",
   "tab.body": "몸",
   "tab.signal": "시그널",
   "tab.more": "더보기",
-
   "home.greeting": ({ name }) => `${name}님, 안녕하세요`,
   "home.drawnOn": ({ date }) => `${date} 채혈`,
   "home.score": "건강 점수",
@@ -579,11 +635,13 @@ export const ko = {
   // 베이즈 위험 추정
   "dx.title": "예상 질환 추정",
   "dx.beta": "베타",
-  "dx.note": "우리는 진단하지 않습니다. 같은 나이대의 기본 확률에서 출발해, 이번 결과가 그 확률을 얼마나 올리고 내리는지를 계산한 값입니다.",
+  "dx.note":
+    "우리는 진단하지 않습니다. 같은 나이대의 기본 확률에서 출발해, 이번 결과가 그 확률을 얼마나 올리고 내리는지를 계산한 값입니다.",
   "dx.prior": "검사 전",
   "dx.posterior": "검사 후",
   "dx.multiple": ({ n }) => `기본 확률의 ${n}배`,
-  "dx.stillLow": "절대적으로는 여전히 낮습니다. 중요한 건 숫자가 아니라 변화 폭입니다.",
+  "dx.stillLow":
+    "절대적으로는 여전히 낮습니다. 중요한 건 숫자가 아니라 변화 폭입니다.",
   "dx.worthAsking": "한 번 상의해볼 만한 수준입니다.",
   "dx.evidence": "확률이 움직인 근거",
   "dx.lrFor": "올림",
@@ -615,7 +673,6 @@ export const ko = {
   "dx.f.glu": "공복혈당 100 이상",
   "dx.f.vis": "내장지방 높음",
   "dx.f.ins": "공복 인슐린은 아직 정상",
-
   // 액센트
   "accent.title": "액센트",
   "accent.plum": "플럼",
@@ -624,12 +681,14 @@ export const ko = {
   "accent.clay": "클레이",
   "home.more": "더 보기",
   "signal.title": "시그널",
-  "signal.subtitle": ({ n }) => `같이 봐야 보이는 것 ${n}가지`,
   "signal.none": "이번 회차에는 같이 봐야 보이는 것이 없습니다",
-  "signal.lead": ({ title }) => `먼저 볼 것은 «${title}»입니다.`,
+  "signal.subtitle2": "따로 보면 안 보이고 같이 봐야 보이는 것들",
+  "signal.leadLabel": "먼저 볼 것",
+  "signal.contextLabel": "알아둘 것",
+  "signal.watchTitle": "함께 지켜볼 것",
+  "signal.contextTitle": "수치를 읽을 때 참고할 것",
+  "signal.contextNote": "조치가 필요한 내용은 없습니다",
   "signal.leadNone": "지금 당장 조치가 필요한 항목은 없습니다.",
-  "signal.countLine": ({ check, watch, note }) =>
-    `확인 ${check} · 관찰 ${watch} · 참고 ${note}`,
   "home.crossRead": "체성분과 같이 보기",
   "home.signalsRow": "함께 움직인 수치",
   "home.risksRow": "예상 질환 추정",
@@ -638,11 +697,11 @@ export const ko = {
   "home.allClear": "이상 없음",
   "home.needsAttention": ({ n }) => `${n}개 확인 필요`,
   "home.roundTest": ({ round }) => `${round} 검사`,
-
   "round.n": ({ n }) => `${n}회차`,
-
+  "round.older": "이전 회차",
+  "round.newer": "다음 회차",
   "mind.title": "마음",
-  "mind.subtitle": "몇 달에 걸쳐 몸에 쌓인 흔적으로 읽은 다섯 가지",
+  "mind.subtitle": "몸에 쌓인 흔적과 지금 벌어지는 일로 읽은 다섯 가지",
   "mind.summary": "종합",
   "mind.allGood": "5개 척도 모두 정상 범위",
   "mind.someGood": ({ ok }) => `5개 중 ${ok}개 정상 범위`,
@@ -663,7 +722,6 @@ export const ko = {
   "mind.newResult": "새 검사 결과가 도착했습니다",
   "mind.crisis":
     "선별검사 결과이며 의학적 진단이 아닙니다. 힘든 상태가 이어진다면 정신건강상담전화 1577-0199 또는 의료기관을 이용하세요.",
-
   // 마음 지수 — 설문이 아니라 혈액에서 유도
   "scale.mood": "기분",
   "scale.tension": "긴장",
@@ -680,7 +738,6 @@ export const ko = {
     "생체시계가 얼마나 어긋났는지를 봅니다. 하룻밤이 아니라 몇 주치입니다.",
   "scale.energy.base":
     "혈액이 실제로 산소와 연료를 세포까지 나르고 있는지를 봅니다.",
-
   // 메틸화 패널
   "sys.epigen": "메틸화 패널",
   "spec.epigen": "정신건강의학과 · 진단검사의학과",
@@ -695,19 +752,101 @@ export const ko = {
   "epi.oxtr": "사회적 완충력",
   "epi.pace": "노화 속도",
   "epi.tl": "세포 나이 여력",
+  "pn.ptau217": "알츠하이머 타우 단백",
+  "pn.nfl": "신경섬유가 부서진 양",
+  "pn.gfap": "뇌 지지세포 반응",
+  "pn.abeta": "아밀로이드 균형",
+  "pn.asyn": "파킨슨 관련 단백",
+  "pn.s100b": "뇌 혈관장벽 상태",
+  "pn.kyntrp": "세로토닌 원료가 새는 정도",
+  "pn.bdnf": "뇌 회복 단백",
+  "pn.melatonin": "밤에 만든 멜라토닌",
+  "pn.crp": "몸속 염증 정도",
+  "pn.ldl": "나쁜 콜레스테롤",
+  "pn.hdl": "좋은 콜레스테롤",
+  "pn.tg": "중성지방",
+  "pn.apob": "혈관에 박히는 입자 수",
+  "pn.lpa": "타고난 혈관 위험",
+  "pn.homocysteine": "혈관을 상하게 하는 아미노산",
+  "pn.bnp": "심장이 받는 부담",
+  "pn.troponin": "심장근육 손상",
+  "pn.hba1c": "3개월 평균 혈당",
+  "pn.glucose": "공복 혈당",
+  "pn.insulin": "공복 인슐린",
+  "pn.homair": "인슐린이 잘 안 듣는 정도",
+  "pn.tsh": "갑상선 조절 신호",
+  "pn.ft4": "갑상선 호르몬",
+  "pn.cortisol": "아침 스트레스 호르몬",
+  "pn.dheas": "스트레스 완충 호르몬",
+  "pn.alt": "간세포 손상",
+  "pn.ast": "간·근육 손상",
+  "pn.ggt": "간 해독 부담",
+  "pn.alp": "담즙 흐름",
+  "pn.bilirubin": "담즙 색소",
+  "pn.albumin": "간이 만드는 단백",
+  "pn.fib4": "간이 굳은 정도 추정",
+  "pn.creatinine": "근육 노폐물",
+  "pn.egfr": "콩팥이 거르는 속도",
+  "pn.bun": "단백질 노폐물",
+  "pn.cystatinc": "콩팥 기능 (정밀)",
+  "pn.uacr": "소변으로 새는 단백",
+  "pn.uricacid": "요산",
+  "pn.hb": "산소 운반 색소",
+  "pn.hct": "적혈구 비율",
+  "pn.wbc": "백혈구 수",
+  "pn.platelets": "혈소판 수",
+  "pn.ferritin": "저장된 철분",
+  "pn.mcv": "적혈구 크기",
+  "pn.eosinophils": "알레르기 세포",
+  "pn.ige": "알레르기 항체",
+  "pn.a1at": "폐를 지키는 단백",
+  "pn.spo2": "산소 포화도",
+  "pn.kl6": "폐가 굳는 신호",
+  "pn.esr": "염증 가라앉는 속도",
+  "pn.rf": "류마티스 인자",
+  "pn.anticcp": "류마티스 특이 항체",
+  "pn.ana": "자가면역 항체",
+  "pn.il6": "염증 신호물질",
+  "pn.c3": "면역 보체",
+  "pn.cfdna": "혈액에 떠도는 DNA 양",
+  "pn.cea": "종양 표지자 (대장·폐)",
+  "pn.ca199": "종양 표지자 (췌장·담도)",
+  "pn.afp": "간 종양 표지자",
+  "pn.ca125": "종양 표지자 (난소)",
+  "pn.psa": "전립선 표지자",
+  "pn.vitd": "비타민 D",
+  "pn.b12": "비타민 B12",
+  "pn.folate": "엽산",
+  "pn.iron": "혈중 철분",
+  "pn.magnesium": "마그네슘",
+  "pn.zinc": "아연",
+  "pn.omega3": "오메가-3 지수",
+  "epi.window.now": "지금 벌어지는 일",
+  "epi.cfMood": "기분 회로가 쓰인 정도",
+  "epi.cfTension": "경계 회로가 쓰인 정도",
+  "epi.cfStress": "스트레스 스위치가 쓰인 정도",
+  "epi.cfSleep": "생체시계가 쓰인 정도",
+  "epi.cfEnergy": "뇌 정비에 들어간 부하",
+  "mech.cfMood":
+    "세포가 죽으면 DNA 조각이 혈액으로 흘러나오는데, 그 조각에는 어느 조직에서 왔는지 알려주는 표시가 남아 있습니다. 간암을 혈액으로 찾아내는 방법과 같습니다. 이건 이마엽 기분 회로에서 나온 조각을 셉니다.",
+  "mech.cfTension":
+    "편도체에서 경계 반응을 꺼주는 세포들이 남긴 조각입니다. 많이 돌아다닌다는 건 그 브레이크가 평소보다 빨리 교체되고 있다는 뜻입니다.",
+  "mech.cfStress":
+    "스트레스 축의 맨 꼭대기, 코르티솔이 나오라고 명령을 내리는 스위치에서 나온 조각입니다. 결과가 아니라 원천을 봅니다.",
+  "mech.cfSleep":
+    "생체시계의 박자를 만드는 세포에서 나온 조각입니다. 시계를 거슬러 살면 이 세포들이 더 빨리 교체됩니다.",
+  "mech.cfEnergy":
+    "뇌의 신경 절연을 정비하는 세포에서 나온 조각입니다. 정비에는 에너지가 많이 들고, 지친 뇌가 가장 먼저 미루는 일이기도 합니다.",
   "epi.window.weeks": "약 3주 평균",
   "epi.window.90d": "약 90일 평균",
   "epi.window.months": "2~4개월 평균",
   "epi.window.year": "약 1년 평균",
   "epi.window": "평균 구간",
   "epi.badge": "연구 패널",
-  "epi.hypothetical": "이 검사들은 가정입니다. 유전자 자리는 실재하지만 검사법과 기준치는 임상 검증된 것이 아닙니다.",
-  "mind.whyCumulative": "왜 코르티솔이 아닌가",
-  "mind.whyCumulativeBody":
-    "코르티솔 같은 호르몬은 하루 안에서도 2~3배씩 오르내립니다. 3개월에 한 번 잰 값으로는 그날 아침의 기분밖에 알 수 없습니다. 그래서 몸에 몇 달째 쌓인 흔적을 대신 읽습니다.",
+  "epi.hypothetical":
+    "이 검사들은 가정입니다. 유전자 자리는 실재하지만 검사법과 기준치는 임상 검증된 것이 아닙니다.",
   "mind.cumulativeTag": "누적",
   "mind.snapshotTag": "순간값",
-
   "mech.cortisolLoad":
     "몇 달치 스트레스 호르몬이 유전자에 남긴 흔적입니다. 혈중 코르티솔과 달리 하루 컨디션으로는 움직이지 않습니다.",
   "mech.nr3c1":
@@ -729,7 +868,6 @@ export const ko = {
     "달력 1년당 생물학적으로 몇 년을 늙는지입니다. 부하가 길어지면 1.00을 넘습니다.",
   "mech.telomere":
     "세포의 분자 시계에 남은 여력입니다. 부하가 오래가면 더 빨리 줄어듭니다.",
-
   "mech.inflammation":
     "염증이 있으면 뇌가 에너지를 아끼는 쪽으로 움직입니다. 그게 의욕 저하로 느껴집니다.",
   "mech.tryptophan":
@@ -759,7 +897,6 @@ export const ko = {
   "mech.b12": "B12는 신경 절연막을 만들고 에너지를 내는 데 필요합니다.",
   "mech.insulin":
     "공복 인슐린이 높으면 세포가 연료를 거부한다는 뜻이고, 오후 급격한 처짐으로 느껴집니다.",
-
   "mind.whyThis": "무엇이 움직였나",
   "mind.pushesUp": "올림",
   "mind.pushesDown": "낮춤",
@@ -771,19 +908,17 @@ export const ko = {
   "mind.vsPeer.aboveAvg": "또래보다 조금 높습니다",
   "mind.vsPeer.high": "또래보다 뚜렷하게 높습니다",
   "mind.cadenceNote":
-    "여기 있는 수치는 전부 채혈 앞의 몇 주에서 몇 달을 요약합니다. 그래서 3개월 간격의 두 회차를 그대로 견줄 수 있습니다. 순간값 호르몬으로는 할 수 없던 일입니다.",
+    "각 항목은 두 가지를 함께 봅니다. 지난 몇 달 몸에 쌓인 흔적과, 지금 그 부위에서 벌어지고 있는 일입니다.",
   "mind.notDiagnosis":
     "이 지수는 특정 경로의 생물학적 부하를 설명합니다. 정신질환의 진단이 아닙니다.",
   "mind.showMarkers": "수치 보기",
   "mind.hideMarkers": "접기",
-
   // 몸 상세
   "body.allMarkers": ({ n }) => `전체 ${n}개 수치`,
   "body.showAll": ({ n }) => `${n}개 모두 보기`,
   "body.showLess": "접기",
   "body.outOfRangeOnly": ({ n }) => `${n}개 범위 밖`,
   "body.clearAll": "이 진료과의 모든 수치가 정상 범위 안입니다.",
-
   // 인바디
   "ib.title": "체성분",
   "ib.connected": "기기 연동됨",
@@ -823,13 +958,12 @@ export const ko = {
   "ib.link.muscle.title": "직전 회차보다 줄어든 근육량",
   "ib.link.muscle.body":
     "골격근량과 기초대사량이 함께 떨어졌습니다. 그 뒤에 가장 자주 있는 혈액 값이 철 저장량과 갑상선 출력이라, 따로가 아니라 이 둘과 나란히 읽을 만합니다.",
-
   "body.composition": "체성분",
-
   // 교차 신호, 베타
   "ix.title": "함께 움직인 수치",
   "ix.beta": "베타",
-  "ix.note": "한 분과만 봐서는 잡히지 않는 조합입니다. 검증된 모델이 아니라 휴리스틱입니다.",
+  "ix.note":
+    "한 분과만 봐서는 잡히지 않는 조합입니다. 검증된 모델이 아니라 휴리스틱입니다.",
   "ix.none": "이번 회차에는 함께 움직인 수치가 없습니다.",
   "ix.evidence": "어떤 수치에서 나왔나",
   "ix.hepaticTrajectory.title": "한 방향으로 계속 움직인 간 수치",
@@ -842,13 +976,11 @@ export const ko = {
   "ix.whyLongitudinal": "왜 6회차인가",
   "ix.trajectoryNote":
     "한 번 재면 지금 정상인지만 알 수 있습니다. 여섯 번 재면 어느 쪽으로 움직이는지가 보입니다. 아직 정상인 수치에서 미리 알아채는 유일한 방법입니다.",
-
   "home.inbody": "체성분",
   "home.tracked": ({ n, m }) => `${n}회차 · ${m}개월`,
   "store.monthly": "월간 구독",
   "store.monthlyNote": "매달 배송 · 추세를 가장 촘촘하게",
   "store.ctaMonthly": "월간 구독 시작 · 회당 79,000원",
-
   "ix.residualInflammation.title": "지질은 잡혔는데 염증이 남음",
   "ix.residualInflammation.body":
     "콜레스테롤은 관리된 것으로 보이지만 혈관 위험의 염증 쪽은 그렇지 않습니다. 순환기내과 단독으로는 넘어갈 수 있고, 중요한 건 이 조합입니다.",
@@ -878,14 +1010,12 @@ export const ko = {
     "GGT와 ALT가 공복 인슐린과 나란히 올라가고 있습니다. 따로 보면 대수롭지 않지만, 함께 보면 대사성 간질환의 초기 패턴입니다.",
   "ix.metabolicLiver.action":
     "알코올·과당·체중이 보통의 지렛대입니다. 그 이상으로 보기 전에 다음 회차에서 재확인하세요.",
-
   "status.good": "양호",
   "status.watch": "주의",
   "status.alert": "상담 권장",
   "status.line.good": "또래 평균보다 낮아 일상에 지장을 주지 않는 범위입니다.",
   "status.line.watch": "또래 평균을 웃돌아 당분간 관찰이 필요한 범위입니다.",
   "status.line.alert": "선별 기준을 넘었습니다. 전문가 상담을 권합니다.",
-
   "body.title": "몸",
   "body.subtitle": "10개 진료과에서 질환 17종을 살펴봤습니다",
   "body.summary": "종합",
@@ -909,7 +1039,6 @@ export const ko = {
   "body.watchNext": "다음 회차까지 관찰하세요",
   "body.consultNow": "전문의 상담을 권합니다",
   "body.rotateHint": "드래그해서 돌려보세요",
-
   "zone.neuro": "뇌·신경",
   "zone.cardio": "심혈관",
   "zone.metab": "대사",
@@ -922,7 +1051,6 @@ export const ko = {
     "최근 2~3개월의 평균 혈당과 인슐린이 얼마나 잘 듣고 있는지를 봅니다.",
   "zone.systemic.note":
     "특정 장기가 아니라 몸 전체를 도는 종양 관련 수치를 봅니다. 그래서 실루엣 전체가 반응합니다.",
-
   // 분과별 계열
   "sys.neuro": "뇌·신경",
   "sys.cardio": "심장·혈관",
@@ -934,7 +1062,6 @@ export const ko = {
   "sys.immune": "관절·면역",
   "sys.oncology": "전신",
   "sys.nutrition": "영양",
-
   "spec.neuro": "신경과",
   "spec.cardio": "순환기내과",
   "spec.endocrine": "내분비내과",
@@ -945,7 +1072,6 @@ export const ko = {
   "spec.immune": "류마티스내과",
   "spec.oncology": "종양내과",
   "spec.nutrition": "영양대사",
-
   "sys.neuro.note":
     "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 수치를 봅니다.",
   "sys.cardio.note": "혈관 염증, 지질 부담, 심장 부하를 봅니다.",
@@ -958,7 +1084,6 @@ export const ko = {
   "sys.oncology.note":
     "특정 장기가 아니라 몸 전체를 도는 종양 관련 수치를 봅니다. 그래서 실루엣 전체가 반응합니다.",
   "sys.nutrition.note": "장에서 흡수되는 비타민·미네랄·지방산을 봅니다.",
-
   "cond.hypertension": "고혈압",
   "cond.thyroid": "갑상선질환",
   "cond.fattyLiver": "지방간",
@@ -970,21 +1095,17 @@ export const ko = {
   "cond.ra": "류마티스관절염",
   "cond.autoimmune": "자가면역질환",
   "cond.deficiency": "영양결핍",
-
   "body.systems": "진료과",
-
   "cond.alzheimers": "알츠하이머",
   "cond.parkinsons": "파킨슨병",
   "cond.stroke": "뇌졸중",
   "cond.mi": "심근경색",
   "cond.diabetes": "당뇨",
   "cond.cancer": "암",
-
   "trend.first": "첫 검사 · 비교 기준",
   "trend.same": "직전 회차와 동일",
   "trend.down": ({ p }) => `직전 대비 ${p}% 감소 · 개선`,
   "trend.up": ({ p }) => `직전 대비 ${p}% 증가`,
-
   "store.title": "키트 구매",
   "store.subtitle": "집에서 채혈하고 보내면 결과는 여기서",
   "store.kit": "풀배터리 검사 키트",
@@ -1009,7 +1130,6 @@ export const ko = {
   "store.ctaSingle": "89,000원 · 1회 검사 결제",
   "store.ctaQuarter": "분기 구독 시작 · 회당 59,000원",
   "store.ctaHalf": "반기 구독 시작 · 회당 64,000원",
-
   "scan.title": "키트 QR 등록",
   "scan.help": "도움말",
   "scan.instruction": "키트에 동봉된 QR 코드를 사각형 안에 맞춰주세요",
@@ -1026,7 +1146,6 @@ export const ko = {
   "analyzing.running": "진행 중",
   "analyzing.waiting": "대기",
   "analyzing.background": "백그라운드로 두기",
-
   "more.title": "더보기",
   "more.account": "계정",
   "more.legal": "약관 및 정책",
@@ -1055,13 +1174,11 @@ export const ko = {
   "biz.mailOrder": "통신판매업 신고",
   "biz.privacyOfficer": "개인정보 보호책임자",
   "biz.privacyEmail": "개인정보 문의",
-
   "common.close": "닫기",
   "common.back": "뒤로",
   "common.more": "더 보기",
   "common.less": "접기",
   "common.detail": "자세히",
 };
-
 export const DICTS = { en, ko };
 export const LANGS = ["en", "ko"];

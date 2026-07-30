@@ -37,6 +37,7 @@ import {
   bodySummary,
   pick,
 } from "../data/sessions";
+import { plainKeyOf } from "../data/plainNames";
 import { useLang } from "../i18n";
 
 /**
@@ -73,6 +74,11 @@ export default function BodyTab({ sel, onPickSession }) {
   const shown = activeEntry ? [activeEntry] : summary.flagged;
 
   const pickMetric = BODY_METRICS[metric];
+  // The trend chart picker listed assay names too — the same wall, in a control.
+  const plainName = (mk) => {
+    const k = plainKeyOf(mk);
+    return k ? t(k) : mk.name;
+  };
   const series = bodySeries(pickMetric.zone, pickMetric.mi);
   const rounds = [...SESSIONS].reverse();
   const currentValue = series[series.length - 1 - sel];
@@ -188,7 +194,7 @@ export default function BodyTab({ sel, onPickSession }) {
 
       <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
       <TrendChart
-        title={pickMetric.marker.name}
+        title={plainName(pickMetric.marker)}
         unit={pickMetric.marker.unit}
         series={series}
         labels={rounds.map((s) => t("round.n", { n: s.round }))}
@@ -198,7 +204,7 @@ export default function BodyTab({ sel, onPickSession }) {
         color={LEVEL_COLOR[markerLevel(pickMetric.marker, currentValue)]}
         options={BODY_METRICS.map((m) => ({
           key: `${m.zone}-${m.mi}`,
-          label: m.marker.name,
+          label: plainName(m.marker),
         }))}
         selectedOption={metric}
         onPickOption={setMetric}
@@ -273,7 +279,12 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             }}
           >
             {t("body.outOfRange", {
-              names: over.map((p) => p.marker.name).join(" · "),
+              names: over
+                .map((p) => {
+                  const k = plainKeyOf(p.marker);
+                  return k ? t(k) : p.marker.name;
+                })
+                .join(" · "),
             })}
           </div>
         )}
@@ -377,6 +388,7 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
 function MarkerBar({ marker, value }) {
   const t = useLang().t;
   const level = markerLevel(marker, value);
+  const plain = plainKeyOf(marker);
   return (
     <div>
       <div
@@ -387,8 +399,19 @@ function MarkerBar({ marker, value }) {
           gap: 10,
         }}
       >
-        <span style={{ ...T.label, color: C.ink }}>{marker.name}</span>
-        <span>
+        <span style={{ minWidth: 0 }}>
+          <span style={{ ...T.label, color: C.ink, display: "block" }}>
+            {plain ? t(plain) : marker.name}
+          </span>
+          {plain && (
+            <span
+              style={{ ...T.micro, color: C.faintest, display: "block", marginTop: 2 }}
+            >
+              {marker.name}
+            </span>
+          )}
+        </span>
+        <span style={{ flex: "none" }}>
           <span
             style={{
               ...T.num,

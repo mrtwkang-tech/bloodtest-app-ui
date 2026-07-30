@@ -109,44 +109,6 @@ export default function MindTab({ sel, onPickSession, showNew }) {
         />
       </div>
 
-      {/* The instrument note. A reader who has been told their "stress load" is
-          57 deserves to know what was measured to get there — and, given the
-          obvious objection, why it was not a hormone. */}
-      <SectionTitle>{t("mind.whyCumulative")}</SectionTitle>
-      <Card pad="md" delay={100}>
-        <Clamp lines={3}>{t("mind.whyCumulativeBody")}</Clamp>
-        {/* Badge above rather than beside: a badge in a flex row steals a
-            third of the measure and squeezes the sentence into a column. */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: 8,
-            marginTop: 13,
-            paddingTop: 12,
-            boxShadow: `inset 0 1px 0 ${C.hairline}`,
-          }}
-        >
-          <Badge color={C.watch} tint={C.watchTint}>
-            {t("epi.badge")}
-          </Badge>
-          {/* A full sentence, so monoSm — T.micro uppercases, which is right
-              for a two-word label and unreadable for a paragraph. */}
-          <span
-            style={{
-              ...T.caption,
-              color: C.faint,
-              flex: 1,
-              lineHeight: 1.65,
-              textWrap: "pretty",
-            }}
-          >
-            {t("epi.hypothetical")}
-          </span>
-        </div>
-      </Card>
-
       <SectionTitle>{t("mind.scales")}</SectionTitle>
       <p
         style={{
@@ -226,18 +188,36 @@ export default function MindTab({ sel, onPickSession, showNew }) {
       <SectionTitle>{t("mind.state")}</SectionTitle>
       <Card pad="md">
         <Clamp lines={3}>{pick(session.mind, lang)}</Clamp>
-        <p
+        {/* The two things a reader must not leave this screen without: these
+            assays are not validated, and none of this is a diagnosis. The
+            research-panel badge used to sit further up beside an essay about
+            why cortisol was the wrong marker; the essay is gone and the badge
+            belongs with the other caveats rather than alone. */}
+        <div
           style={{
-            ...T.caption,
-            color: C.faint,
-            margin: "12px 0 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-start",
+            gap: 8,
+            marginTop: 12,
             paddingTop: 11,
             boxShadow: `inset 0 1px 0 ${C.hairline}`,
-            textWrap: "pretty",
           }}
         >
-          {t("mind.notDiagnosis")} {t("mind.crisis")}
-        </p>
+          <Badge color={C.watch} tint={C.watchTint}>
+            {t("epi.badge")}
+          </Badge>
+          <p
+            style={{
+              ...T.caption,
+              color: C.faint,
+              margin: 0,
+              textWrap: "pretty",
+            }}
+          >
+            {t("epi.hypothetical")} {t("mind.notDiagnosis")} {t("mind.crisis")}
+          </p>
+        </div>
       </Card>
     </div>
   );

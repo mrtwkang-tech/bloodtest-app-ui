@@ -5,6 +5,7 @@ import Pressable from "./Pressable";
 import { C, EASE, LEVEL_COLOR, R, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { DEVICE, SEGMENTS, compositionAt, metricLevel } from "../data/inbody";
+import { plainKeyOf } from "../data/plainNames";
 import { useT } from "../i18n";
 
 /**
@@ -238,7 +239,7 @@ export function LinkBody({ link }) {
             {link.blood.map(({ marker, value }) => (
               <Row
                 key={marker.name}
-                name={marker.name}
+                name={plainKeyOf(marker) ? t(plainKeyOf(marker)) : marker.name}
                 value={formatValue(value, marker.dp)}
                 unit={marker.unit}
                 tag={t("ib.fromBlood")}

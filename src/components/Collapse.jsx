@@ -11,19 +11,24 @@ import { C, CARET, EASE, R, T } from "../tokens";
  */
 export function Collapse({ open, children }) {
   const innerRef = useRef(null);
-  const mounted = useRef(false);
+  const prevOpen = useRef(open);
   const [height, setHeight] = useState(open ? "auto" : 0);
 
   useEffect(() => {
     const el = innerRef.current;
     if (!el) return undefined;
 
-    // On the first run a closed panel is already at 0. Measuring it and
-    // animating back down would flash the whole panel open on mount.
-    if (!mounted.current) {
-      mounted.current = true;
-      if (!open) return undefined;
+    // Animate only when `open` actually changed. This used to ask "is this the
+    // first run?" via a ref, which StrictMode defeats: the ref survives the
+    // dev-mode unmount/remount, so the second invocation fell through to the
+    // closing branch, pinned the measured height, and left every closed panel
+    // holding its content's height as blank space. That is where the mystery
+    // gaps under the collapsed rows came from.
+    if (prevOpen.current === open) {
+      setHeight(open ? "auto" : 0);
+      return undefined;
     }
+    prevOpen.current = open;
 
     if (open) {
       setHeight(el.scrollHeight);
