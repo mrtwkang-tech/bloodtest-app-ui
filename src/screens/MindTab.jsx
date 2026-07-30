@@ -82,9 +82,14 @@ export default function MindTab({ sel, onPickSession, showNew }) {
           >
             {summary.keys.map((k) => {
               const i = SCALE_META.findIndex((m) => m.key === k);
+              const meta = SCALE_META[i];
               return (
-                <Status key={k} color={STATUS_COLOR[session.status[i]]}>
-                  {t(SCALE_META.find((x) => x.key === k).axisKey)}
+                <Status
+                  key={k}
+                  emoji={meta.emoji}
+                  level={session.status[i] === "alert" ? 2 : 1}
+                >
+                  {t(meta.axisKey)}
                 </Status>
               );
             })}

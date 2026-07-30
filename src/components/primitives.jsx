@@ -10,6 +10,7 @@ import {
   T,
   dot,
   fadeUp,
+  tint,
 } from "../tokens";
 
 /**
@@ -39,6 +40,61 @@ export function Card({ children, style, delay, ...rest }) {
  */
 export function Dot({ color, size = 6, lit = false, style }) {
   return <span style={{ ...dot(size, color, lit), ...style }} />;
+}
+
+/** Ambient glow behind a glyph. Neutral when there is nothing to report. */
+const GLOW = [C.inRangeLamp, C.watchLamp, C.alertLamp];
+
+/**
+ * An organ system or a mind index, as its own glyph over a soft glow.
+ *
+ * Ten identical coloured dots tell you the colour of ten things and the
+ * identity of none of them, so every row read the same and you had to fall
+ * back on the label. Splitting the two jobs fixes that: the emoji carries WHICH
+ * (and is recognisable at a glance, which a dot never is), the glow behind it
+ * carries HOW — neutral when a system is in range, warm when it is not.
+ *
+ * The glow is a wide radial at low alpha, not a ring or a drop shadow: it
+ * should read as the glyph sitting in light, and disappear at a normal reading
+ * distance unless it is amber or red.
+ */
+export function Glyph({ emoji, level = 0, size = 30, style }) {
+  const lamp = GLOW[level] ?? GLOW[0];
+  return (
+    <span
+      style={{
+        position: "relative",
+        width: size,
+        height: size,
+        flex: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        ...style,
+      }}
+    >
+      <span
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          background: `radial-gradient(circle at 50% 52%, ${tint(lamp, level ? 0.4 : 0.26)} 0%, ${tint(lamp, level ? 0.14 : 0.08)} 52%, transparent 74%)`,
+        }}
+      />
+      <span
+        style={{
+          position: "relative",
+          fontSize: size * 0.5,
+          lineHeight: 1,
+          // Emoji sit low in their em box; nudge them onto the optical centre.
+          transform: "translateY(-.5px)",
+        }}
+      >
+        {emoji}
+      </span>
+    </span>
+  );
 }
 
 /** Disclosure chevron, nudged off mathematical centre. */
@@ -87,18 +143,30 @@ export function SectionTitle({ children, value, style }) {
 }
 
 /**
- * A status marker: a dot and a word, sitting directly on the surface.
+ * A status marker: a mark and a word, sitting directly on the surface.
+ *
+ * Pass `emoji` and it becomes a glyph over its glow; otherwise it falls back to
+ * a plain dot, which is still right for things that have no identity of their
+ * own (a device connection, a generic all-clear).
  *
  * Deliberately not a tinted capsule. Wrapping every value in a pill flattens
- * the hierarchy — everything shouts equally — and is the single most obvious
- * generated-layout tell. Capsules are reserved for `Badge`.
+ * the hierarchy — everything shouts equally.
  */
-export function Status({ color, children, mono = true, style }) {
+export function Status({ color, emoji, level = 0, children, mono = true, style }) {
   return (
     <span
-      style={{ display: "inline-flex", alignItems: "center", gap: 6, ...style }}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: emoji ? 7 : 6,
+        ...style,
+      }}
     >
-      <Dot color={color} />
+      {emoji ? (
+        <Glyph emoji={emoji} level={level} size={20} />
+      ) : (
+        <Dot color={color} />
+      )}
       <span style={{ ...(mono ? T.caption : T.label), color: C.body }}>
         {children}
       </span>
@@ -215,8 +283,8 @@ export function ChipRail({ items, value, onChange, style }) {
               ...T.caption,
             }}
           >
-            {item.dot && (
-              <Dot color={item.dot} />
+            {item.emoji && (
+              <Glyph emoji={item.emoji} level={item.level} size={18} />
             )}
             {item.label}
           </Pressable>
@@ -243,7 +311,9 @@ export function CountStrip({ counts, labels }) {
     <div>
       <div style={{ display: "flex", gap: 4 }}>
         <Count value={total} label={labels.total} />
-        <Count value={optimal} label={labels.optimal} color={C.optimal} />
+        {/* Only the bar carries the green. A big green numeral for "optimal"
+            competes with the one number that wants attention. */}
+        <Count value={optimal} label={labels.optimal} />
         <Count value={inRange} label={labels.inRange} />
         <Count
           value={out}

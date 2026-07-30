@@ -7,6 +7,7 @@ import TrendChart from "../components/TrendChart";
 import {
   Card,
   ChipRail,
+  Glyph,
   SectionLabel,
   SectionTitle,
   Status,
@@ -60,7 +61,8 @@ export default function BodyTab({ sel, onPickSession }) {
       ...summary.zones.map(({ zone, level }) => ({
         key: zone.key,
         label: t(zone.nameKey),
-        dot: LEVEL_LAMP[level],
+        emoji: zone.emoji,
+        level,
       })),
     ],
     [summary.zones, t],
@@ -140,7 +142,7 @@ export default function BodyTab({ sel, onPickSession }) {
           }}
         >
           {summary.zones.map(({ zone, level }) => (
-            <Status key={zone.key} color={LEVEL_COLOR[level]}>
+            <Status key={zone.key} emoji={zone.emoji} level={level}>
               {t(zone.nameKey)}
             </Status>
           ))}
@@ -235,16 +237,8 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
           cursor: "pointer",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-          <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: "50%",
-              background: LEVEL_COLOR[level],
-              flex: "none",
-            }}
-          />
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <Glyph emoji={zone.emoji} level={level} size={26} />
           <span style={{ ...T.title3, color: C.ink }}>{t(zone.nameKey)}</span>
           <span
             style={{

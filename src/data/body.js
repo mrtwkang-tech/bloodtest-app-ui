@@ -67,6 +67,7 @@ const RAW_SYSTEMS = [
   {
     key: "neuro",
     nameKey: "sys.neuro",
+    emoji: "🧠",
     specialtyKey: "spec.neuro",
     noteKey: "sys.neuro.note",
     conditionKeys: ["cond.alzheimers", "cond.parkinsons", "cond.stroke"],
@@ -157,6 +158,7 @@ const RAW_SYSTEMS = [
   {
     key: "cardio",
     nameKey: "sys.cardio",
+    emoji: "🫀",
     specialtyKey: "spec.cardio",
     noteKey: "sys.cardio.note",
     conditionKeys: ["cond.mi", "cond.hypertension"],
@@ -243,6 +245,7 @@ const RAW_SYSTEMS = [
   {
     key: "endocrine",
     nameKey: "sys.endocrine",
+    emoji: "⚖️",
     specialtyKey: "spec.endocrine",
     noteKey: "sys.endocrine.note",
     conditionKeys: ["cond.diabetes", "cond.thyroid"],
@@ -321,6 +324,7 @@ const RAW_SYSTEMS = [
   {
     key: "hepatic",
     nameKey: "sys.hepatic",
+    emoji: "⚗️",
     specialtyKey: "spec.hepatic",
     noteKey: "sys.hepatic.note",
     conditionKeys: ["cond.fattyLiver", "cond.hepatitis"],
@@ -387,6 +391,7 @@ const RAW_SYSTEMS = [
   {
     key: "renal",
     nameKey: "sys.renal",
+    emoji: "🫘",
     specialtyKey: "spec.renal",
     noteKey: "sys.renal.note",
     conditionKeys: ["cond.ckd"],
@@ -451,6 +456,7 @@ const RAW_SYSTEMS = [
   {
     key: "hematology",
     nameKey: "sys.hematology",
+    emoji: "🩸",
     specialtyKey: "spec.hematology",
     noteKey: "sys.hematology.note",
     conditionKeys: ["cond.anemia"],
@@ -518,6 +524,7 @@ const RAW_SYSTEMS = [
   {
     key: "pulmonary",
     nameKey: "sys.pulmonary",
+    emoji: "🫁",
     specialtyKey: "spec.pulmonary",
     noteKey: "sys.pulmonary.note",
     conditionKeys: ["cond.copd", "cond.asthma"],
@@ -574,6 +581,7 @@ const RAW_SYSTEMS = [
   {
     key: "immune",
     nameKey: "sys.immune",
+    emoji: "🛡️",
     specialtyKey: "spec.immune",
     noteKey: "sys.immune.note",
     conditionKeys: ["cond.ra", "cond.autoimmune"],
@@ -638,6 +646,7 @@ const RAW_SYSTEMS = [
   {
     key: "oncology",
     nameKey: "sys.oncology",
+    emoji: "🧬",
     specialtyKey: "spec.oncology",
     noteKey: "sys.oncology.note",
     conditionKeys: ["cond.cancer"],
@@ -699,6 +708,7 @@ const RAW_SYSTEMS = [
   {
     key: "nutrition",
     nameKey: "sys.nutrition",
+    emoji: "🥗",
     specialtyKey: "spec.nutrition",
     noteKey: "sys.nutrition.note",
     conditionKeys: ["cond.deficiency"],
@@ -828,25 +838,30 @@ export function formatValue(value, dp) {
 }
 
 /**
- * Traffic-light band for one marker, oriented by `dir` so the green stretch is
- * always the safe side of the reference.
+ * Traffic-light band for one marker, oriented by `dir` so the safe stretch is
+ * always the correct side of the reference.
+ *
+ * Drawn in the pale tints rather than the lamps. At full chroma, sixty-nine of
+ * these on one screen is a wall of colour that drowns out the two or three
+ * values actually worth looking at — and the band is background information
+ * anyway. The dark pointer riding on it is the foreground.
  */
 export function markerBand(marker) {
   if (marker.dir === "low") {
     const red = Math.max(0, ((marker.ref * 0.75) / marker.max) * 100);
     const amber = Math.max(0, (marker.ref / marker.max) * 100);
     return (
-      `linear-gradient(90deg,${C.alertLamp} 0 ${red.toFixed(1)}%,` +
-      `${C.watchLamp} ${red.toFixed(1)}% ${amber.toFixed(1)}%,` +
-      `${C.optimalLamp} ${amber.toFixed(1)}% 100%)`
+      `linear-gradient(90deg,${C.alertTint} 0 ${red.toFixed(1)}%,` +
+      `${C.watchTint} ${red.toFixed(1)}% ${amber.toFixed(1)}%,` +
+      `${C.optimalTint} ${amber.toFixed(1)}% 100%)`
     );
   }
   const green = Math.min(100, (marker.ref / marker.max) * 100);
   const amber = Math.min(100, ((marker.ref * 1.25) / marker.max) * 100);
   return (
-    `linear-gradient(90deg,${C.optimalLamp} 0 ${green.toFixed(1)}%,` +
-    `${C.watchLamp} ${green.toFixed(1)}% ${amber.toFixed(1)}%,` +
-    `${C.alertLamp} ${amber.toFixed(1)}% 100%)`
+    `linear-gradient(90deg,${C.optimalTint} 0 ${green.toFixed(1)}%,` +
+    `${C.watchTint} ${green.toFixed(1)}% ${amber.toFixed(1)}%,` +
+    `${C.alertTint} ${amber.toFixed(1)}% 100%)`
   );
 }
 

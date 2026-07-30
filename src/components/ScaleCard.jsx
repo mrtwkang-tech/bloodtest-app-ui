@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
-import { Dot } from "./primitives";
+import { Dot, Glyph } from "./primitives";
 import { C, DIVIDER, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { scaleDrivers } from "../data/scales";
@@ -21,7 +21,9 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const color = STATUS_COLOR[status];
-  const lamp = STATUS_LAMP[status];
+  // An index that is fine gets a neutral bar. Five green bars down the screen
+  // read as decoration; the amber one then has to shout to be noticed at all.
+  const lamp = status === "good" ? C.ink2 : STATUS_LAMP[status];
   const drivers = scaleDrivers(meta, roundIndex);
   const lead = drivers[0];
 
@@ -32,12 +34,19 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
       <div
         style={{
           display: "flex",
-          alignItems: "baseline",
+          alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
         }}
       >
-        <span style={{ ...T.title3, color: C.ink }}>{t(meta.axisKey)}</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <Glyph
+            emoji={meta.emoji}
+            level={status === "alert" ? 2 : status === "watch" ? 1 : 0}
+            size={24}
+          />
+          <span style={{ ...T.title3, color: C.ink }}>{t(meta.axisKey)}</span>
+        </span>
         <span style={{ ...T.micro, color: C.faintest }}>
           {t("mind.derived")}
         </span>

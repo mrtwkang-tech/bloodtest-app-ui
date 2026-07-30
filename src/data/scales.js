@@ -47,6 +47,7 @@ export const SCALE_META = [
   {
     key: "mood",
     axisKey: "scale.mood",
+    emoji: "🌤️",
     // The pathway label shown instead of a questionnaire code.
     code: "composite",
     drivers: [
@@ -61,6 +62,7 @@ export const SCALE_META = [
   {
     key: "tension",
     axisKey: "scale.tension",
+    emoji: "🪢",
     code: "composite",
     drivers: [
       m("epigen", "FKBP5 intron 7", 1.5, "mech.fkbp5"),
@@ -74,6 +76,7 @@ export const SCALE_META = [
   {
     key: "stress",
     axisKey: "scale.stress",
+    emoji: "🪨",
     code: "composite",
     drivers: [
       m("epigen", "DNAm cortisol (90d)", 1.6, "mech.cortisolLoad"),
@@ -86,6 +89,7 @@ export const SCALE_META = [
   {
     key: "sleep",
     axisKey: "scale.sleep",
+    emoji: "🌙",
     code: "composite",
     drivers: [
       m("epigen", "PER2/CLOCK index", 1.6, "mech.circadian"),
@@ -97,6 +101,7 @@ export const SCALE_META = [
   {
     key: "energy",
     axisKey: "scale.energy",
+    emoji: "🔋",
     code: "composite",
     drivers: [
       m("hematology", "Ferritin", 1.3, "mech.iron"),

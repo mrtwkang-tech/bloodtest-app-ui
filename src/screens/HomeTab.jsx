@@ -4,11 +4,9 @@ import { Collapse, DisclosureButton } from "../components/Collapse";
 import InBodyPanel from "../components/InBodyPanel";
 import {
   Card,
-  Caret,
   CountStrip,
   DataRow,
   Display,
-  Dot,
   SectionLabel,
   SectionTitle,
   Status,
@@ -16,19 +14,15 @@ import {
 } from "../components/primitives";
 import {
   C,
-  DIVIDER,
   EASE,
   LEVEL_COLOR,
-  LEVEL_LAMP,
-  LEVEL_TINT,
   R,
   T,
   backlight,
   fadeUp,
 } from "../tokens";
 import { interactionsFor } from "../data/interactions";
-import { SCALE_META } from "../data/scales";
-import { formatValue, markerLevel } from "../data/body";
+import { formatValue } from "../data/body";
 import {
   PROFILE,
   SESSIONS,
@@ -56,40 +50,7 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
   const { t, lang } = useLang();
   const score = healthScore(latest);
   const counts = biomarkerCounts(latest);
-  const mind = mindSummary(latest);
-  const body = bodySummary(latest);
   const signals = interactionsFor(latest.roundIndex);
-
-  /**
-   * Everything currently asking for something, worst first.
-   *
-   * Organ systems name the markers that are out of range, because "liver:
-   * check" is not actionable and "liver: AFP · GGT · FIB-4" is. Mind scales
-   * carry their index for the same reason.
-   */
-  const attention = [
-    ...body.zones
-      .filter(({ level }) => level > 0)
-      .map(({ zone, values, level }) => ({
-        key: `body-${zone.key}`,
-        tab: "body",
-        level,
-        title: t(zone.nameKey),
-        detail: zone.markers
-          .filter((m, i) => markerLevel(m, values[i]) > 0)
-          .map((m) => m.name)
-          .join(" · "),
-      })),
-    ...SCALE_META.map((m, i) => ({ m, i }))
-      .filter(({ i }) => latest.status[i] !== "good")
-      .map(({ m, i }) => ({
-        key: `mind-${m.key}`,
-        tab: "mind",
-        level: latest.status[i] === "alert" ? 2 : 1,
-        title: t(m.axisKey),
-        detail: `${t("mind.index")} ${latest.indices[i]}`,
-      })),
-  ].sort((a, b) => b.level - a.level);
 
   const leadKey =
     score >= 82
@@ -164,13 +125,6 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
           {t(leadKey)}
         </p>
       </Card>
-
-      {/* If something needs attention, saying so is not enough — it has to be
-          reachable. This is the device that was missing: what, how many, and a
-          row per item that lands on the thing itself. */}
-      {attention.length > 0 && (
-        <AttentionCard items={attention} onGo={onGoTab} />
-      )}
 
       <Card style={{ padding: "16px 20px 18px", marginTop: 10 }} delay={80}>
         <SectionLabel>{t("home.biomarkers")}</SectionLabel>
@@ -375,111 +329,6 @@ function ScoreRing({ value }) {
 }
 
 /** One domain, one line: a lamp, a name, a verdict. */
-/**
- * The attention list.
- *
- * "A few markers need your attention" with nothing beside it is a sentence
- * that cannot be acted on. This is a grouped list in the iOS sense — a plain
- * white card, rows divided by separators inset past the icon, each row landing
- * on the screen that explains it. The status colour appears twice per row and
- * nowhere else: once as a tinted square holding the severity glyph, once as
- * the count in the header.
- */
-function AttentionCard({ items, onGo }) {
-  const { t } = useLang();
-  const worst = items.reduce((n, i) => Math.max(n, i.level), 0);
-
-  return (
-    <div style={{ marginTop: 10, ...fadeUp(70) }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 7,
-          margin: "0 2px 8px",
-        }}
-      >
-        <Dot color={LEVEL_LAMP[worst]} size={7} />
-        <span style={{ ...T.micro, color: C.faint }}>
-          {t("home.attention")}
-        </span>
-        <span style={{ marginLeft: "auto", ...T.micro, color: LEVEL_COLOR[worst] }}>
-          {items.length}
-        </span>
-      </div>
-      <Card style={{ overflow: "hidden" }}>
-        {items.map((item, i) => (
-          <Pressable
-            key={item.key}
-            as="button"
-            type="button"
-            onClick={() => onGo?.(item.tab)}
-            pressScale={0.995}
-            hoverStyle={{ background: C.surfaceHover }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              width: "100%",
-              padding: "12px 16px",
-              background: "transparent",
-              border: "none",
-              textAlign: "left",
-              cursor: "pointer",
-              // Inset separator: it starts past the icon, not at the card edge.
-              boxShadow: i === items.length - 1 ? "none" : DIVIDER,
-            }}
-          >
-            <span
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: 9,
-                flex: "none",
-                background: LEVEL_TINT[item.level],
-                color: LEVEL_COLOR[item.level],
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                ...T.label,
-                fontSize: 15,
-                lineHeight: 1,
-              }}
-            >
-              {item.level === 2 ? (
-                "!"
-              ) : (
-                <Dot color={LEVEL_LAMP[1]} size={7} />
-              )}
-            </span>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ ...T.label, color: C.ink, display: "block" }}>
-                {item.title}
-              </span>
-              {item.detail && (
-                <span
-                  style={{
-                    ...T.caption,
-                    color: C.faint,
-                    display: "block",
-                    marginTop: 1,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {item.detail}
-                </span>
-              )}
-            </span>
-            <Caret />
-          </Pressable>
-        ))}
-      </Card>
-    </div>
-  );
-}
-
 /**
  * One cross-system pattern. The evidence list is the point: a claim about a
  * combination has to show the readings it was built from.

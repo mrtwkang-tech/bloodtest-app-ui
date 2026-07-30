@@ -48,13 +48,19 @@ export const FONT_MONO =
  *
  * Each status has TWO values, and the distinction matters:
  *
- *   `lamp`  the vivid one. Dots, bars, fills, rings — shapes, where chroma
- *           reads as an indicator being lit and contrast is not a text problem.
+ *   `lamp`  the vivid one. Glows, bars, rings — shapes, where chroma reads as
+ *           an indicator being lit and contrast is not a text problem.
  *   `ink`   the dark one. Text and anything a reader has to actually read,
  *           where the vivid value would fail contrast against white.
  *
- * Using the vivid value for text (or the dark value for a 6px dot) is the
- * mistake that makes a palette look either washed out or illegible.
+ * HOW LITTLE COLOUR IS USED.
+ *
+ * The ground is white and the type is black. Everything in range is neutral —
+ * a normal result gets no colour at all, because painting two thirds of the
+ * screen green is both noisy and slightly dishonest about how much there is to
+ * look at. Colour appears on the two states that are asking for something
+ * (amber, red), the ambient glow behind an organ's glyph, and the single
+ * indigo that means "you can press this". Four hues, most screens showing one.
  */
 export const C = {
   // Warm neutral ink — pure #000 on a warm ground reads as a rendering error.
@@ -66,32 +72,32 @@ export const C = {
   faintest: "#A8ADB5",
   disabled: "#C7CBD1",
 
-  hairline: "rgba(22,23,26,.08)",
-  hairlineStrong: "rgba(22,23,26,.15)",
+  hairline: "rgba(22,23,26,.07)",
+  hairlineStrong: "rgba(22,23,26,.14)",
 
-  canvas: "#DCDCD6",
-  // Grouped-list grammar: white cards on a slightly deeper ground, the way
-  // iOS settings works. The value step does the separating, so cards need
-  // neither a border nor a shadow.
-  bg: "#EDEDEA",
-  surface: "#FFFFFF",
+  canvas: "#E8E8E6",
+  // White page, faintly tinted cards. The earlier arrangement — grey page,
+  // white cards — is the iOS settings grammar, and it made a screen mostly
+  // grey. Inverting it puts the brightest value on the largest area.
+  bg: "#FFFFFF",
+  surface: "#F7F7F5",
   surfaceRaised: "#FFFFFF",
-  surfaceSunken: "#EAEAE6",
-  surfaceHover: "#F6F6F3",
-  chipIdle: "#E7E7E3",
+  surfaceSunken: "#EDEDEA",
+  surfaceHover: "#F1F1EE",
+  chipIdle: "#EFEFEC",
 
   optimal: "#0B7A55",
   optimalLamp: "#12B981",
-  optimalTint: "#DFF3EA",
+  optimalTint: "#E4F3EC",
   inRange: "#8A8F98",
-  inRangeLamp: "#B3B8BF",
-  inRangeTint: "#E9E9E5",
+  inRangeLamp: "#C2C6CC",
+  inRangeTint: "#EFEFEC",
   watch: "#A15C00",
   watchLamp: "#F5A524",
-  watchTint: "#FDEFD6",
+  watchTint: "#FCEFD9",
   alert: "#B3261E",
   alertLamp: "#E5484D",
-  alertTint: "#FBE3E1",
+  alertTint: "#FBE6E4",
 
   // The brand tint is deliberately not one of the status hues: interactive and
   // "this is your result" must never be the same colour.
@@ -107,7 +113,7 @@ export const C = {
   peerStroke: "#9AA0A8",
 };
 
-export const STATUS_COLOR = { good: C.optimal, watch: C.watch, alert: C.alert };
+export const STATUS_COLOR = { good: C.ink, watch: C.watch, alert: C.alert };
 export const STATUS_LAMP = {
   good: C.optimalLamp,
   watch: C.watchLamp,
@@ -118,8 +124,15 @@ export const STATUS_TINT = {
   watch: C.watchTint,
   alert: C.alertTint,
 };
-/** Readable on white. */
-export const LEVEL_COLOR = [C.optimal, C.watch, C.alert];
+/**
+ * Readable on white — and level 0 is deliberately NOT green.
+ *
+ * A number that is fine should look like a number, not like an achievement.
+ * Reserving colour for the two states that want something is what keeps a
+ * screen of sixty-nine markers from looking like a christmas tree, and it
+ * makes the amber and the red actually mean something when they appear.
+ */
+export const LEVEL_COLOR = [C.ink, C.watch, C.alert];
 /** Vivid, for shapes only. */
 export const LEVEL_LAMP = [C.optimalLamp, C.watchLamp, C.alertLamp];
 export const LEVEL_TINT = [C.optimalTint, C.watchTint, C.alertTint];
