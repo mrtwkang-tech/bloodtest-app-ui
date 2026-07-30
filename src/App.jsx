@@ -6,6 +6,7 @@ import MindTab from "./screens/MindTab";
 import BodyTab from "./screens/BodyTab";
 import MoreTab from "./screens/MoreTab";
 import StoreTab from "./screens/StoreTab";
+import HomeDetail from "./screens/HomeDetail";
 import InfoDoc from "./screens/InfoDoc";
 import ScanFlow from "./screens/ScanFlow";
 import AnalyzingFlow from "./screens/AnalyzingFlow";
@@ -63,6 +64,15 @@ export default function App() {
   };
 
   const docKey = sheet?.startsWith("doc:") ? sheet.slice(4) : null;
+  const homeView = sheet?.startsWith("home:") ? sheet.slice(5) : null;
+  // Each of Home's second-layer views is a sheet with its own title.
+  const HOME_TITLES = {
+    crossread: "home.crossRead",
+    signals: "home.signalsRow",
+    risks: "home.risksRow",
+    composition: "home.compositionRow",
+    history: "home.historyRow",
+  };
 
   return (
     <div className="stage">
@@ -102,8 +112,7 @@ export default function App() {
                 {tab === "home" && (
                   <HomeTab
                     key="home"
-                    onOpenSession={openSession}
-                    onGoTab={goTab}
+                    onOpen={(v) => setSheet(`home:${v}`)}
                     onGoStore={() => setSheet("store")}
                   />
                 )}
@@ -149,6 +158,19 @@ export default function App() {
               onClose={() => setSheet(null)}
             >
               <StoreTab plan={plan} onPickPlan={setPlan} />
+            </Sheet>
+          )}
+
+          {homeView && (
+            <Sheet
+              title={t(HOME_TITLES[homeView])}
+              onClose={() => setSheet(null)}
+            >
+              <HomeDetail
+                view={homeView}
+                roundIndex={latest.roundIndex}
+                onOpenSession={openSession}
+              />
             </Sheet>
           )}
 

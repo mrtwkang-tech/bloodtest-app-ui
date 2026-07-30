@@ -22,11 +22,50 @@ import { useT } from "../i18n";
  * scare: the reader can see both that the odds moved a thousandfold and that
  * they are still around one in a hundred.
  */
-export default function RiskEstimates({ roundIndex }) {
+export default function RiskEstimates({ roundIndex, embedded }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(embedded));
   const risks = riskEstimates(roundIndex);
   if (risks.length === 0) return null;
+
+  const body = (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        paddingTop: embedded ? 0 : 10,
+      }}
+    >
+      {risks.map((r) => (
+        <RiskCard key={r.key} risk={r} />
+      ))}
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <>
+        <div style={{ margin: "0 2px 12px" }}>
+          <Badge color={C.watch} tint={C.watchTint}>
+            {t("dx.beta")}
+          </Badge>
+          <p
+            style={{
+              ...T.caption,
+              color: C.faint,
+              margin: "8px 0 0",
+              lineHeight: 1.6,
+              textWrap: "pretty",
+            }}
+          >
+            {t("dx.note")}
+          </p>
+        </div>
+        {body}
+      </>
+    );
+  }
 
   return (
     <>
@@ -54,20 +93,7 @@ export default function RiskEstimates({ roundIndex }) {
         label={t("dx.title")}
         hint={String(risks.length)}
       />
-      <Collapse open={open}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-            paddingTop: 10,
-          }}
-        >
-          {risks.map((r) => (
-            <RiskCard key={r.key} risk={r} />
-          ))}
-        </div>
-      </Collapse>
+      <Collapse open={open}>{body}</Collapse>
     </>
   );
 }
@@ -273,9 +299,11 @@ function Frequency({ p, color }) {
       aria-hidden="true"
       style={{
         display: "grid",
-        gridTemplateColumns: "repeat(25, 1fr)",
-        gap: 2,
-        marginTop: 13,
+        // 50 across, two rows deep: still exactly a hundred people, half the
+        // vertical cost of a 25-column grid.
+        gridTemplateColumns: "repeat(50, 1fr)",
+        gap: 1.5,
+        marginTop: 12,
       }}
     >
       {Array.from({ length: 100 }, (_, i) => (
@@ -283,7 +311,7 @@ function Frequency({ p, color }) {
           key={i}
           style={{
             height: 5,
-            borderRadius: 1.5,
+            borderRadius: 1,
             background: i < filled ? color : C.surfaceSunken,
             transition: `background 420ms ${EASE}`,
           }}

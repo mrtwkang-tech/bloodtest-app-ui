@@ -1,20 +1,15 @@
-import { useState } from "react";
 import Pressable from "../components/Pressable";
-import { Collapse, DisclosureButton } from "../components/Collapse";
-import InBodyPanel from "../components/InBodyPanel";
-import RiskEstimates from "../components/RiskEstimates";
 import {
   Card,
+  Caret,
   CountStrip,
-  DataRow,
   Display,
   SectionLabel,
   SectionTitle,
-  Status,
-  Badge,
 } from "../components/primitives";
 import {
   C,
+  DIVIDER,
   EASE,
   LEVEL_COLOR,
   R,
@@ -23,19 +18,22 @@ import {
   fadeUp,
 } from "../tokens";
 import { interactionsFor } from "../data/interactions";
+import { riskEstimates } from "../data/bayes";
+import { COMPOSITION, DEVICE, inbodyLinksFor, metricLevel } from "../data/inbody";
 import { formatValue } from "../data/body";
 import {
   PROFILE,
   SESSIONS,
   biomarkerCounts,
-  bodySummary,
   healthScore,
-  mindSummary,
   pick,
 } from "../data/sessions";
 import { useLang } from "../i18n";
 
 const latest = SESSIONS[0];
+
+/** The three composition numbers worth a place on the first screen. */
+const HOME_METRICS = ["smm", "bodyFat", "visceral"];
 
 /**
  * Home carries the whole-person view: one score, the panel's shape, body
@@ -47,11 +45,13 @@ const latest = SESSIONS[0];
  * to parse fifteen labels before reaching anything Home alone could tell them.
  * The tab bar already navigates; Home now says something.
  */
-export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
+export default function HomeTab({ onGoStore, onOpen }) {
   const { t, lang } = useLang();
   const score = healthScore(latest);
   const counts = biomarkerCounts(latest);
   const signals = interactionsFor(latest.roundIndex);
+  const risks = riskEstimates(latest.roundIndex);
+  const links = inbodyLinksFor(latest.roundIndex);
 
   const leadKey =
     score >= 82
@@ -67,7 +67,7 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
           display: "flex",
           alignItems: "center",
           gap: 12,
-          marginBottom: 18,
+          marginBottom: 14,
           ...fadeUp(0),
         }}
       >
@@ -100,7 +100,7 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
       {/* The one number the whole panel resolves to. No tinted wash behind
           it: a coloured gradient under a number says nothing the number does
           not already say, and reads as decoration applied for its own sake. */}
-      <Card style={{ padding: "18px 20px 20px" }} delay={40}>
+      <Card style={{ padding: "16px 18px 17px" }} delay={40}>
         <SectionLabel value={t("home.scoreOutOf")}>
           {t("home.score")}
         </SectionLabel>
@@ -112,7 +112,7 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
             marginTop: 10,
           }}
         >
-          <Display size={58}>{score}</Display>
+          <Display size={54}>{score}</Display>
           <ScoreRing value={score} />
         </div>
         <p
@@ -127,7 +127,7 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
         </p>
       </Card>
 
-      <Card style={{ padding: "16px 20px 18px", marginTop: 10 }} delay={80}>
+      <Card style={{ padding: "14px 18px 15px", marginTop: 9 }} delay={80}>
         <SectionLabel>{t("home.biomarkers")}</SectionLabel>
         <div style={{ marginTop: 13 }}>
           <CountStrip
@@ -142,24 +142,96 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
         </div>
       </Card>
 
-      {/* Body composition lives here now, in full. It belongs on the
-          whole-person screen rather than under the organ-system model: it is
-          measured on a different instrument, on the same body, on the same
-          schedule. */}
-      <div style={{ marginTop: 10 }}>
-        <InBodyPanel roundIndex={latest.roundIndex} delay={150} />
-      </div>
+      {/* Three composition numbers, not the whole device panel. Enough to
+          see the body has been measured; the rest is a tap away. */}
+      <Card style={{ padding: "13px 18px 14px", marginTop: 9 }} delay={120}>
+        <SectionLabel value={DEVICE.brand}>{t("ib.title")}</SectionLabel>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gap: 10,
+            marginTop: 12,
+          }}
+        >
+          {HOME_METRICS.map((key) => {
+            const m = COMPOSITION.find((c) => c.key === key);
+            const value = m.demo[latest.roundIndex];
+            const lv = metricLevel(m, value);
+            return (
+              <div key={key}>
+                <div style={{ ...T.micro, color: C.faintest }}>
+                  {t(m.nameKey)}
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: 3,
+                    marginTop: 5,
+                  }}
+                >
+                  <span
+                    style={{
+                      ...T.num,
+                      fontSize: 18,
+                      fontWeight: 600,
+                      color: m.band ? LEVEL_COLOR[lv] : C.ink,
+                    }}
+                  >
+                    {formatValue(value, m.dp)}
+                  </span>
+                  <span style={{ ...T.unit, color: C.faintest }}>{m.unit}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Card>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 22, ...fadeUp(160) }}>
-        <Card style={{ flex: 1, padding: "14px 16px" }}>
+      {/* Everything below the fold used to be here in full. It is all still
+          reachable, one tap deeper — the first screen should answer "how am
+          I?", not carry the whole report. */}
+      <SectionTitle style={{ margin: "16px 2px 8px" }}>
+        {t("home.more")}
+      </SectionTitle>
+      <Card style={{ overflow: "hidden" }} delay={160}>
+        <MoreRow
+          label={t("home.crossRead")}
+          count={links.length}
+          onClick={() => onOpen("crossread")}
+        />
+        <MoreRow
+          label={t("home.signalsRow")}
+          count={signals.length}
+          beta
+          onClick={() => onOpen("signals")}
+        />
+        <MoreRow
+          label={t("home.risksRow")}
+          count={risks.length}
+          beta
+          onClick={() => onOpen("risks")}
+        />
+        <MoreRow
+          label={t("home.compositionRow")}
+          onClick={() => onOpen("composition")}
+        />
+        <MoreRow
+          label={t("home.historyRow")}
+          count={SESSIONS.length}
+          onClick={() => onOpen("history")}
+          last
+        />
+      </Card>
+
+      <div style={{ display: "flex", gap: 10, marginTop: 10, ...fadeUp(190) }}>
+        <Card style={{ flex: 1, padding: "13px 15px" }}>
           <div style={{ ...T.micro, color: C.faint }}>{t("home.nextTest")}</div>
-          <div style={{ ...T.title2, ...T.num, color: C.ink, marginTop: 7 }}>
+          <div style={{ ...T.title2, ...T.num, color: C.ink, marginTop: 6 }}>
             D-{PROFILE.nextInDays}
           </div>
-          <div style={{ ...T.caption, color: C.faintest, marginTop: 3 }}>
-            {pick(PROFILE.nextDate, lang)}
-          </div>
-          <div style={{ ...T.micro, color: C.faintest, marginTop: 5 }}>
+          <div style={{ ...T.micro, color: C.faintest, marginTop: 4 }}>
             {t("home.tracked", {
               n: PROFILE.roundsSoFar,
               m: PROFILE.monthsTracked,
@@ -173,12 +245,10 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
           pressScale={0.98}
           style={{
             flex: 1,
-            padding: "14px 16px",
+            padding: "13px 15px",
             borderRadius: R.card,
             border: "none",
             cursor: "pointer",
-            // The one saturated fill on the screen, so it gets the one
-            // coloured cast. Everything else stays flat.
             background: C.accent,
             boxShadow: backlight(C.accent),
             color: C.onAccent,
@@ -188,83 +258,47 @@ export default function HomeTab({ onGoStore, onOpenSession, onGoTab }) {
           <div style={{ ...T.micro, opacity: 0.66 }}>
             {t("home.subscription")}
           </div>
-          <div style={{ ...T.title3, marginTop: 7 }}>{t("home.buyKit")}</div>
-          <div style={{ ...T.caption, opacity: 0.66, marginTop: 3 }}>→</div>
+          <div style={{ ...T.title3, marginTop: 6 }}>{t("home.buyKit")}</div>
         </Pressable>
       </div>
-
-      {/* Cross-system signals — combinations a single panel would not flag. */}
-      <SectionTitle
-        value={signals.length ? String(signals.length) : undefined}
-        style={{ marginBottom: 8 }}
-      >
-        {t("ix.title")}
-      </SectionTitle>
-      <div style={{ marginBottom: 4, ...fadeUp(200) }}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-start",
-            gap: 7,
-            margin: "0 2px 9px",
-          }}
-        >
-          <Badge color={C.accent} tint={C.accentSoft}>
-            {t("ix.beta")}
-          </Badge>
-          <span
-            style={{
-              ...T.caption,
-              color: C.faintest,
-              flex: 1,
-              lineHeight: 1.6,
-              textWrap: "pretty",
-            }}
-          >
-            {t("ix.note")}
-          </span>
-        </div>
-        {signals.length === 0 ? (
-          <Card style={{ padding: "14px 16px" }}>
-            <Status color={C.optimalLamp}>{t("ix.none")}</Status>
-          </Card>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {signals.map((sig) => (
-              <SignalCard key={sig.key} signal={sig} />
-            ))}
-          </div>
-        )}
-      </div>
-
-      <RiskEstimates roundIndex={latest.roundIndex} />
-
-      <SectionTitle value={`${SESSIONS.length}`}>
-        {t("home.history")}
-      </SectionTitle>
-      <Card style={{ overflow: "hidden" }} delay={200}>
-        {SESSIONS.map((s, i) => {
-          const m = mindSummary(s);
-          const b = bodySummary(s);
-          const flagged = m.warn + b.flagged.length;
-          return (
-            <DataRow
-              key={s.round}
-              rank={SESSIONS.length - i}
-              name={t("home.roundTest", {
-                round: t("round.n", { n: s.round }),
-              })}
-              sub={pick(s.fullDate, lang)}
-              value={healthScore(s)}
-              color={flagged ? C.watch : C.optimal}
-              last={i === SESSIONS.length - 1}
-              onClick={() => onOpenSession(i)}
-            />
-          );
-        })}
-      </Card>
     </div>
+  );
+}
+
+/** One way deeper. Label, how many things are in there, chevron. */
+function MoreRow({ label, count, beta, onClick, last }) {
+  const { t } = useLang();
+  return (
+    <Pressable
+      as="button"
+      type="button"
+      onClick={onClick}
+      pressScale={0.995}
+      hoverStyle={{ background: C.surfaceHover }}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        width: "100%",
+        padding: "12px 16px",
+        background: "transparent",
+        border: "none",
+        textAlign: "left",
+        cursor: "pointer",
+        boxShadow: last ? "none" : DIVIDER,
+      }}
+    >
+      <span style={{ ...T.label, color: C.ink }}>{label}</span>
+      {beta && (
+        <span style={{ ...T.micro, color: C.accent }}>{t("ix.beta")}</span>
+      )}
+      {count != null && (
+        <span style={{ marginLeft: "auto", ...T.num, fontSize: 12, color: C.faint }}>
+          {count}
+        </span>
+      )}
+      <Caret style={count != null ? null : { marginLeft: "auto" }} />
+    </Pressable>
   );
 }
 
@@ -332,127 +366,3 @@ function ScoreRing({ value }) {
 }
 
 /** One domain, one line: a lamp, a name, a verdict. */
-/**
- * One cross-system pattern. The evidence list is the point: a claim about a
- * combination has to show the readings it was built from.
- */
-function SignalCard({ signal }) {
-  const { t } = useLang();
-  const [open, setOpen] = useState(false);
-  const color = LEVEL_COLOR[signal.severity];
-
-  return (
-    <Card style={{ padding: "14px 16px 12px" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 9 }}>
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: color,
-            flex: "none",
-            marginTop: 6,
-          }}
-        />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ ...T.title3, color: C.ink }}>{t(signal.titleKey)}</div>
-          <div style={{ ...T.micro, color: C.faintest, marginTop: 4 }}>
-            {signal.systems.map((k) => t(`sys.${k}`)).join(" · ")}
-          </div>
-        </div>
-      </div>
-
-      <p
-        style={{
-          ...T.bodyText,
-          color: C.body,
-          margin: "10px 0 0",
-          textWrap: "pretty",
-        }}
-      >
-        {t(signal.bodyKey, signal.stats)}
-      </p>
-      {signal.stats && (
-        <div
-          style={{
-            background: C.surfaceSunken,
-            borderRadius: R.inner,
-            padding: "10px 12px",
-            marginTop: 11,
-          }}
-        >
-          <div style={{ ...T.micro, color: C.faint }}>
-            {t("ix.whyLongitudinal")}
-          </div>
-          <p
-            style={{
-              ...T.caption,
-              color: C.muted,
-              margin: "5px 0 0",
-              textWrap: "pretty",
-            }}
-          >
-            {t("ix.trajectoryNote")}
-          </p>
-        </div>
-      )}
-
-      <div style={{ marginTop: 11 }}>
-        <DisclosureButton
-          open={open}
-          onClick={() => setOpen((v) => !v)}
-          label={t("ix.evidence")}
-          hint={`${signal.evidence.length}`}
-        />
-        <Collapse open={open}>
-          <div style={{ padding: "11px 2px 2px" }}>
-            {signal.evidence.map((e) => (
-              <div
-                key={e.marker.name}
-                style={{
-                  display: "flex",
-                  alignItems: "baseline",
-                  gap: 8,
-                  marginTop: 6,
-                }}
-              >
-                <span style={{ ...T.caption, color: C.ink, flex: 1 }}>
-                  {e.marker.name}
-                </span>
-                <span
-                  style={{
-                    ...T.num,
-                    fontSize: 12,
-                    color: LEVEL_COLOR[e.level],
-                  }}
-                >
-                  {formatValue(e.value, e.marker.dp)}
-                </span>
-                <span
-                  style={{
-                    ...T.micro,
-                    color: C.faintest,
-                    width: 58,
-                    textAlign: "right",
-                  }}
-                >
-                  {e.marker.unit || "—"}
-                </span>
-              </div>
-            ))}
-            <p
-              style={{
-                ...T.caption,
-                color: C.muted,
-                margin: "12px 0 0",
-                textWrap: "pretty",
-              }}
-            >
-              {t(signal.actionKey)}
-            </p>
-          </div>
-        </Collapse>
-      </div>
-    </Card>
-  );
-}

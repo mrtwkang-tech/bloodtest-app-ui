@@ -23,7 +23,7 @@ import { useT } from "../i18n";
  * blood, over the same rounds, it resolves readings that either panel alone
  * would get wrong.
  */
-export default function InBodyPanel({ roundIndex, delay = 0 }) {
+export default function InBodyPanel({ roundIndex, delay = 0, show = "all" }) {
   const t = useT();
   const [openSegments, setOpenSegments] = useState(false);
   const metrics = compositionAt(roundIndex);
@@ -32,6 +32,7 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
 
   return (
     <>
+      {show !== "links" && (
       <Card style={{ padding: "16px 18px" }} delay={delay}>
         <SectionLabel value={`${DEVICE.brand} ${DEVICE.model}`}>
           {t("ib.title")}
@@ -208,8 +209,9 @@ export default function InBodyPanel({ roundIndex, delay = 0 }) {
           </Collapse>
         </div>
       </Card>
+      )}
 
-      {links.length > 0 && (
+      {show !== "panel" && links.length > 0 && (
         <div
           style={{
             marginTop: 10,

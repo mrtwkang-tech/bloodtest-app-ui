@@ -38,8 +38,7 @@ export const en = {
   // Bayesian risk — the arithmetic, stated as arithmetic
   "dx.title": "Condition estimates",
   "dx.beta": "Beta",
-  "dx.note":
-    "We do not diagnose. What follows is Bayes' rule: how common a condition is at your age, multiplied by how much each of your findings shifts the odds. It is a probability, not a finding, and it is built on demo likelihood ratios rather than a validated model.",
+  "dx.note": "We do not diagnose. This is the base rate multiplied by how much each of your findings shifts the odds — a probability, on demo likelihood ratios.",
   "dx.prior": "Base rate at your age",
   "dx.posterior": "After your results",
   "dx.multiple": ({ n }) => `${n}× your base rate`,
@@ -82,6 +81,12 @@ export const en = {
   "accent.ink": "Ink",
   "accent.iris": "Iris",
   "accent.clay": "Clay",
+  "home.more": "More",
+  "home.crossRead": "Cross-read with body composition",
+  "home.signalsRow": "Cross-system signals",
+  "home.risksRow": "Condition estimates",
+  "home.compositionRow": "Full body composition",
+  "home.historyRow": "Past tests",
   "home.allClear": "All clear",
   "home.needsAttention": ({ n }) => `${n} need${n === 1 ? "s" : ""} attention`,
   "home.roundTest": ({ round }) => `${round} test`,
@@ -152,8 +157,7 @@ export const en = {
   "epi.window.year": "averages ~1 year",
   "epi.window": "Averaging window",
   "epi.badge": "Research panel",
-  "epi.hypothetical":
-    "These methylation assays are hypothetical. The loci are real and really are studied in stress and mood biology, but the tests, reference values and composite indices here are not clinically validated.",
+  "epi.hypothetical": "These assays are hypothetical. The loci are real and studied in stress biology; the tests and reference values are not clinically validated.",
   "mind.whyCumulative": "Why not cortisol",
   "mind.whyCumulativeBody":
     "Cortisol swings two- to three-fold within one day. Two readings three months apart mostly differ because the two mornings differed. So the indices run on marks that build up instead: methylation changes over weeks to months, HbA1c averages a quarter of your blood sugar, the omega-3 index a quarter of your cell membranes. Each number is a summary of the months behind it, not a snapshot of the hour you were drawn.",
@@ -285,8 +289,7 @@ export const en = {
   // Cross-system, BETA
   "ix.title": "Cross-system signals",
   "ix.beta": "BETA",
-  "ix.note":
-    "Patterns across two or more systems that no single panel would flag on its own. Heuristic, not a validated risk model.",
+  "ix.note": "Patterns across panels that no single specialty would flag. Heuristics, not a validated model.",
   "ix.none": "No cross-system patterns in this round.",
   "ix.evidence": "Built from",
   "ix.hepaticTrajectory.title": "Liver markers on a trajectory",
@@ -531,6 +534,9 @@ export const en = {
 
   "common.close": "Close",
   "common.back": "Back",
+  "common.more": "Read more",
+  "common.less": "Less",
+  "common.detail": "Details",
 };
 
 export const ko = {
@@ -564,8 +570,7 @@ export const ko = {
   // 베이즈 위험 추정
   "dx.title": "예상 질환 추정",
   "dx.beta": "베타",
-  "dx.note":
-    "우리는 진단하지 않습니다. 아래는 베이즈 규칙입니다. 같은 나이대에서 그 질환이 얼마나 흔한지에, 당신의 각 소견이 그 확률을 얼마나 움직이는지를 곱한 값입니다. 소견이 아니라 확률이고, 검증된 모델이 아니라 데모용 우도비로 계산했습니다.",
+  "dx.note": "우리는 진단하지 않습니다. 기본 확률에 각 소견이 확률을 움직이는 정도를 곱한 값이고, 데모용 우도비로 계산했습니다.",
   "dx.prior": "같은 나이대 기본 확률",
   "dx.posterior": "내 결과 반영 후",
   "dx.multiple": ({ n }) => `기본 확률의 ${n}배`,
@@ -608,6 +613,12 @@ export const ko = {
   "accent.ink": "잉크",
   "accent.iris": "아이리스",
   "accent.clay": "클레이",
+  "home.more": "더 보기",
+  "home.crossRead": "체성분 교차 해석",
+  "home.signalsRow": "계열 간 신호",
+  "home.risksRow": "예상 질환 추정",
+  "home.compositionRow": "체성분 전체 보기",
+  "home.historyRow": "지난 검사",
   "home.allClear": "이상 없음",
   "home.needsAttention": ({ n }) => `${n}개 확인 필요`,
   "home.roundTest": ({ round }) => `${round} 검사`,
@@ -674,8 +685,7 @@ export const ko = {
   "epi.window.year": "약 1년 평균",
   "epi.window": "평균 구간",
   "epi.badge": "연구 패널",
-  "epi.hypothetical":
-    "이 메틸화 검사들은 가정입니다. 유전자 자리 자체는 실재하고 스트레스·기분 연구에서 실제로 다뤄지지만, 여기 쓰인 검사법과 기준치, 합성 지수는 임상적으로 검증된 것이 아닙니다.",
+  "epi.hypothetical": "이 검사들은 가정입니다. 유전자 자리는 실재하지만 검사법과 기준치는 임상 검증된 것이 아닙니다.",
   "mind.whyCumulative": "왜 코르티솔이 아닌가",
   "mind.whyCumulativeBody":
     "코르티솔은 하루 안에서도 2~3배씩 오르내립니다. 3개월 간격으로 잰 두 값은 대개 그 두 날 아침이 달랐다는 뜻일 뿐입니다. 그래서 지수는 쌓이는 흔적 위에서 계산합니다. 메틸화는 몇 주에서 몇 달에 걸쳐 변하고, 당화혈색소는 한 분기의 혈당을, 오메가-3 지수는 한 분기의 세포막을 평균 냅니다. 모든 숫자가 채혈한 그 시각이 아니라 그 앞의 몇 달을 요약합니다.",
@@ -802,8 +812,7 @@ export const ko = {
   // 교차 신호, 베타
   "ix.title": "계열 간 신호",
   "ix.beta": "베타",
-  "ix.note":
-    "두 계열 이상에 걸쳐 나타나는 패턴으로, 단일 분과 검사만으로는 잡히지 않습니다. 검증된 위험 모델이 아니라 휴리스틱입니다.",
+  "ix.note": "한 분과만 봐서는 잡히지 않는 조합입니다. 검증된 모델이 아니라 휴리스틱입니다.",
   "ix.none": "이번 회차에는 계열 간 패턴이 없습니다.",
   "ix.evidence": "근거 지표",
   "ix.hepaticTrajectory.title": "추세를 그리고 있는 간 지표",
@@ -1034,6 +1043,9 @@ export const ko = {
 
   "common.close": "닫기",
   "common.back": "뒤로",
+  "common.more": "더 보기",
+  "common.less": "접기",
+  "common.detail": "자세히",
 };
 
 export const DICTS = { en, ko };

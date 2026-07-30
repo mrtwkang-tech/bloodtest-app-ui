@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import { Collapse, DisclosureButton } from "../components/Collapse";
 import BodyScene from "../three/BodyScene";
 import Icon from "../components/Icon";
+import Clamp from "../components/Clamp";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
 import TrendChart from "../components/TrendChart";
@@ -289,32 +290,18 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
           <div style={{ ...T.micro, color: C.faintest }}>
             {t("body.whatThisIs")}
           </div>
-          <p
-            style={{
-              ...T.bodyText,
-              color: C.body,
-              margin: "5px 0 0",
-              textWrap: "pretty",
-            }}
-          >
+          <Clamp lines={2} style={{ marginTop: 5 }}>
             {t(zone.noteKey)}
-          </p>
+          </Clamp>
         </div>
 
         <div style={{ marginTop: 14 }}>
           <div style={{ ...T.micro, color: C.faintest }}>
             {t("body.whatItMeans")}
           </div>
-          <p
-            style={{
-              ...T.bodyText,
-              color: C.ink,
-              margin: "5px 0 0",
-              textWrap: "pretty",
-            }}
-          >
+          <Clamp lines={2} tone={C.ink} style={{ marginTop: 5 }}>
             {note || (over.length === 0 ? t("body.clearAll") : "")}
-          </p>
+          </Clamp>
         </div>
 
         {level > 0 && action && (

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
 import { Dot } from "./primitives";
+import Clamp from "./Clamp";
 import Icon from "./Icon";
 import { C, DIVIDER, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
@@ -30,7 +31,7 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
 
   return (
     <div
-      style={{ padding: "13px 16px 12px", boxShadow: last ? "none" : DIVIDER }}
+      style={{ padding: "12px 16px 11px", boxShadow: last ? "none" : DIVIDER }}
     >
       <div
         style={{
@@ -89,55 +90,37 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
 
       <Ruler index={index} lamp={lamp} />
 
-      {/* The mechanism, not the number: this is the part a reader can use.
-          The plain name leads; the locus follows in mono so the claim stays
-          checkable without being the first thing anyone has to read. */}
-      <div style={{ marginTop: 10 }}>
-        <div style={{ ...T.micro, color: C.faintest }}>{t("mind.whyThis")}</div>
-        <div
+      {/* One line of why, then the door. The full chain — every driver, its
+          locus, its averaging window and its mechanism — used to sit open on
+          this card, five times down the screen. It is the same information,
+          now asked for rather than served. */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 6,
+          marginTop: 11,
+        }}
+      >
+        <span style={{ ...T.caption, color: C.body, flex: 1, minWidth: 0 }}>
+          {lead.marker.plainKey ? t(lead.marker.plainKey) : lead.marker.name}
+        </span>
+        <span
           style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 7,
-            marginTop: 6,
-            flexWrap: "wrap",
+            ...T.num,
+            fontSize: 12,
+            color: lead.pushesUp ? C.watch : C.muted,
           }}
         >
-          <span style={{ ...T.label, color: C.ink }}>
-            {lead.marker.plainKey ? t(lead.marker.plainKey) : lead.marker.name}
-          </span>
-          <span
-            style={{
-              ...T.num,
-              fontSize: 12,
-              color: lead.pushesUp ? C.watch : C.optimal,
-            }}
-          >
-            {formatValue(lead.value, lead.marker.dp)}
-            {lead.marker.unit ? ` ${lead.marker.unit}` : ""}
-          </span>
-          <span style={{ ...T.micro, color: C.faintest }}>
-            {lead.pushesUp ? t("mind.pushesUp") : t("mind.pushesDown")}
-          </span>
-        </div>
-        {lead.marker.windowKey && (
-          <div style={{ ...T.micro, color: C.faint, marginTop: 5 }}>
-            {lead.marker.name} · {t(lead.marker.windowKey)}
-          </div>
-        )}
-        <p
-          style={{
-            ...T.caption,
-            color: C.muted,
-            margin: "6px 0 0",
-            textWrap: "pretty",
-          }}
-        >
-          {t(lead.mechanismKey)}
-        </p>
+          {formatValue(lead.value, lead.marker.dp)}
+          {lead.marker.unit ? ` ${lead.marker.unit}` : ""}
+        </span>
+        <span style={{ ...T.micro, color: C.faintest }}>
+          {lead.pushesUp ? t("mind.pushesUp") : t("mind.pushesDown")}
+        </span>
       </div>
 
-      <div style={{ marginTop: 11 }}>
+      <div style={{ marginTop: 10 }}>
         <DisclosureButton
           open={open}
           onClick={() => setOpen((v) => !v)}
@@ -145,99 +128,87 @@ export default function ScaleCard({ meta, index, status, roundIndex, last }) {
           hint={`${drivers.length}`}
         />
         <Collapse open={open}>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 11,
-              padding: "12px 2px 2px",
-            }}
-          >
-            {drivers.map((d) => (
-              <div key={d.marker.name}>
-                <div
-                  style={{ display: "flex", alignItems: "baseline", gap: 8 }}
-                >
-                  <Dot
-                    color={d.pushesUp ? C.watchLamp : C.optimalLamp}
-                    size={5}
-                    style={{ transform: "translateY(-2px)" }}
-                  />
-                  <span style={{ ...T.label, color: C.ink }}>
-                    {d.marker.plainKey ? t(d.marker.plainKey) : d.marker.name}
-                  </span>
-                  <span
-                    style={{
-                      marginLeft: "auto",
-                      ...T.num,
-                      fontSize: 12,
-                      color: C.body,
-                    }}
+          <div style={{ padding: "12px 2px 2px" }}>
+            <p
+              style={{
+                ...T.caption,
+                color: C.muted,
+                margin: "0 0 14px",
+                textWrap: "pretty",
+              }}
+            >
+              {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
+            </p>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: 11 }}
+            >
+              {drivers.map((d) => (
+                <div key={d.marker.name}>
+                  <div
+                    style={{ display: "flex", alignItems: "baseline", gap: 8 }}
                   >
-                    {formatValue(d.value, d.marker.dp)}
-                  </span>
-                  <span
+                    <Dot
+                      color={d.pushesUp ? C.watchLamp : C.inRangeLamp}
+                      size={5}
+                      style={{ transform: "translateY(-2px)" }}
+                    />
+                    <span style={{ ...T.label, color: C.ink }}>
+                      {d.marker.plainKey ? t(d.marker.plainKey) : d.marker.name}
+                    </span>
+                    <span
+                      style={{
+                        marginLeft: "auto",
+                        ...T.num,
+                        fontSize: 12,
+                        color: C.body,
+                      }}
+                    >
+                      {formatValue(d.value, d.marker.dp)}
+                    </span>
+                    <span
+                      style={{
+                        ...T.unit,
+                        color: C.faintest,
+                        width: 56,
+                        textAlign: "right",
+                      }}
+                    >
+                      {d.marker.unit || "\u2014"}
+                    </span>
+                  </div>
+                  <div
                     style={{
-                      ...T.unit,
+                      ...T.micro,
                       color: C.faintest,
-                      width: 56,
-                      textAlign: "right",
+                      margin: "4px 0 0 13px",
+                      display: "flex",
+                      gap: 6,
+                      flexWrap: "wrap",
                     }}
                   >
-                    {d.marker.unit || "—"}
-                  </span>
+                    <span>{d.marker.name}</span>
+                    <span style={{ opacity: 0.45 }}>·</span>
+                    <span>
+                      {d.marker.windowKey
+                        ? t(d.marker.windowKey)
+                        : d.cumulative
+                          ? t("mind.cumulativeTag")
+                          : t("mind.snapshotTag")}
+                    </span>
+                  </div>
+                  <Clamp
+                    lines={2}
+                    tone={C.faint}
+                    style={{ margin: "5px 0 0 13px" }}
+                  >
+                    {t(d.mechanismKey)}
+                  </Clamp>
                 </div>
-                {/* The locus, then the window it averages over. The window is
-                    the reason this marker belongs in a quarterly product. */}
-                <div
-                  style={{
-                    ...T.micro,
-                    color: C.faintest,
-                    margin: "4px 0 0 13px",
-                    display: "flex",
-                    gap: 6,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <span>{d.marker.name}</span>
-                  <span style={{ opacity: 0.45 }}>·</span>
-                  <span style={{ color: d.cumulative ? C.optimal : C.faint }}>
-                    {d.marker.windowKey
-                      ? t(d.marker.windowKey)
-                      : d.cumulative
-                        ? t("mind.cumulativeTag")
-                        : t("mind.snapshotTag")}
-                  </span>
-                </div>
-                <p
-                  style={{
-                    ...T.caption,
-                    color: C.faint,
-                    margin: "5px 0 0 13px",
-                    lineHeight: 1.6,
-                    textWrap: "pretty",
-                  }}
-                >
-                  {t(d.mechanismKey)}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </Collapse>
       </div>
-
-      <p
-        style={{
-          ...T.caption,
-          color: C.muted,
-          margin: "11px 0 0",
-          paddingTop: 10,
-          boxShadow: `inset 0 1px 0 ${C.hairline}`,
-          textWrap: "pretty",
-        }}
-      >
-        {t(`${meta.axisKey}.base`)} {t(`status.line.${status}`)}
-      </p>
     </div>
   );
 }

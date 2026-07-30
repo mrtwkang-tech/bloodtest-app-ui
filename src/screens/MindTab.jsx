@@ -1,5 +1,6 @@
 import { useState } from "react";
 import RadarChart from "../components/RadarChart";
+import Clamp from "../components/Clamp";
 import ScaleCard from "../components/ScaleCard";
 import TrendChart from "../components/TrendChart";
 import SessionChips from "../components/SessionChips";
@@ -95,16 +96,9 @@ export default function MindTab({ sel, onPickSession, showNew }) {
             })}
           </div>
         )}
-        <p
-          style={{
-            ...T.bodyText,
-            color: C.body,
-            margin: "12px 0 0",
-            textWrap: "pretty",
-          }}
-        >
+        <Clamp lines={3} style={{ marginTop: 12 }}>
           {pick(session.summary, lang)}
-        </p>
+        </Clamp>
       </Card>
 
       <div style={{ marginTop: 10 }}>
@@ -120,16 +114,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
           obvious objection, why it was not a hormone. */}
       <SectionTitle>{t("mind.whyCumulative")}</SectionTitle>
       <Card style={{ padding: "15px 17px" }} delay={100}>
-        <p
-          style={{
-            ...T.bodyText,
-            color: C.body,
-            margin: 0,
-            textWrap: "pretty",
-          }}
-        >
-          {t("mind.whyCumulativeBody")}
-        </p>
+        <Clamp lines={3}>{t("mind.whyCumulativeBody")}</Clamp>
         {/* Badge above rather than beside: a badge in a flex row steals a
             third of the measure and squeezes the sentence into a column. */}
         <div
@@ -232,16 +217,7 @@ export default function MindTab({ sel, onPickSession, showNew }) {
 
       <SectionTitle>{t("mind.state")}</SectionTitle>
       <Card style={{ padding: "15px 17px" }}>
-        <p
-          style={{
-            ...T.bodyText,
-            color: C.body,
-            margin: 0,
-            textWrap: "pretty",
-          }}
-        >
-          {pick(session.mind, lang)}
-        </p>
+        <Clamp lines={3}>{pick(session.mind, lang)}</Clamp>
         <p
           style={{
             ...T.caption,
