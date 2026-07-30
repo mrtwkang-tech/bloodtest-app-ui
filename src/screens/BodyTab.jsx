@@ -3,6 +3,7 @@ import { Collapse, DisclosureButton } from "../components/Collapse";
 import BodyScene from "../three/BodyScene";
 import Icon from "../components/Icon";
 import Clamp from "../components/Clamp";
+import NextStep from "../components/NextStep";
 import Pressable from "../components/Pressable";
 import SessionChips from "../components/SessionChips";
 import TrendChart from "../components/TrendChart";
@@ -13,16 +14,7 @@ import {
   SectionTitle,
   Status,
 } from "../components/primitives";
-import {
-  C,
-  CARD,
-  LEVEL_COLOR,
-  LEVEL_LAMP,
-  LEVEL_TINT,
-  R,
-  T,
-  fadeUp,
-} from "../tokens";
+import { C, CARD, LEVEL_COLOR, LEVEL_LAMP, R, T, fadeUp } from "../tokens";
 import {
   BODY_STATUS_KEY,
   deviationOf,
@@ -227,7 +219,8 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
     // about which one to care about.
     .sort(
       (a, b) =>
-        deviationOf(b.marker, b.value).ratio - deviationOf(a.marker, a.value).ratio,
+        deviationOf(b.marker, b.value).ratio -
+        deviationOf(a.marker, a.value).ratio,
     );
 
   return (
@@ -318,31 +311,6 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
           </Clamp>
         )}
 
-        {level > 0 && action && (
-          <div
-            style={{
-              background: LEVEL_TINT[level],
-              borderRadius: R.inner,
-              padding: "11px 13px",
-              marginTop: 13,
-            }}
-          >
-            <div style={{ ...T.micro, color: LEVEL_COLOR[level] }}>
-              {level === 2 ? t("body.consultNow") : t("body.watchNext")}
-            </div>
-            <p
-              style={{
-                ...T.caption,
-                color: C.body,
-                margin: "6px 0 0",
-                textWrap: "pretty",
-              }}
-            >
-              {action}
-            </p>
-          </div>
-        )}
-
         {/* Out-of-range markers stay visible; the rest fold away. */}
         {over.length > 0 && (
           <div
@@ -389,6 +357,13 @@ function ZonePanel({ zone, values, level, note, action, onSelect, selected }) {
             </div>
           </Collapse>
         </div>
+
+        {/* Last, after the evidence — and only when the zone has an action the
+            app cannot take for you. A level-1 zone ends here, which is honest:
+            "관찰 필요" is already on the badge above. */}
+        <NextStep label={t("body.consultNow")} where={t(zone.specialtyKey)}>
+          {action}
+        </NextStep>
       </div>
     </Card>
   );

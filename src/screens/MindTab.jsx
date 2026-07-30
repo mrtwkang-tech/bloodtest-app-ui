@@ -17,7 +17,7 @@ import { SCALE_META } from "../data/scales";
 import { SESSIONS, mindSummary, pick } from "../data/sessions";
 import { useLang } from "../i18n";
 
-export default function MindTab({ sel, onPickSession, showNew, onOpenScale }) {
+export default function MindTab({ sel, onPickSession, onOpenScale }) {
   const { t, lang } = useLang();
   const [metric, setMetric] = useState(2);
   const session = SESSIONS[sel];
@@ -36,33 +36,6 @@ export default function MindTab({ sel, onPickSession, showNew, onOpenScale }) {
         </div>
         <SessionChips sel={sel} onPick={onPickSession} />
       </header>
-
-      {showNew && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            background: C.accentSoft,
-            borderRadius: R.inner,
-            padding: "10px 13px",
-            marginTop: 12,
-            ...fadeUp(20),
-          }}
-        >
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: C.accent,
-            }}
-          />
-          <span style={{ ...T.caption, color: C.ink2 }}>
-            {t("mind.newResult")}
-          </span>
-        </div>
-      )}
 
       <Card pad="md" delay={40}>
         <SectionLabel value={`${summary.ok}/${SCALE_META.length}`}>

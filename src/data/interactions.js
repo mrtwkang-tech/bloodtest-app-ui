@@ -113,7 +113,6 @@ const RULES = [
     key: "residualInflammation",
     titleKey: "ix.residualInflammation.title",
     bodyKey: "ix.residualInflammation.body",
-    actionKey: "ix.residualInflammation.action",
     systems: ["cardio", "immune", "nutrition"],
     evaluate(r) {
       const crp = read(r, "cardio", "hs-CRP");
@@ -135,7 +134,6 @@ const RULES = [
     key: "stressGlycaemia",
     titleKey: "ix.stressGlycaemia.title",
     bodyKey: "ix.stressGlycaemia.body",
-    actionKey: "ix.stressGlycaemia.action",
     systems: ["endocrine", "epigen"],
     evaluate(r) {
       // Both sides of this pattern are cumulative on purpose: HbA1c averages a
@@ -154,7 +152,6 @@ const RULES = [
     key: "inflammatoryMood",
     titleKey: "ix.inflammatoryMood.title",
     bodyKey: "ix.inflammatoryMood.body",
-    actionKey: "ix.inflammatoryMood.action",
     systems: ["immune", "neuro", "nutrition"],
     evaluate(r) {
       const kyn = read(r, "neuro", "Kyn/Trp ratio");
@@ -211,7 +208,6 @@ const RULES = [
     key: "metabolicLiver",
     titleKey: "ix.metabolicLiver.title",
     bodyKey: "ix.metabolicLiver.body",
-    actionKey: "ix.metabolicLiver.action",
     systems: ["hepatic", "endocrine", "cardio"],
     evaluate(r) {
       const ggt = read(r, "hepatic", "GGT");

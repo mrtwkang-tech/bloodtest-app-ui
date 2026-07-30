@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DisclosureRow from "../components/DisclosureRow";
+import NextStep from "../components/NextStep";
 import RiskBody, { riskLevel } from "../components/RiskEstimates";
 import SessionChips from "../components/SessionChips";
 import { LinkBody } from "../components/InBodyPanel";
@@ -291,40 +292,13 @@ function SignalBody({ signal }) {
                 </span>
               </div>
             ))}
-            {signal.stats && (
-              <div
-                style={{
-                  background: C.surfaceSunken,
-                  borderRadius: R.inner,
-                  padding: "10px 12px",
-                  marginTop: 12,
-                }}
-              >
-                <p
-                  style={{
-                    ...T.caption,
-                    color: C.muted,
-                    margin: 0,
-                    textWrap: "pretty",
-                  }}
-                >
-                  {t("ix.trajectoryNote")}
-                </p>
-              </div>
-            )}
-            <p
-              style={{
-                ...T.caption,
-                color: C.muted,
-                margin: "12px 0 0",
-                textWrap: "pretty",
-              }}
-            >
-              {t(signal.actionKey)}
-            </p>
           </div>
         </Collapse>
       </div>
+
+      <NextStep label={t("signal.nextStep")}>
+        {signal.actionKey ? t(signal.actionKey) : null}
+      </NextStep>
     </div>
   );
 }

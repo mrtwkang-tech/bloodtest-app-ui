@@ -46,10 +46,6 @@ const RAW = [
         en: "Book hepatology. Ask for a liver ultrasound with a repeat AFP; bring this trajectory, not just today's number.",
         ko: "소화기내과 진료를 예약하세요. 간 초음파와 AFP 재검을 요청하시고, 오늘 수치 하나가 아니라 이 추이를 가져가세요.",
       },
-      endocrine: {
-        en: "Adjust when you eat carbohydrates and move after meals; recheck next round.",
-        ko: "탄수화물 섭취 시점과 식후 활동을 조정하고 다음 회차에 재확인하세요.",
-      },
     },
     summary: {
       en: "The liver panel is the finding this round. AFP crossed its range for the first time, and it did so at the end of a year-long climb that GGT, the fibrosis estimate and a falling platelet count all track. Blood sugar also crossed. Everything else is inside range.",
@@ -122,10 +118,6 @@ const RAW = [
       },
     },
     bodyAction: {
-      hepatic: {
-        en: "Reduce alcohol and recheck at the next round.",
-        ko: "음주를 줄이고 다음 회차에 재확인하세요.",
-      },
     },
     summary: {
       en: "One liver enzyme moved out of range. Read alone it is unremarkable; it is listed here so the next round has something to compare against.",

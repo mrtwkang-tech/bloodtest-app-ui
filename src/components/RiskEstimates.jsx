@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "./Collapse";
+import NextStep from "./NextStep";
 import { C, DIVIDER, EASE, LEVEL_COLOR, R, T } from "../tokens";
 import { formatRisk } from "../data/bayes";
 import { useT } from "../i18n";
@@ -150,32 +151,13 @@ export default function RiskBody({ risk }) {
                 </span>
               </div>
             ))}
-
-            <div
-              style={{
-                marginTop: 14,
-                padding: "11px 13px",
-                borderRadius: R.inner,
-                background: C.surfaceSunken,
-              }}
-            >
-              <div style={{ ...T.label, color: C.faint }}>
-                {t("dx.confirmTitle")}
-              </div>
-              <p
-                style={{
-                  ...T.caption,
-                  color: C.body,
-                  margin: "5px 0 0",
-                  textWrap: "pretty",
-                }}
-              >
-                {t(risk.confirmKey)}
-              </p>
-            </div>
           </div>
         </Collapse>
       </div>
+
+      <NextStep label={t("dx.confirmTitle")} where={t(risk.specialtyKey)}>
+        {t(risk.confirmKey)}
+      </NextStep>
     </div>
   );
 }

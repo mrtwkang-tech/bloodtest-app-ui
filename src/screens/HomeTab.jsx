@@ -1,6 +1,5 @@
 import { useState } from "react";
 import Pressable from "../components/Pressable";
-import { ScanGlyph } from "../components/Icon";
 import {
   Card,
   Caret,
@@ -52,7 +51,7 @@ const HOME_METRICS = ["smm", "bodyFat", "visceral"];
  * to parse fifteen labels before reaching anything Home alone could tell them.
  * The tab bar already navigates; Home now says something.
  */
-export default function HomeTab({ onGoStore, onOpen, onScan }) {
+export default function HomeTab({ onGoStore, onOpen }) {
   const { t, lang } = useLang();
   const [cohort, setCohort] = useState(DEFAULT_COHORT);
   const score = healthScore(latest);
@@ -231,10 +230,8 @@ export default function HomeTab({ onGoStore, onOpen, onScan }) {
         />
       </Card>
 
-      {/* Registering a kit is the one thing on this screen that is an action
-          rather than a reading, and for a quarter of the year it is the only
-          reason to open the app at all. It gets the same weight as buying one —
-          a labelled button, not a glyph tucked into the header. */}
+      {/* The kit-registration button sat beside this one until QR came out.
+          Buying is the only action left on the screen, so it takes the width. */}
       <div
         style={{
           ...T.caption,
@@ -250,40 +247,17 @@ export default function HomeTab({ onGoStore, onOpen, onScan }) {
         })}
       </div>
 
-      <div style={{ display: "flex", gap: 10, ...fadeUp(190) }}>
-        <Pressable
-          as="button"
-          type="button"
-          onClick={onScan}
-          pressScale={0.98}
-          hoverStyle={{ background: C.surfaceHover }}
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "14px 15px",
-            borderRadius: R.card,
-            border: "none",
-            cursor: "pointer",
-            background: C.surface,
-            boxShadow: `inset 0 0 0 1px ${C.hairline}`,
-            color: C.ink,
-            textAlign: "left",
-          }}
-        >
-          <ScanGlyph size={22} />
-          <span style={{ ...T.title3 }}>{t("home.registerKit")}</span>
-        </Pressable>
+      <div style={{ ...fadeUp(190) }}>
         <Pressable
           as="button"
           type="button"
           onClick={onGoStore}
           pressScale={0.98}
           style={{
-            flex: 1,
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
             padding: "14px 15px",
             borderRadius: R.card,
             border: "none",

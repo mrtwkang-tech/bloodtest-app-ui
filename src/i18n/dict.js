@@ -36,7 +36,6 @@ export const en = {
   "home.nextTest": "Next test",
   "home.subscription": "Subscription",
   "home.buyKit": "Buy a kit",
-  "home.registerKit": "Register a kit",
   "home.history": "Past tests",
   // Bayesian risk — the arithmetic, stated as arithmetic
   "dx.title": "Condition estimates",
@@ -92,6 +91,7 @@ export const en = {
   "signal.leadLabel": "Worth looking at first",
   "signal.contextLabel": "Worth knowing",
   "signal.watchTitle": "Also worth watching",
+  "signal.nextStep": "What to do",
   "signal.contextTitle": "Context for reading your numbers",
   "signal.contextNote": "Nothing here is asking for action",
   "signal.leadNone": "Nothing here is asking for action right now.",
@@ -129,7 +129,6 @@ export const en = {
   "mind.trend": ({ name }) => `${name} over time`,
   "mind.activities": "What to do next",
   "mind.state": "Where you are now",
-  "mind.newResult": "Your new results have arrived",
   "mind.crisis":
     "This is a screening result, not a diagnosis. If things stay hard, contact a clinician or a crisis line.",
   // Scales
@@ -390,9 +389,6 @@ export const en = {
     "This is the pattern liver surveillance looks for. Book hepatology and ask for a liver ultrasound with a repeat AFP — take the whole series, not today's number.",
   "ix.crossedNow": "AFP has now crossed its reference range.",
   "ix.notCrossedYet": "AFP is still inside its reference range.",
-  "ix.whyLongitudinal": "Why six rounds",
-  "ix.trajectoryNote":
-    "A single draw can only ask whether a value is in range. Six can ask which way it is moving, and how fast — which is the only way a marker that is still technically normal can be a finding.",
   "home.inbody": "Body composition",
   "home.tracked": ({ n, m }) => `${n} rounds · ${m} months`,
   "store.monthly": "Monthly",
@@ -401,18 +397,12 @@ export const en = {
   "ix.residualInflammation.title": "Inflammation without the lipid signal",
   "ix.residualInflammation.body":
     "Your cholesterol looks handled, but the inflammatory side of vascular risk does not. Cardiology would pass this; the combination is what matters.",
-  "ix.residualInflammation.action":
-    "Omega-3 intake and sleep move these fastest. Worth raising at your next check-up.",
   "ix.stressGlycaemia.title": "Blood sugar tracking stress, not diet",
   "ix.stressGlycaemia.body":
     "Glucose is drifting up while your adrenal reserve slips. That pattern usually responds to load and sleep rather than to cutting carbohydrates.",
-  "ix.stressGlycaemia.action":
-    "Treat this as a recovery problem first: fixed wake time, and one genuinely unscheduled block a week.",
   "ix.inflammatoryMood.title": "Inflammation reaching mood",
   "ix.inflammatoryMood.body":
     "Tryptophan is being pulled down the inflammatory branch instead of towards serotonin, while your neuroplasticity marker sits low. That is a physical route to low motivation, not a character one.",
-  "ix.inflammatoryMood.action":
-    "Anti-inflammatory basics — sleep, omega-3, movement — act on both ends of this chain.",
   "ix.fatigueChain.title": "Three in-range values that add up to tiredness",
   "ix.fatigueChain.body":
     "Iron stores, thyroid output and B12 are each individually fine, but all three sit in the lower part of their range at once. Energy is the sum, not any one of them.",
@@ -426,8 +416,6 @@ export const en = {
   "ix.metabolicLiver.title": "Liver enzymes moving with insulin",
   "ix.metabolicLiver.body":
     "GGT and ALT are drifting up alongside fasting insulin. Read separately these are unremarkable; together they are the early metabolic-liver pattern.",
-  "ix.metabolicLiver.action":
-    "Alcohol, fructose and weight are the usual levers. Recheck next round before treating it as anything more.",
   "status.good": "In range",
   "status.watch": "Watch",
   "status.alert": "See someone",
@@ -460,7 +448,6 @@ export const en = {
   "body.allInRange": "Every marker is inside its reference range",
   "body.disclaimer":
     "Screening results are not a diagnosis. A marker outside its range does not confirm or rule out any condition. Review anything that concerns you with a clinician.",
-  "body.watchNext": "Watch until the next round",
   "body.consultNow": "A specialist visit is recommended",
   "body.rotateHint": "Drag to rotate",
   // Zones
@@ -565,23 +552,6 @@ export const en = {
   "store.ctaQuarter": "Start quarterly · 59,000 KRW per test",
   "store.ctaHalf": "Start half-yearly · 64,000 KRW per test",
   // Scan / analysis
-  "scan.title": "Register your kit",
-  "scan.help": "Help",
-  "scan.instruction": "Line the QR code on your kit up inside the frame",
-  "scan.waiting": "Waiting for a code",
-  "scan.recognized": "Code recognised · submit test",
-  "scan.demoNote": "Demo — this button simulates a successful scan",
-  "analyzing.title": "Analysing",
-  "analyzing.body":
-    "Your sample is being processed. We’ll notify you when the report is ready.",
-  "analyzing.step1": "Kit received",
-  "analyzing.step2": "Analysing sample",
-  "analyzing.step3": "Building your report",
-  "analyzing.justNow": "just now",
-  "analyzing.running": "running",
-  "analyzing.waiting": "waiting",
-  "analyzing.background": "Leave it running",
-  // More / settings
   "more.title": "More",
   "more.account": "Account",
   "more.legal": "Terms & policies",
@@ -646,7 +616,6 @@ export const ko = {
   "home.nextTest": "다음 검사",
   "home.subscription": "구독",
   "home.buyKit": "키트 구매",
-  "home.registerKit": "키트 등록",
   "home.history": "지난 검사",
   // 베이즈 위험 추정
   "dx.title": "예상 질환 추정",
@@ -702,6 +671,7 @@ export const ko = {
   "signal.leadLabel": "먼저 볼 것",
   "signal.contextLabel": "알아둘 것",
   "signal.watchTitle": "함께 지켜볼 것",
+  "signal.nextStep": "무엇을 하면 되나",
   "signal.contextTitle": "수치를 읽을 때 참고할 것",
   "signal.contextNote": "조치가 필요한 내용은 없습니다",
   "signal.leadNone": "지금 당장 조치가 필요한 항목은 없습니다.",
@@ -736,7 +706,6 @@ export const ko = {
   "mind.trend": ({ name }) => `${name} 추이`,
   "mind.activities": "권장 활동",
   "mind.state": "현재 상태",
-  "mind.newResult": "새 검사 결과가 도착했습니다",
   "mind.crisis":
     "선별검사 결과이며 의학적 진단이 아닙니다. 힘든 상태가 이어진다면 정신건강상담전화 1577-0199 또는 의료기관을 이용하세요.",
   // 마음 지수 — 설문이 아니라 혈액에서 유도
@@ -990,9 +959,6 @@ export const ko = {
     "간암 감시에서 찾는 바로 그 패턴입니다. 소화기내과를 예약하고 간 초음파와 AFP 재검을 요청하세요. 오늘 수치가 아니라 전체 시계열을 가져가세요.",
   "ix.crossedNow": "AFP가 정상 범위를 넘었습니다.",
   "ix.notCrossedYet": "AFP는 아직 정상 범위 안입니다.",
-  "ix.whyLongitudinal": "왜 6회차인가",
-  "ix.trajectoryNote":
-    "한 번 재면 지금 정상인지만 알 수 있습니다. 여섯 번 재면 어느 쪽으로 움직이는지가 보입니다. 아직 정상인 수치에서 미리 알아채는 유일한 방법입니다.",
   "home.inbody": "체성분",
   "home.tracked": ({ n, m }) => `${n}회차 · ${m}개월`,
   "store.monthly": "월간 구독",
@@ -1001,18 +967,12 @@ export const ko = {
   "ix.residualInflammation.title": "지질은 잡혔는데 염증이 남음",
   "ix.residualInflammation.body":
     "콜레스테롤은 관리된 것으로 보이지만 혈관 위험의 염증 쪽은 그렇지 않습니다. 순환기내과 단독으로는 넘어갈 수 있고, 중요한 건 이 조합입니다.",
-  "ix.residualInflammation.action":
-    "오메가-3 섭취와 수면이 가장 빠르게 움직입니다. 다음 진료 때 언급할 만합니다.",
   "ix.stressGlycaemia.title": "식단이 아니라 스트레스를 따라가는 혈당",
   "ix.stressGlycaemia.body":
     "부신 여력이 떨어지는 동안 혈당이 올라가고 있습니다. 이 패턴은 탄수화물을 줄이는 것보다 부하와 수면에 반응하는 경우가 많습니다.",
-  "ix.stressGlycaemia.action":
-    "회복 문제로 먼저 다루세요. 기상 시간 고정, 그리고 주 1회는 정말 아무 일정 없는 시간.",
   "ix.inflammatoryMood.title": "염증이 기분까지 닿음",
   "ix.inflammatoryMood.body":
     "트립토판이 세로토닌 대신 염증 경로로 끌려가는 동안 신경가소성 수치가 낮게 있습니다. 의욕 저하로 가는 물리적 경로이지, 의지의 문제가 아닙니다.",
-  "ix.inflammatoryMood.action":
-    "수면·오메가-3·움직임 같은 항염증 기본기가 이 사슬의 양쪽 끝에 동시에 작용합니다.",
   "ix.fatigueChain.title": "정상 범위 세 개가 합쳐져 만든 피로",
   "ix.fatigueChain.body":
     "철 저장량, 갑상선 출력, B12가 각각은 정상입니다. 다만 셋 다 범위의 아래쪽에 함께 있습니다. 에너지는 그 합이지 하나가 아닙니다.",
@@ -1025,8 +985,6 @@ export const ko = {
   "ix.metabolicLiver.title": "인슐린과 함께 움직이는 간 수치",
   "ix.metabolicLiver.body":
     "GGT와 ALT가 공복 인슐린과 나란히 올라가고 있습니다. 따로 보면 대수롭지 않지만, 함께 보면 대사성 간질환의 초기 패턴입니다.",
-  "ix.metabolicLiver.action":
-    "알코올·과당·체중이 보통의 지렛대입니다. 그 이상으로 보기 전에 다음 회차에서 재확인하세요.",
   "status.good": "양호",
   "status.watch": "주의",
   "status.alert": "상담 권장",
@@ -1058,7 +1016,6 @@ export const ko = {
   "body.allInRange": "모든 수치가 정상 범위 안입니다",
   "body.disclaimer":
     "스크리닝 결과는 의학적 진단이 아닙니다. 수치가 범위를 벗어났다는 뜻이며, 질환의 확진이나 배제를 의미하지 않습니다. 판단은 반드시 의료진과 함께 하세요.",
-  "body.watchNext": "다음 회차까지 관찰하세요",
   "body.consultNow": "전문의 상담을 권합니다",
   "body.rotateHint": "드래그해서 돌려보세요",
   "zone.neuro": "뇌·신경",
@@ -1152,22 +1109,6 @@ export const ko = {
   "store.ctaSingle": "89,000원 · 1회 검사 결제",
   "store.ctaQuarter": "분기 구독 시작 · 회당 59,000원",
   "store.ctaHalf": "반기 구독 시작 · 회당 64,000원",
-  "scan.title": "키트 QR 등록",
-  "scan.help": "도움말",
-  "scan.instruction": "키트에 동봉된 QR 코드를 사각형 안에 맞춰주세요",
-  "scan.waiting": "코드 인식 대기 중",
-  "scan.recognized": "QR 코드 인식됨 · 검사 접수",
-  "scan.demoNote": "데모 — 버튼으로 인식 성공을 시뮬레이션합니다",
-  "analyzing.title": "검사 중입니다",
-  "analyzing.body":
-    "혈액 샘플 분석이 진행되고 있습니다. 결과가 준비되면 알림을 보내드립니다.",
-  "analyzing.step1": "키트 접수 완료",
-  "analyzing.step2": "샘플 분석 중",
-  "analyzing.step3": "결과지 생성",
-  "analyzing.justNow": "방금",
-  "analyzing.running": "진행 중",
-  "analyzing.waiting": "대기",
-  "analyzing.background": "백그라운드로 두기",
   "more.title": "더보기",
   "more.account": "계정",
   "more.legal": "약관 및 정책",
