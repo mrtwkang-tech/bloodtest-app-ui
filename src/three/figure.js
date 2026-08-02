@@ -59,8 +59,13 @@ export const J = {
   elbowR: [-0.225, 0.5, 0.005],
   wristL: [0.255, 0.265, 0.02],
   wristR: [-0.255, 0.265, 0.02],
-  handL: [0.263, 0.18, 0.028],
-  handR: [-0.263, 0.18, 0.028],
+  // A HAND IS 19 cm, and this one was 9.5. The wrist-to-fingertip run was half
+  // scale, which is why every bone in it had to be drawn half scale too, and
+  // why the fingers looked like a fringe rather than a hand. Measured against
+  // the arm's own path: the forearm is 26.3 cm and correct, the upper arm 26.7
+  // and a little short, and the hand was carrying the whole error.
+  handL: [0.271, 0.095, 0.036],
+  handR: [-0.271, 0.095, 0.036],
 
   hipL: [0.082, 0.185, 0],
   hipR: [-0.082, 0.185, 0],
@@ -284,11 +289,15 @@ function facing(th, k) {
  * elbow's pinch three centimetres above the elbow, which is what happened when
  * the two carried their own copies of the numbers.
  */
+// Recomputed after the hand went from 9.5 cm to 19: the path is 81.6 cm rather
+// than 72.1, so every fraction along it moved. These are measured off the
+// actual curve, not guessed — an elbow pinch three centimetres above the elbow
+// is what happens when they are guessed.
 export const ARM_AT = {
-  shoulder: 0.126,
-  elbow: 0.5,
-  wrist: 0.867,
-  palm: 0.915,
+  shoulder: 0.117,
+  elbow: 0.445,
+  wrist: 0.767,
+  palm: 0.844,
 };
 export const LEG_AT = { hip: 0.04, knee: 0.52, ankle: 1 };
 
@@ -704,7 +713,7 @@ export function buildBody() {
           J[`elbow${s}`],
           [k * 0.242, 0.382, 0.013],
           J[`wrist${s}`],
-          [k * 0.261, 0.213, 0.026],
+          [k * 0.2648, 0.161, 0.0298],
           J[`hand${s}`],
         ],
         (t, th) => {

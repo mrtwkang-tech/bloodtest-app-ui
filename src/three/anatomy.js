@@ -1403,6 +1403,24 @@ function limbBones(group, mat, s, k) {
   // both sides at once.
   const med = (x, cmv) => k * (x - cm(cmv));
   const lat = (x, cmv) => k * (x + cm(cmv));
+  // THE HAND DOUBLED IN LENGTH, so every bone in it moves. Each is placed by
+  // scaling its old position away from the wrist rather than by re-deriving
+  // twenty triples by hand — which keeps the fan, the thumb's opposition and
+  // the carpal step exactly as they were and only changes the scale they were
+  // drawn at. `x` is unsigned; the mirror is applied here.
+  const HAND = 2.0;
+  // Girth grows less than length. A hand twice as long is not twice as thick —
+  // doubling the ray radius put the fingers 1.3 mm outside the skin, and a
+  // 1.8 cm knuckle on a 19 cm hand is what the plates show.
+  const HAND_R = 1.5;
+  // `fan` is the ray's spread across the palm and is added AFTER the scaling,
+  // because a hand twice as long is not a hand twice as wide — doubling it too
+  // put the outer two rays 6 mm outside the skin.
+  const hand = (x, y, z, fan = 0) => [
+    k * (0.255 + (x - 0.255) * HAND),
+    wr[1] + (y - wr[1]) * HAND,
+    wr[2] + (z - wr[2]) * HAND + fan,
+  ];
 
   // ---- forearm --------------------------------------------------------
   add(
@@ -1482,17 +1500,17 @@ function limbBones(group, mat, s, k) {
     // Index most anterior, little finger most posterior. The outer two rays
     // used to end 1.7 cm OUTSIDE the hand's skin, because the fan was drawn
     // at the spread of a real hand on a hand this figure draws at half size.
-    const near = (1.5 - i) * cm(2.1);
-    const far = (1.5 - i) * cm(1.35);
+    const near = (1.5 - i) * cm(1.7);
+    const far = (1.5 - i) * cm(1.05);
     add(
       arm,
       sweep(
         mat,
         [
-          [k * 0.2575, 0.2465, 0.0205 + near * 0.7],
-          [k * 0.2605, 0.221, 0.0245 + near],
-          [k * 0.2625, 0.2, 0.0265 + far * 0.96],
-          [k * 0.2635, 0.184, 0.0275 + far],
+          hand(0.2575, 0.2465, 0.0205, near * 0.7),
+          hand(0.2605, 0.221, 0.0245, near),
+          hand(0.2625, 0.2, 0.0265, far * 0.96),
+          hand(0.2635, 0.184, 0.0275, far),
         ],
         (t, th) => {
           // FOUR BONES AND THREE JOINTS IN FOURTEEN PIXELS.
@@ -1507,7 +1525,7 @@ function limbBones(group, mat, s, k) {
           const bump = (at, w, h) => 1 + h * Math.exp(-(((t - at) / w) ** 2));
           return round(
             th,
-            cm(0.44) *
+            cm(0.44) * HAND_R *
               (1 - 0.34 * smooth(0.1, 1, t)) *
               bump(0.24, 0.13, -0.16) *
               bump(0.45, 0.055, 0.42) *
@@ -1531,11 +1549,11 @@ function limbBones(group, mat, s, k) {
     sweep(
       mat,
       [
-        [k * 0.2545, 0.2495, 0.0265],
-        [k * 0.2515, 0.2325, 0.0425],
-        [k * 0.2495, 0.2185, 0.0525],
+        hand(0.2545, 0.2495, 0.0265),
+        hand(0.2515, 0.2325, 0.0425),
+        hand(0.2495, 0.2185, 0.0525),
       ],
-      (t, th) => round(th, cm(0.52) * (1 - 0.3 * t) * domeEnd(t, 0.16)),
+      (t, th) => round(th, cm(0.52) * HAND_R * (1 - 0.3 * t) * domeEnd(t, 0.16)),
       { stations: 14, radial: 8 },
     ),
   );
