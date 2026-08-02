@@ -1,6 +1,7 @@
 import { EPIGEN } from "./epigenetics";
 import { pctToM } from "./panel";
 import { ROUNDS } from "./body";
+import { slopeTest } from "../lib/stats";
 
 /**
  * The models, declared rather than hidden.
@@ -136,28 +137,18 @@ const PACE = {
   predict(roundIndex) {
     const n = roundIndex + 1;
     if (n < 3) return { value: null, contributions: [], se: null, n };
-    // x in years: one draw a month.
-    const xs = [];
     const ys = [];
-    for (let i = 0; i <= roundIndex; i++) {
-      xs.push(i / 12);
-      ys.push(CELL_AGE.predict(i).value);
-    }
-    const mx = xs.reduce((a, b) => a + b, 0) / n;
-    const my = ys.reduce((a, b) => a + b, 0) / n;
-    let sxy = 0;
-    let sxx = 0;
-    for (let i = 0; i < n; i++) {
-      sxy += (xs[i] - mx) * (ys[i] - my);
-      sxx += (xs[i] - mx) ** 2;
-    }
-    const slope = sxy / sxx;
-    const intercept = my - slope * mx;
-    let sse = 0;
-    for (let i = 0; i < n; i++)
-      sse += (ys[i] - (intercept + slope * xs[i])) ** 2;
-    const se = Math.sqrt(sse / (n - 2) / sxx);
-    return { value: slope, se, n, contributions: [] };
+    for (let i = 0; i <= roundIndex; i++) ys.push(CELL_AGE.predict(i).value);
+    // `slopeTest` regresses on the index, so its slope is per ROUND and this
+    // one is per YEAR. Twelve rounds a year, hence the factor — and the same
+    // factor on the standard error, since scaling x by k scales both by k.
+    const fit = slopeTest(ys);
+    return {
+      value: fit.slope * 12,
+      se: fit.se == null ? null : fit.se * 12,
+      n,
+      contributions: [],
+    };
   },
 };
 

@@ -222,6 +222,10 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         selectedOption={metric}
         onPickOption={setMetric}
         formatValue={(v) => formatValue(v, pickMetric.marker.dp)}
+        // Carries `rcv` and `dp`, so the chart can tell a real month-on-month
+        // move from this marker's ordinary scatter. Without it hs-CRP reads as
+        // changing every single round.
+        marker={pickMetric.marker}
       />
     </div>
   );

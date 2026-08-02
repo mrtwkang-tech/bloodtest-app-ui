@@ -1,4 +1,5 @@
 import { C } from "../tokens";
+import { stampPrecision } from "./precision";
 import { stampWindow } from "./window";
 
 /**
@@ -53,9 +54,12 @@ export function withSeries(system) {
   return {
     ...system,
     markers: system.markers.map((raw) => {
-      // Every marker carries how long its value took to form, from the one
-      // table in window.js, so nothing downstream has to look it up.
-      const m = stampWindow(raw);
+      // Every marker carries how long its value took to form and how much it
+      // varies for no reason, each from its own one table, so nothing
+      // downstream has to look either up. The two are orthogonal: window.js
+      // says whether a draw is new information, precision.js says whether a
+      // difference between two draws is real.
+      const m = stampPrecision(stampWindow(raw));
       const demo = m.demo ?? walk(`${system.key}:${m.name}`, m.base, m.spread);
       if (demo.length !== ROUNDS) {
         throw new Error(

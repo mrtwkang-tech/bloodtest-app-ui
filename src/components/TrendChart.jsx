@@ -29,23 +29,56 @@ export default function TrendChart({
   // where the arrow points the other way — and a chart that labels a rising
   // score "감소 · 개선" is worse than one that says nothing.
   higherIsBetter = false,
+  // The marker this series belongs to, when there is one. Carries `rcv` and
+  // `dp`, which is all `computeTrend` needs to tell a move from a wobble. Mind
+  // plots a composite score, has no marker, and is deliberately left ungated.
+  marker,
   delay = 0,
 }) {
   const t = useT();
-  const tr = computeTrend({ series, reference, selIndex: sel });
+  const tr = computeTrend({ series, reference, selIndex: sel, marker });
   const better = higherIsBetter ? tr.diff > 0 : tr.diff < 0;
-  const deltaColor = tr.isFirst || tr.diff === 0
-    ? C.faint
-    : better
-      ? C.optimal
-      : C.watch;
+
+  // A change too small to be real is not good news or bad news, so it does not
+  // get a colour. This is the same rule the status palette follows everywhere
+  // else: in range is not a colour, and neither is "we cannot tell".
+  const deltaColor = !tr.moved ? C.faint : better ? C.optimal : C.watch;
   const delta = tr.isFirst
     ? t("trend.first")
     : tr.diff === 0
       ? t("trend.same")
-      : tr.diff < 0
-        ? t(better ? "trend.downGood" : "trend.down", { p: tr.pctChange })
-        : t(better ? "trend.upGood" : "trend.up", { p: tr.pctChange });
+      : !tr.moved
+        ? t("trend.flat")
+        : tr.diff < 0
+          ? t(better ? "trend.downGood" : "trend.down", { p: tr.pctChange })
+          : t(better ? "trend.upGood" : "trend.up", { p: tr.pctChange });
+
+  // ONE LINE UNDER THE TITLE, ALWAYS SAYING SOMETHING when the month came back
+  // flat — because "의미 있는 변화 아님" on its own is a dead end. It has two
+  // things it can be.
+  //
+  // The first is THE LINE THIS WHOLE FEATURE EXISTS TO PRINT: no single month
+  // cleared the noise, and the run of rounds is going somewhere anyway. Both
+  // halves or neither — the first alone hides a year of drift, the second alone
+  // invents a signal that is not there.
+  //
+  // The second is the threshold itself, in the marker's own units rather than
+  // as a percentage. "1.0에서 3.1 이상" is a number a reader can hold against
+  // the chart in front of them; "213%" is a number they have to do arithmetic
+  // on, and for a marker like hs-CRP the arithmetic is startling enough that
+  // they should be able to check it.
+  const prev = tr.isFirst ? null : series[tr.selX - 1];
+  const flatNote =
+    !tr.moved && !tr.isFirst && tr.trending !== 0
+      ? t(tr.trending > 0 ? "trend.flatButRising" : "trend.flatButFalling", {
+          n: tr.rounds,
+        })
+      : !tr.moved && prev > 0 && marker?.rcv
+        ? t("trend.flatNote", {
+            lo: formatValue(prev / marker.rcv),
+            hi: formatValue(prev * marker.rcv),
+          })
+        : null;
 
   return (
     <Card pad="md" delay={delay}>
@@ -67,6 +100,14 @@ export default function TrendChart({
           {delta}
         </span>
       </div>
+
+      {/* Under the title rather than beside the delta: it is a sentence about
+          the whole series, not a second reading of this month. */}
+      {flatNote && (
+        <div style={{ ...T.caption, color: C.body, marginTop: 4 }}>
+          {flatNote}
+        </div>
+      )}
 
       <div
         style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 7 }}
@@ -126,11 +167,18 @@ export default function TrendChart({
         {series.map((v, i) => {
           const dense = series.length > 8;
           const showValue =
-            !dense || i === tr.selX || i === 0 || i === series.length - 1 || i % 2 === 1;
+            !dense ||
+            i === tr.selX ||
+            i === 0 ||
+            i === series.length - 1 ||
+            i % 2 === 1;
           const showLabel =
             !dense || i === tr.selX || i === 0 || i === series.length - 1;
           return (
-            <div key={labels[i]} style={{ flex: 1, textAlign: "center", minWidth: 0 }}>
+            <div
+              key={labels[i]}
+              style={{ flex: 1, textAlign: "center", minWidth: 0 }}
+            >
               <div
                 style={{
                   ...T.num,
