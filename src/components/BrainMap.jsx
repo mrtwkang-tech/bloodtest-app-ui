@@ -61,6 +61,25 @@ const CEREBELLUM =
   "M190 164 C216 158 242 166 250 182 C256 197 245 209 225 211 " +
   "C204 213 187 202 184 187 C182 176 184 168 190 164 Z";
 
+// Interior texture, and the whole argument for having any. A blank outline
+// reads as a bean; three sulci and four folia read as a brain, and they cost
+// seven paths. The frequencies differ on purpose — cerebral gyri are coarse
+// and irregular, cerebellar folia are fine and parallel, and that difference
+// is how the two are told apart on any plate.
+const SULCI = [
+  "M96 92 C110 104 124 108 138 104",
+  "M140 62 C150 78 152 92 148 106",
+  "M186 56 C192 76 190 96 180 110",
+  "M228 74 C230 92 224 108 212 118",
+  "M246 116 C236 126 222 132 208 132",
+];
+const FOLIA = [
+  "M192 172 C210 168 228 172 240 182",
+  "M190 182 C208 178 228 182 242 192",
+  "M191 192 C208 189 226 193 238 201",
+  "M196 201 C210 199 224 202 232 207",
+];
+
 /** The structures, and which axis each one belongs to. */
 const NODES = [
   { id: "sgacc", axis: "inflammation", at: [100, 141], r: 6.5, nameKey: "brain.sgacc" },
@@ -141,6 +160,26 @@ export default function BrainMap({ scores, statuses, active, onPick }) {
         stroke={C.hairline}
         strokeWidth="1"
       />
+      {SULCI.map((d) => (
+        <path
+          key={d}
+          d={d}
+          fill="none"
+          stroke={C.hairline}
+          strokeWidth="1"
+          strokeLinecap="round"
+        />
+      ))}
+      {FOLIA.map((d) => (
+        <path
+          key={d}
+          d={d}
+          fill="none"
+          stroke={C.hairline}
+          strokeWidth="0.7"
+          strokeLinecap="round"
+        />
+      ))}
 
       {/* Below the skull line: everything the substrate and stress axes need
           that is not in the head. Deliberately schematic — a gut drawn in full
@@ -181,6 +220,22 @@ export default function BrainMap({ scores, statuses, active, onPick }) {
               strokeWidth="22"
               strokeLinecap="round"
             />
+            {/* An arrowhead at the far end. A path drawn as a line says two
+                places are connected; it does not say which way anything goes,
+                and on this screen which way is the entire point. */}
+            {on && (() => {
+              const p = spec.points;
+              const [ax, ay] = p[p.length - 2];
+              const [bx, by] = p[p.length - 1];
+              const a = (Math.atan2(by - ay, bx - ax) * 180) / Math.PI;
+              return (
+                <path
+                  d="M0 0 L-7 3.4 L-5.2 0 L-7 -3.4 Z"
+                  fill={colourOf(status)}
+                  transform={`translate(${bx} ${by}) rotate(${a})`}
+                />
+              );
+            })()}
             <path
               d={d}
               fill="none"
@@ -241,8 +296,39 @@ export default function BrainMap({ scores, statuses, active, onPick }) {
         );
       })}
 
-      {/* One label at a time. Five names on a 320-wide section is a diagram of
-          labels with a brain behind it. */}
+      {/* The two structures nothing scores, labelled whether or not anything
+          is selected. This is the one thing on the screen that is worth
+          reading when you have not asked a question: the panel measures the
+          amygdala and wires it to no index, and a picture that drew it and
+          said nothing would be hiding that rather than showing it. */}
+      {/* ONE label, not two. Both unwired structures sit within 26px of each
+          other, so labelling both put two lines of type across the temporal
+          lobe and across each other. The amygdala is the one that carries the
+          point — it is MEASURED and scored by nothing — so it gets the label
+          and the hippocampus, which nothing measures at all, gets a dot. */}
+      {!active && (
+        <>
+          <line
+            x1="106"
+            y1="161"
+            x2="120"
+            y2="161"
+            stroke={C.hairline}
+            strokeWidth="1"
+          />
+          <text
+            x="102"
+            y="164.5"
+            textAnchor="end"
+            style={{ ...T.micro, fill: C.faintest }}
+          >
+            {t("brain.amygdala")}
+          </text>
+        </>
+      )}
+
+      {/* One label at a time when something IS selected. Five names on a
+          320-wide section is a diagram of labels with a brain behind it. */}
       {activeIdx >= 0 &&
         NODES.filter((n) => n.axis === active).map((n) => (
           <text

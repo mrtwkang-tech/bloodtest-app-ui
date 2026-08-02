@@ -191,7 +191,13 @@ const RAW = {
       ref: 14,
       max: 40,
       dp: 1,
-      demo: [11.8, 12.5, 12.9, 14.6, 16.1, 17.1, 17.6, 18.6, 16.8, 16.4, 15.2, 14.6],
+      // The only one of the five that crosses. Fragments from the subgenual
+      // cingulate rise through the second half of the year while every
+      // serum marker stays technically inside its range.
+      demo: [
+        11.8, 12.5, 12.9, 13.4, 13.1, 13.6, 14.2, 15.1, 16.4, 17.6, 18.9,
+        20.3,
+      ],
     },
     {
       // Amygdala GABAergic neurons: the brake on the threat response.

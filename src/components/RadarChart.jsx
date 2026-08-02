@@ -47,6 +47,7 @@ const ringPoly = (v) =>
  */
 export default function RadarChart({
   values,
+  previous,
   statuses,
   active,
   onPick,
@@ -104,6 +105,23 @@ export default function RadarChart({
           strokeWidth="1.25"
           strokeDasharray="3 3"
         />
+
+        {/* LAST MONTH, as a thin outline underneath.
+            A single polygon answers "where am I" and cannot answer "which way
+            am I going", which at a monthly cadence is the more useful of the
+            two — it is the whole reason the product draws twelve rounds. The
+            gap between the two outlines is this month's move, per axis, at a
+            glance, and it costs one polygon. */}
+        {previous && (
+          <polygon
+            points={poly(previous)}
+            fill="none"
+            stroke={C.ink2}
+            strokeWidth="1"
+            strokeLinejoin="round"
+            opacity="0.5"
+          />
+        )}
 
         {/* You. The fill was a hardcoded indigo — left behind by an accent that
             was rejected two passes ago — which meant the shape carried a hue

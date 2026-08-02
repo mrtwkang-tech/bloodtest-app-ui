@@ -68,11 +68,13 @@ const RAW = [
     },
     mindActivities: {
       en: [
-        "Get 30 minutes of aerobic exercise three times a week to bring arousal down.",
+        "Bring the inflammatory series to the same appointment as the liver one. Two panels drifting together for six months is one question, not two.",
+        "Get 30 minutes of aerobic exercise three times a week — the intervention with the best evidence for lowering CRP and IL-6 at these levels.",
         "Cut screens an hour before bed and keep your wake time fixed.",
       ],
       ko: [
-        "주 3회 30분 이상 유산소 운동으로 각성 수준을 낮추세요.",
+        "염증 추이를 간 추이와 같은 진료에 가져가세요. 두 패널이 6개월 동안 함께 움직였다면 그건 두 개의 질문이 아니라 하나입니다.",
+        "주 3회 30분 이상 유산소 운동. 이 정도 수준의 CRP·IL-6를 낮추는 데 근거가 가장 많은 개입입니다.",
         "취침 1시간 전 화면 사용을 줄이고 기상 시간을 고정하세요.",
       ],
     },
@@ -87,8 +89,8 @@ const RAW = [
       ],
     },
     mind: {
-      en: "Inflammation and body clock are steady, with metabolic headroom easing gently across the last three rounds. Nothing here needs action on its own.",
-      ko: "염증과 생체리듬은 안정적이고, 대사 여력만 최근 세 회차에 걸쳐 완만히 내려갔습니다. 단독으로 조치가 필요한 항목은 없습니다.",
+      en: "*The inflammatory axis has been sliding for six straight rounds* — and not one of the serum markers behind it is out of range. CRP is exactly on its limit, IL-6 and the neutrophil ratio are inside theirs, and all three have been climbing since round six. What did cross is the subgenual cingulate signal, up 45% across the same span. The kynurenine ratio turned with them: inflammation diverts tryptophan away from serotonin, which is the mechanism that ties this axis to the neuro panel.",
+      ko: "*염증 축이 여섯 회차 연속 내려갔습니다.* 그런데 뒤에 있는 혈청 지표는 하나도 범위를 벗어나지 않았습니다. CRP는 정확히 기준선 위에 있고, IL-6와 호중구 비율도 범위 안이며, 셋 다 6회차 이후 계속 올라가고 있습니다. 넘은 것은 무릎밑 앞띠다발피질 신호 하나 — 같은 기간에 45% 올랐습니다. 키뉴레닌 비율도 같이 돌아섰습니다. 염증이 트립토판을 세로토닌에서 빼앗아 가는 것이 이 축과 뇌·신경 패널을 잇는 기전입니다.",
     },
   },
   {

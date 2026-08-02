@@ -28,7 +28,19 @@ import { useT } from "../i18n";
 
 const CX = 138;
 const CY = 126;
-const R = 76;
+const R = 82;
+
+/**
+ * TWO TRACKS, NOT TWO BLOBS.
+ *
+ * Cortisol and melatonin were first drawn as bands over the same radius range,
+ * and they overlap for a third of the day — the result was two shapes fighting
+ * for the same pixels and neither readable. They are different hormones on
+ * different clocks; they get different rings. Cortisol runs on the outside
+ * because it is the one the axis is scored against, melatonin inside it.
+ */
+const CORT = [R * 0.72, R];
+const MEL = [R * 0.42, R * 0.66];
 
 /** Hour → angle, midnight at the top, noon at the bottom, clockwise. */
 const at = (hour, radius) => {
@@ -115,6 +127,12 @@ export default function DayDial({
   const wake = 7 + Math.max(-2.5, Math.min(2.5, (1 - carRatio) * 3.2));
   const dim = 21.5 + Math.max(-2.5, Math.min(2.5, (1 - melRatio) * 3.2));
 
+  // The peer's day, as the reference this is measured against. Waking at 07:00
+  // and dimming at 21:30 is the anchor the marker ratios are expressed from —
+  // drawn as a ghost so "your phase" has something to be a phase relative to.
+  const PEER_WAKE = 7;
+  const PEER_DIM = 21.5;
+
   const lamp = status === "good" ? C.ink2 : STATUS_LAMP[status];
   const on = !active || active === "circadian";
 
@@ -139,13 +157,21 @@ export default function DayDial({
       <circle
         cx={CX}
         cy={CY}
-        r={R * 0.52}
+        r={MEL[0]}
+        fill="none"
+        stroke={C.hairline}
+        strokeWidth="1"
+      />
+      <circle
+        cx={CX}
+        cy={CY}
+        r={CORT[0]}
         fill="none"
         stroke={C.hairline}
         strokeWidth="1"
       />
       {[0, 6, 12, 18].map((h) => {
-        const [x1, y1] = at(h, R * 0.52);
+        const [x1, y1] = at(h, MEL[0]);
         const [x2, y2] = at(h, R);
         const [lx, ly] = at(h, R + 13);
         return (
@@ -171,20 +197,63 @@ export default function DayDial({
       })}
 
       {/* Night, as a wash rather than a label. */}
-      <path d={ring(dim, wake, R * 0.52, R)} fill={tint(C.ink, 0.045)} />
+      <path d={ring(dim, wake, MEL[0], R)} fill={tint(C.ink, 0.045)} />
+
+      {/* The peer's phase, as two ticks. Without them the reader's own wake
+          time is a number with nothing to be early or late against. */}
+      {[PEER_WAKE, PEER_DIM].map((h) => {
+        const [x1, y1] = at(h, R + 3);
+        const [x2, y2] = at(h, R + 9);
+        return (
+          <line
+            key={`peer${h}`}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke={C.peerStroke}
+            strokeWidth="1.5"
+            strokeDasharray="2 2"
+          />
+        );
+      })}
+
+      {/* The cortisol awakening response — the half hour after waking that
+          `body.js` gives its own marker and its own `requiresFixedTime` flag.
+          It is the single most informative window on the dial. */}
+      <path
+        d={ring(wake, wake + 0.75, CORT[0] - 4, CORT[1] + 4)}
+        fill={tint(on ? lamp : C.ink2, 0.14)}
+      />
 
       <g style={{ cursor: "pointer" }} onClick={() => onPick("circadian")}>
-        {/* Melatonin first, so cortisol draws over the crossing. */}
+        {/* Each on its own ring, with the peer's curve behind it as a ghost.
+            The gap between ghost and solid is the phase shift, which is the
+            thing this axis measures and the thing no bar chart can draw. */}
         <path
-          d={curve(melatonin(dim), R * 0.52, R * 0.44)}
-          fill={tint(C.ink, 0.05)}
+          d={curve(melatonin(PEER_DIM), MEL[0], MEL[1] - MEL[0])}
+          fill="none"
+          stroke={C.peerStroke}
+          strokeWidth="1"
+          strokeDasharray="3 3"
+        />
+        <path
+          d={curve(melatonin(dim), MEL[0], MEL[1] - MEL[0])}
+          fill={tint(C.ink, 0.06)}
           stroke={C.ink2}
           strokeWidth="1.4"
           style={{ transition: `all 420ms ${EASE}` }}
         />
         <path
-          d={curve(cortisol(wake), R * 0.52, R * 0.44)}
-          fill={tint(on ? lamp : C.ink2, 0.09)}
+          d={curve(cortisol(PEER_WAKE), CORT[0], CORT[1] - CORT[0])}
+          fill="none"
+          stroke={C.peerStroke}
+          strokeWidth="1"
+          strokeDasharray="3 3"
+        />
+        <path
+          d={curve(cortisol(wake), CORT[0], CORT[1] - CORT[0])}
+          fill={tint(on ? lamp : C.ink2, 0.1)}
           stroke={on ? lamp : C.ink2}
           strokeWidth="1.9"
           style={{ transition: `all 420ms ${EASE}` }}

@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { buildBody } from "./figure";
 import { buildGlow } from "./anatomy";
-import { AXIS_HUE, buildCircuits } from "./brain";
+import { AXIS_HUE, buildCircuits, buildShell } from "./brain";
 import { useThreeScene } from "./useThreeScene";
 
 /**
@@ -53,28 +53,64 @@ export default function MindScene({
       // Crown is y 1.045, the adrenals y 0.47, the gut y 0.36 — so the frame
       // has to run from the top of the head to about L2. Centred at 0.68 and
       // pulled back to 2.5, with a `lookAt` the body scene never needed.
-      position: [0, 0.72, 2.05],
-      lookAt: [0, 0.72, 0],
-      key: [1.2, 1.6, 2.2],
+      // Slightly above the centre of the frame and looking down, so the eye
+      // enters the skull from above rather than staring at the forehead. The
+      // deep structures all sit below the mid-height of the brain.
+      position: [0, 0.79, 2.02],
+      lookAt: [0, 0.71, 0],
+      key: [1.2, 1.9, 2.2],
     },
     build({ root }) {
       const body = buildBody();
       // Far more transparent than on the body screen. There it is a container
       // you are meant to read organs through; here it is scaffolding, and at
       // the body screen's 0.5 it competes with circuits 3 mm across.
-      body.material.opacity = 0.16;
-      body.material.transmission = 0.72;
+      body.material.opacity = 0.13;
+      body.material.transmission = 0.76;
       root.add(body.group);
+
+      // The head gets its own shell at more than twice that. Without it the
+      // circuits were five coloured cables in a fog, and nothing said "this
+      // is the inside of a skull".
+      const shell = buildShell();
+      root.add(shell.group);
 
       const circuits = buildCircuits();
       Object.values(circuits).forEach((c) => root.add(c.group));
+
+      // Travelling markers, three per circuit. A tube has no direction; a
+      // thing moving along it does, and direction is what separates a loop
+      // from a line. On the stress axis they come back to where they started,
+      // which is the one fact that axis is actually measuring.
+      const PULSES = 3;
+      const pulseGeo = new THREE.SphereGeometry(0.0055, 10, 8);
+      const pulses = {};
+      Object.entries(circuits).forEach(([k, c]) => {
+        if (!c.curves?.length) return;
+        const mat = new THREE.MeshBasicMaterial({
+          color: c.pulseColor,
+          transparent: true,
+          opacity: 0,
+          depthWrite: false,
+        });
+        const total = c.curves.reduce((n, cu) => n + cu.getLength(), 0);
+        const meshes = [];
+        for (let i = 0; i < PULSES; i++) {
+          const m = new THREE.Mesh(pulseGeo, mat);
+          root.add(m);
+          meshes.push(m);
+        }
+        pulses[k] = { mat, meshes, curves: c.curves, total };
+      });
 
       const glow = buildGlow(0xffffff);
       root.add(glow.sprite);
 
       return {
         body,
+        shell,
         circuits,
+        pulses,
         glow,
         state: {
           intensity: Object.fromEntries(
@@ -92,7 +128,7 @@ export default function MindScene({
         },
       };
     },
-    onFrame({ circuits, state, glow }, dt, t, reduced) {
+    onFrame({ circuits, state, glow, pulses }, dt, t, reduced) {
       Object.keys(circuits).forEach((k, ki) => {
         state.intensity[k] +=
           (state.target[k] - state.intensity[k]) * Math.min(1, dt * 7);
@@ -107,6 +143,28 @@ export default function MindScene({
           m.emissiveIntensity = lit * 1.5 * pulse;
           m.color.copy(state.color[k]);
           m.emissive.copy(state.color[k]);
+        });
+      });
+
+      // Walk the markers. Speed is fixed in world units so a long circuit
+      // takes longer to traverse than a short one — which is true, and which
+      // makes the trip out to the adrenals feel like the trip it is.
+      Object.entries(pulses).forEach(([k, p]) => {
+        const lit = state.intensity[k];
+        p.mat.opacity = reduced ? 0 : Math.max(0, lit - 0.45) * 1.6;
+        if (p.mat.opacity <= 0) return;
+        p.meshes.forEach((m, i) => {
+          const u = ((t * 0.11) / p.total + i / p.meshes.length) % 1;
+          // Find which segment of the circuit this fraction lands in.
+          let d = u * p.total;
+          for (const cu of p.curves) {
+            const len = cu.getLength();
+            if (d <= len || cu === p.curves[p.curves.length - 1]) {
+              cu.getPointAt(Math.min(1, Math.max(0, d / len)), m.position);
+              break;
+            }
+            d -= len;
+          }
         });
       });
 

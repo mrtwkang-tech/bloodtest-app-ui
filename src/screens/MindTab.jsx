@@ -109,6 +109,7 @@ export default function MindTab({ sel, onPickSession }) {
     radar: (
       <RadarChart
         values={session.scores}
+        previous={SESSIONS[sel + 1]?.scores}
         statuses={session.status}
         active={active}
         onPick={openScale}

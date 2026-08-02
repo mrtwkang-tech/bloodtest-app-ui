@@ -140,9 +140,13 @@ const RAW_SYSTEMS = [
         ref: 30,
         max: 80,
         dp: 1,
+        // Fell for five rounds, then turned. The turn is the finding — the
+        // kynurenine shunt reopening is what inflammation does to the
+        // serotonin substrate, and it is why this marker sits in the neuro
+        // panel and drives the inflammatory axis at the same time.
         demo: [
-          34.6, 32.5, 30.2, 29.6, 28.3, 28.3, 28.9, 30.3, 30.6, 31.3, 32.2,
-          33.2,
+          34.6, 32.5, 30.2, 29.6, 28.3, 28.3, 29.4, 31.2, 32.6, 33.8, 34.9,
+          36.1,
         ],
       },
       {
@@ -195,7 +199,10 @@ const RAW_SYSTEMS = [
         ref: 1.0,
         max: 5,
         dp: 1,
-        demo: [1.2, 1, 0.9, 0.9, 0.8, 0.7, 0.7, 0.7, 0.8, 0.8, 0.7, 0.7],
+        // Ends exactly ON its reference rather than over it. That is the
+        // point of this round's inflammatory finding: not one marker out of
+        // range, five inside their ranges moving the same way.
+        demo: [1.2, 1.0, 0.9, 0.9, 0.8, 0.7, 0.7, 0.7, 0.8, 0.9, 0.9, 1.0],
       },
       {
         name: "LDL-C",
@@ -706,8 +713,9 @@ const RAW_SYSTEMS = [
         ref: 7,
         max: 25,
         dp: 1,
-        base: 2.4333,
-        spread: 0.77,
+        // Nearly triples across the year and never leaves its range. A single
+        // draw of 6.4 is unremarkable; six draws climbing to 6.4 is not.
+        demo: [2.3, 2.5, 2.2, 2.6, 2.4, 2.8, 3.4, 4.1, 4.8, 5.3, 5.9, 6.4],
       },
       {
         // Free from the CBC differential, and one of the cheapest usable
@@ -717,8 +725,7 @@ const RAW_SYSTEMS = [
         ref: 2.5,
         max: 6,
         dp: 2,
-        base: 1.74,
-        spread: 0.28,
+        demo: [1.7, 1.8, 1.7, 1.75, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.42],
       },
       {
         name: "Complement C3",

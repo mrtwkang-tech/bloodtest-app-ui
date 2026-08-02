@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { cm, ellipsoid, tube } from "./geometry";
+import { cm, ellipsoid, smooth, tube, v3 } from "./geometry";
+
 
 /**
  * The structures the mind panel is actually about, and the circuits between
@@ -122,6 +123,22 @@ const NODES = [
   },
   { id: "hippoL", axis: null, at: AT.hippoL, r: [cm(0.7), cm(0.7), cm(2.2)] },
   { id: "hippoR", axis: null, at: AT.hippoR, r: [cm(0.7), cm(0.7), cm(2.2)] },
+  // The retina. Light is where the circadian circuit starts, and a path that
+  // begins in mid-air in front of the face begins nowhere.
+  {
+    id: "eyeL",
+    axis: "circadian",
+    at: [0.031, 0.9535, 0.079],
+    // Exempt from MAG. An eye is 2.4 cm and already legible; magnified it
+    // becomes the largest object on the screen and the head grows insect eyes.
+    r: [cm(1.2) / MAG, cm(1.2) / MAG, cm(1.2) / MAG],
+  },
+  {
+    id: "eyeR",
+    axis: "circadian",
+    at: [-0.031, 0.9535, 0.079],
+    r: [cm(1.2) / MAG, cm(1.2) / MAG, cm(1.2) / MAG],
+  },
 ];
 
 /**
@@ -164,7 +181,8 @@ const PATHS = {
   ],
   circadian: [
     // Retina → optic chiasm → SCN → (multisynaptic, drawn as one) → pineal.
-    { pts: [AT.eye, [0, 0.944, 0.05], AT.chiasm], r: cm(0.22) },
+    { pts: [[0.031, 0.9535, 0.079], [0.016, 0.947, 0.05], AT.chiasm], r: cm(0.2) },
+    { pts: [[-0.031, 0.9535, 0.079], [-0.016, 0.947, 0.05], AT.chiasm], r: cm(0.2) },
     { pts: [AT.chiasm, AT.scn], r: cm(0.22) },
     { pts: [AT.scn, [0, 0.9405, -0.006], AT.pineal], r: cm(0.2) },
   ],
@@ -248,8 +266,24 @@ function buildAxis(key, color) {
   const mat = mindMaterial(color);
 
   NODES.filter((n) => n.axis === key).forEach((n) => {
-    group.add(ellipsoid(mat, n.at, n.r.map((v) => v * MAG), null, 16));
+    group.add(
+      ellipsoid(
+        mat,
+        n.at,
+        n.r.map((v) => v * MAG),
+        null,
+        16,
+      ),
+    );
   });
+
+  // The curves are handed back as well as drawn. A circuit is a thing with a
+  // DIRECTION, and a static tube cannot say which way — so the scene runs
+  // small markers along these, and the stress loop is the one where they
+  // arrive back where they started. That is the whole grammatical difference
+  // between this screen and the body screen, and it is worth the fifteen
+  // spheres it costs.
+  const curves = [];
   (PATHS[key] ?? []).forEach((seg) => {
     group.add(
       tube(mat, seg.pts, seg.r * MAG, {
@@ -258,6 +292,9 @@ function buildAxis(key, color) {
         caps: false,
       }),
     );
+    if (!seg.diffuse) {
+      curves.push(new THREE.CatmullRomCurve3(seg.pts.map(v3)));
+    }
   });
 
   // The focus point is where the glow sits and where the camera would look.
@@ -265,8 +302,72 @@ function buildAxis(key, color) {
   return {
     group,
     materials: [mat],
+    curves,
+    pulseColor: color,
     focus: new THREE.Vector3(first.at[0], first.at[1], first.at[2]),
   };
+}
+
+/**
+ * A brain to put the circuits inside.
+ *
+ * The first version relied on the mannequin alone at 16% opacity, and the
+ * result was five coloured cables floating in a fog — nothing said "this is
+ * the inside of a head". `buildNeuro` in anatomy.js has a cerebrum with the
+ * right dimensions but it belongs to the neuro SYSTEM and comes with a spinal
+ * cord and two peripheral nerves attached. So this is the same ellipsoid,
+ * alone, in the mannequin's own frosted material: a container, not a subject.
+ */
+export function buildShell() {
+  // NOT the mannequin's transmissive material. Transmission renders the volume
+  // behind the surface, and with five emissive circuits inside a closed shell
+  // the accumulation goes muddy grey — the first attempt turned the head into
+  // a dark blob. A plain translucent standard material has no such interaction:
+  // it is a pane of glass, which is all a container needs to be.
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    roughness: 0.5,
+    metalness: 0,
+    transparent: true,
+    opacity: 0.15,
+    depthWrite: false,
+  });
+  const group = new THREE.Group();
+
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.969, 0.004],
+      [cm(6.9), cm(4.6), cm(8.1)],
+      (v, d) => {
+        const taper =
+          1 - 0.24 * Math.max(0, d.z) ** 2 - 0.16 * Math.max(0, -d.z) ** 2;
+        v.x *= taper;
+        const syl = d.y + 0.34 * d.z + 0.08;
+        v.y -=
+          cm(1.7) *
+          Math.exp(-((syl / 0.36) ** 2)) *
+          Math.min(1, Math.abs(d.x) * 2.4);
+        v.x *=
+          1 - 0.38 * smooth(-0.1, 0.4, d.y) * Math.exp(-Math.abs(d.x) / 0.17);
+        if (v.y < 0) v.y *= 0.8;
+      },
+      40,
+    ),
+  );
+  group.add(
+    ellipsoid(
+      mat,
+      [0, 0.917, -0.052],
+      [cm(5.2), cm(2.4), cm(2.9)],
+      (v, d) => {
+        v.x *= 1 - 0.22 * Math.exp(-Math.abs(d.x) / 0.2);
+        if (v.y > 0) v.y *= 0.82;
+      },
+      24,
+    ),
+  );
+  return { group, material: mat };
 }
 
 /**
