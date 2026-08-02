@@ -12,6 +12,8 @@ import ScaleDetail from "./screens/ScaleDetail";
 import ZoneDetail from "./screens/ZoneDetail";
 import PredictionDetail from "./screens/PredictionDetail";
 import PanelEntry from "./screens/PanelEntry";
+import SignIn from "./screens/SignIn";
+import { useAuth } from "./auth/AuthProvider";
 import { SYSTEMS } from "./data/body";
 import InfoDoc from "./screens/InfoDoc";
 import { C, LEVEL_LAMP, STATUS_LAMP } from "./tokens";
@@ -27,11 +29,8 @@ export default function App() {
   // Bumped whenever a plate is entered. The derivation reads mutable series,
   // so React needs telling that numbers it already rendered have moved.
   const [panelVersion, setPanelVersion] = useState(0);
-  // The entry screen is unguarded until auth lands; until then it is behind a
-  // flag so it cannot be stumbled into.
-  const isAdmin =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("admin");
+  // The operator door, now a real gate rather than a URL flag.
+  const { ready: authReady, user, isAdmin, signOut } = useAuth();
   const [plan, setPlan] = useState("monthly");
   // The round lives here so switching between mind and body keeps the visit.
   const [sel, setSel] = useState(0);
@@ -71,6 +70,33 @@ export default function App() {
     composition: "body.compositionRow",
     history: "more.historyRow",
   };
+
+  // Nobody is admitted, and nothing is refused, until the first session check
+  // returns — flashing the sign-in screen at someone who is already signed in
+  // is worse than a beat of nothing.
+  const signedIn = Boolean(user) || isAdmin;
+  if (!authReady || !signedIn) {
+    return (
+      <div className="stage">
+        <div className="phone">
+          <div className="screen">
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background: C.bg,
+                overflowY: "auto",
+                padding:
+                  "calc(28px + var(--safe-top)) 22px calc(28px + var(--safe-bottom))",
+              }}
+            >
+              {authReady && <SignIn />}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="stage">
@@ -138,6 +164,7 @@ export default function App() {
                   onOpenHistory={() => setSheet("home:history")}
                   isAdmin={isAdmin}
                   onOpenPanel={() => setSheet("panel")}
+                  onSignOut={signOut}
                 />
               )}
             </main>

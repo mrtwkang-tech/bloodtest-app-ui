@@ -36,6 +36,7 @@ export default function MoreTab({
   onOpenHistory,
   isAdmin,
   onOpenPanel,
+  onSignOut,
 }) {
   const { t, lang, setLang } = useLang();
   const [accent, setAccent] = useState(storedAccent);
@@ -166,6 +167,7 @@ export default function MoreTab({
         {isAdmin && (
           <MenuRow label={t("panel.title")} value={t("panel.adminOnly")} onClick={onOpenPanel} />
         )}
+        <MenuRow label={t("auth.signOut")} onClick={onSignOut} />
         <MenuRow label={t("more.address")} />
         <MenuRow label={t("more.notifications")} value={t("more.on")} />
         <MenuRow
