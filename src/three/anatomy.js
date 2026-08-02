@@ -58,6 +58,44 @@ function organMaterial(color) {
 
 const round = (th, r) => ellipse(th, r, r);
 
+/**
+ * An articular surface: the radius r(cos ψ) about a joint's centre, where ψ is
+ * the angle from the joint's own axis.
+ *
+ * WHY IT HAS TO BE WRITTEN THIS WAY. `ellipsoid` can only DISPLACE vertices, so
+ * a socket is a displacement field and not a subtraction, and two properties
+ * are what make this field produce a socket rather than a dent:
+ *
+ *   RADIAL ABOUT THE MATING BONE'S CENTRE OF CURVATURE. Every carved vertex
+ *   lands at a chosen distance from that one point, so the carved patch is
+ *   exactly a sphere concentric with the head that sits in it. A warp written
+ *   `v.x -= depth * max(0, d.x)` instead pushes along a COORDINATE axis: its
+ *   deepest point is at the primitive's own +x pole and its floor is a
+ *   paraboloid tangent to the surface there. That is a dimple in whatever
+ *   direction the sphere happened to be built, not a socket.
+ *
+ *   MASKED BY A CONE, not by a box or a gaussian in `d.x`. cos ψ is constant on
+ *   a cone about the axis, so easing on it puts the rim on a CIRCLE at a chosen
+ *   wrap angle, wherever the axis points. The sphere's poles are irrelevant —
+ *   which is why the test is on `dir` and never on `v`.
+ *
+ * And it cannot fold: r(ψ) is single-valued, so the surface is a radial graph
+ * and no depth can push it through itself. Additive displacement has no such
+ * guarantee, and at these depths it would need one.
+ *
+ * `radii` is the unit sphere so `|v| = 1` on entry and `setLength` is exact.
+ */
+function socket(mat, centre, axis, r, seg = 20) {
+  const a = new THREE.Vector3(...axis).normalize();
+  return ellipsoid(
+    mat,
+    centre,
+    [1, 1, 1],
+    (v, d) => v.setLength(r(d.dot(a), d)),
+    seg,
+  );
+}
+
 /* ------------------------------------------------------------------- rig */
 
 /**
@@ -1238,7 +1276,46 @@ function limbBones(group, mat, s, k) {
   const wr = J[`wrist${s}`];
   const kn = J[`knee${s}`];
   const an = J[`ankle${s}`];
-  const add = (limb, mesh) => group.add(rides(limb, mesh));
+  // NAMED IN BUILD ORDER, because a bone that cannot be addressed cannot be
+  // regression-tested. The joint work is a set of claims about DISTANCES —
+  // "the talus sits 2 mm under the plafond" — and checking one means finding
+  // two named meshes. Before this the probe had to identify bones by vertex
+  // count, which went stale the moment a bone was edited, which is the moment
+  // you most need the measurement.
+  //
+  // Order-coupled, and the throw below is the guard: a mesh added without a
+  // name, or a name without a mesh, fails the build rather than mislabelling.
+  const ORDER = [
+    "ulna",
+    "radius",
+    "carpus",
+    "carpusDistal",
+    "digit2",
+    "digit3",
+    "digit4",
+    "digit5",
+    "thumb",
+    "patella",
+    "tibia",
+    "medialMalleolus",
+    "fibula",
+    "calcaneus",
+    "talus",
+    "navicular",
+    "toe1",
+    "toe2",
+    "toe3",
+    "toe4",
+    "toe5",
+  ];
+  let nth = 0;
+  const add = (limb, mesh) => {
+    if (nth >= ORDER.length) {
+      throw new Error(`limbBones: mesh #${nth} has no name in ORDER`);
+    }
+    mesh.name = `${ORDER[nth++]}${s}`;
+    return group.add(rides(limb, mesh));
+  };
   const arm = `arm${s}`;
   const leg = `leg${s}`;
   // Medial is toward the midline, which is −x on the left and +x on the right;
@@ -1296,20 +1373,37 @@ function limbBones(group, mat, s, k) {
   );
 
   // ---- carpus and hand -------------------------------------------------
+  // TWO ROWS, because the carpus was one undifferentiated lump standing in for
+  // eight bones and reading as a pebble. The step between the rows is what
+  // says "two rows"; a gap between them would be 0.4 px and would say nothing.
+  // The distal row is wider and deeper, so the carpus is a trapezoid in
+  // silhouette rather than an oval — which is the shape of a wrist.
   add(
     arm,
     ellipsoid(
       mat,
-      [k * 0.2565, 0.2555, 0.0215],
-      [cm(0.9), cm(0.8), cm(2.1)],
+      [k * 0.256, 0.26225, 0.0195],
+      [cm(1.0), cm(0.78), cm(1.95)],
+      null,
+      14,
+    ),
+  );
+  add(
+    arm,
+    ellipsoid(
+      mat,
+      [k * 0.2585, 0.25145, 0.0225],
+      [cm(1.05), cm(0.72), cm(2.35)],
       null,
       14,
     ),
   );
   for (let i = 0; i < 4; i++) {
-    // Index most anterior, little finger most posterior.
+    // Index most anterior, little finger most posterior. The outer two rays
+    // used to end 1.7 cm OUTSIDE the hand's skin, because the fan was drawn
+    // at the spread of a real hand on a hand this figure draws at half size.
     const near = (1.5 - i) * cm(2.1);
-    const far = (1.5 - i) * cm(2.4);
+    const far = (1.5 - i) * cm(1.35);
     add(
       arm,
       sweep(
@@ -1320,19 +1414,34 @@ function limbBones(group, mat, s, k) {
           [k * 0.2625, 0.2, 0.0265 + far * 0.96],
           [k * 0.2635, 0.184, 0.0275 + far],
         ],
-        (t, th) =>
-          round(
+        (t, th) => {
+          // FOUR BONES AND THREE JOINTS IN FOURTEEN PIXELS.
+          //
+          // What reads at that size is not the gap between two bones — half a
+          // pixel, which appears and disappears with the sample position as
+          // the figure turns, and flicker reads as damage. It is that a
+          // phalanx is a DUMBBELL: a head, a shaft thinner than the head, a
+          // base. So the ray is a ripple and the knuckles are its crests. A
+          // crest turns the surface normal and shading integrates over the
+          // pixel; a gap is a coverage event and does not.
+          const bump = (at, w, h) => 1 + h * Math.exp(-(((t - at) / w) ** 2));
+          return round(
             th,
-            cm(0.4) *
-              (1 - 0.32 * t) *
-              // Two waists: the knuckle and the middle joint. A finger reads
-              // as jointed because it is narrow in two places, not because
-              // there are gaps between three bones eight pixels long.
-              (1 - 0.3 * Math.exp(-(((t - 0.42) / 0.09) ** 2))) *
-              (1 - 0.26 * Math.exp(-(((t - 0.74) / 0.08) ** 2))) *
-              domeEnd(t, 0.12),
-          ),
-        { stations: 20, radial: 8 },
+            cm(0.44) *
+              (1 - 0.34 * smooth(0.1, 1, t)) *
+              bump(0.24, 0.13, -0.16) *
+              bump(0.45, 0.055, 0.42) *
+              bump(0.57, 0.07, -0.2) *
+              bump(0.67, 0.045, 0.3) *
+              bump(0.755, 0.05, -0.17) *
+              bump(0.84, 0.038, 0.24) *
+              bump(0.94, 0.05, 0.1) *
+              domeEnd(t, 0.075),
+          );
+        },
+        // The narrowest crest is σ = 0.038 of the path. At 20 stations that is
+        // 0.76 rows per σ and the ripple would not exist at all.
+        { stations: 28, radial: 8 },
       ),
     );
   }
@@ -1552,9 +1661,12 @@ function limbBones(group, mat, s, k) {
               (1 - 0.3 * Math.exp(-(((t - 0.66) / 0.09) ** 2))) *
               domeEnd(t, 0.14),
           ),
-        { stations: 20, radial: 8, seed: new THREE.Vector3(0, 1, 0) },
+        { stations: 24, radial: 8, seed: new THREE.Vector3(0, 1, 0) },
       ),
     );
+  }
+  if (nth !== ORDER.length) {
+    throw new Error(`limbBones: ${nth} meshes for ${ORDER.length} names`);
   }
 }
 
@@ -1625,18 +1737,28 @@ function buildSkeletal(color) {
       ),
     );
   });
-  // Sacrum.
-  group.add(
-    ellipsoid(
-      mat,
-      onSpine(0.252, -cm(0.5)),
-      [cm(4.6), cm(3.4), cm(1.6)],
-      (v, d) => {
-        v.x *= 1 - 0.45 * smooth(0, -1, d.y);
-      },
-      20,
-    ),
+  // SACRUM. It was 9.2 cm across, and a real one with its alae is 11–12 —
+  // which was most of the 1.6 cm hole between it and the ilia. A sacrum is a
+  // wedge with two shoulders, and the shoulders ARE the joint: the auricular
+  // surface sits on them. Widening it and growing the alae closes the
+  // sacro-iliac gap for the price of one extra term in a warp already here.
+  const sacrum = ellipsoid(
+    mat,
+    onSpine(0.252, -cm(0.5)),
+    [cm(5.4), cm(3.4), cm(1.9)],
+    (v, d) => {
+      v.x *= 1 - 0.45 * smooth(0, -1, d.y);
+      v.x +=
+        Math.sign(d.x) *
+        cm(1.3) *
+        Math.abs(d.x) ** 0.6 *
+        smooth(-0.85, -0.05, d.y);
+      v.z -= cm(1.1) * Math.max(0, d.y) * Math.abs(d.x) ** 2;
+    },
+    20,
   );
+  sacrum.name = "sacrum";
+  group.add(sacrum);
 
   // Sternum: manubrium, body, xiphoid.
   group.add(
@@ -1652,7 +1774,16 @@ function buildSkeletal(color) {
       (t, th) => {
         // Manubrium wide, body narrower, xiphoid a point. Flat front to back:
         // it is a plate, and it is what the ribs run to.
-        const w = cm(2.8) - cm(1.8) * smooth(0.1, 1, t);
+        //
+        // THE MANUBRIUM IS WIDER THAN ANATOMY ALONE WOULD ASK FOR, and it is a
+        // rig problem wearing a bone's clothes. The clavicle rides the arm
+        // pivot and the sternum is trunk, so at full swing the clavicle's
+        // sternal end travels 3.4 cm THROUGH the manubrium. No bone geometry
+        // fixes that — the two are on different parents and always will be —
+        // so the manubrium is made broad enough to swallow the travel. The
+        // sterno-clavicular joint really is a saddle with a disc in it and
+        // really does slide, so this is the honest version of a compromise.
+        const w = cm(4.2) - cm(3.2) * smooth(0.1, 1, t);
         return ellipse(th, w, cm(0.5));
       },
       { stations: 22, radial: 12, seed: new THREE.Vector3(-1, 0, 0) },
@@ -1713,7 +1844,14 @@ function buildSkeletal(color) {
   // up and out from the sacrum, and the pubic rami close it in front. The
   // bowl, and the gap left inside the rami, are what make it read as a pelvis.
   [1, -1].forEach((k) => {
-    group.add(
+    const side = k > 0 ? "L" : "R";
+    const put = (name, mesh) => {
+      mesh.name = name + side;
+      group.add(mesh);
+      return mesh;
+    };
+    put(
+      "ilium",
       ellipsoid(
         mat,
         [k * 0.058, 0.228, -0.008],
@@ -1722,29 +1860,92 @@ function buildSkeletal(color) {
           v.x += k * cm(3.6) * Math.max(0, d.y) ** 1.4;
           v.z -= cm(1.8) * Math.max(0, -d.y);
           v.y *= 1 - 0.34 * Math.max(0, -d.z);
+          // ASIS — the bump at the front of the crest, the landmark a pelvis
+          // is measured from and the one a reader can find on themselves.
+          v.z +=
+            cm(2.2) *
+            Math.max(0, d.z) ** 2 *
+            Math.exp(-(((d.y - 0.52) / 0.34) ** 2));
+          // The crest is an S: it turns back on itself behind, at the PSIS.
+          v.z -=
+            cm(1.1) *
+            Math.max(0, -d.z) ** 2 *
+            Math.exp(-(((d.y - 0.62) / 0.3) ** 2));
         },
         24,
       ),
     );
-    group.add(
+    // ACETABULUM. The femur used to end in a flat disc beside a flat plate
+    // with nothing between them — no socket anywhere in the skeleton.
+    //
+    // It is drawn as a RIM. The cup floor sits at 2.15 cm, inside the 2.40 cm
+    // head, so none of it renders and the head is bare where the socket opens
+    // — which is what an AP hip film looks like: a ball with one hard edge
+    // across it. Sinking the floor inside the head rather than deleting it is
+    // what keeps the mesh closed.
+    //
+    // Unrigged, so it stays with the trunk while the head rides the leg. That
+    // division is the joint: the ball turns inside a socket that does not.
+    put(
+      "acetabulum",
+      socket(
+        mat,
+        J[`hip${side}`],
+        [k * 0.72, -0.65, 0.24],
+        (c) =>
+          cm(2.15) +
+          cm(1.2) * smooth(0.64, 0.44, c) -
+          cm(0.2) * smooth(0.1, -0.75, c),
+        24,
+      ),
+    );
+    // PUBIC BODY. The two superior rami both ended at x = ±0.007 with a radius
+    // of 0.85 cm, so their flat caps passed through each other and the
+    // "symphysis" was that accident. Each side gets a body, the rami stop
+    // inside it, and the 4 mm between them is the joint — which is what the
+    // symphysial disc actually measures.
+    put(
+      "pubicBody",
+      ellipsoid(
+        mat,
+        [k * cm(1.0), 0.1735, 0.0505],
+        [cm(0.78), cm(1.85), cm(1.25)],
+        null,
+        12,
+      ),
+    );
+    // ISCHIAL TUBEROSITY — what you actually sit on.
+    put(
+      "ischium",
+      ellipsoid(
+        mat,
+        [k * 0.052, 0.1495, -0.0295],
+        [cm(2.1), cm(2.9), cm(2.5)],
+        null,
+        14,
+      ),
+    );
+    put(
+      "superiorRamus",
       tube(
         mat,
         [
           [k * 0.05, 0.194, 0.012],
           [k * 0.034, 0.182, 0.042],
-          [k * 0.007, 0.176, 0.052],
+          [k * 0.0135, 0.174, 0.0505],
         ],
         cm(0.85),
         { radial: 8, stations: 14 },
       ),
     );
-    group.add(
+    put(
+      "ischiopubicRamus",
       tube(
         mat,
         [
-          [k * 0.007, 0.176, 0.052],
+          [k * 0.0135, 0.174, 0.0505],
           [k * 0.03, 0.154, 0.03],
-          [k * 0.047, 0.166, 0.002],
+          [k * 0.0505, 0.1555, -0.018],
         ],
         cm(0.75),
         { radial: 8, stations: 14 },
@@ -1762,40 +1963,183 @@ function buildSkeletal(color) {
   ].forEach(([s, k]) => {
     shoulderGirdle(group, mat, s, k);
     limbBones(group, mat, s, k);
-    group.add(
-      rides(
-        `leg${s}`,
-        sweep(
-          mat,
-          [J[`hip${s}`], [k * 0.086, 0.02, 0.006], J[`knee${s}`]],
-          (t, th) =>
-            round(
-              th,
-              cm(1.6) +
-                cm(1.1) *
-                  (Math.exp(-((t / 0.12) ** 2)) +
-                    Math.exp(-(((1 - t) / 0.12) ** 2))),
-            ),
-          { stations: 24, radial: 12 },
-        ),
+    const named = (limb, name, mesh) => {
+      mesh.name = `${name}${s}`;
+      group.add(rides(limb, mesh));
+      return mesh;
+    };
+
+    // THE TWO LONG BONES USED TO BE SYMMETRIC SWELLS WITH FLAT CAPS, so a
+    // femoral head and a pair of femoral condyles were literally the same
+    // shape — a sawn disc of 2.7 cm radius — and the same was true of the
+    // humerus at the shoulder and the elbow. A long bone's two ends are the
+    // most different things about it, and they carry the joints.
+    //
+    // Each shaft now ENDS INSIDE its own epiphysis, which is the cheapest of
+    // the three ways to lose a flat cap: a cap buried in another solid is not
+    // a defect and costs nothing to hide.
+
+    // FEMORAL HEAD. Centred exactly on J.hip — which IS the leg pivot — so
+    // rotating the leg maps the sphere to itself and the joint space is
+    // preserved to floating point at every pose, with no rig change at all.
+    named(
+      `leg${s}`,
+      "femoralHead",
+      ellipsoid(mat, J[`hip${s}`], [cm(2.4), cm(2.4), cm(2.4)], null, 16),
+    );
+    // GREATER TROCHANTER — the lever the hip abductors pull on, and the bump
+    // you feel on the side of your hip.
+    named(
+      `leg${s}`,
+      "trochanter",
+      ellipsoid(
+        mat,
+        [k * 0.1215, 0.159, -cm(0.45)],
+        [cm(1.55), cm(2.35), cm(1.9)],
+        null,
+        16,
       ),
     );
-    group.add(
-      rides(
-        `arm${s}`,
-        sweep(
-          mat,
-          [J[`shoulder${s}`], [k * 0.2, 0.618, 0.003], J[`elbow${s}`]],
-          (t, th) =>
-            round(
-              th,
-              cm(1.1) +
-                cm(0.8) *
-                  (Math.exp(-((t / 0.14) ** 2)) +
-                    Math.exp(-(((1 - t) / 0.14) ** 2))),
-            ),
-          { stations: 22, radial: 12 },
-        ),
+    // FEMUR. A femur does not run from the hip joint; it runs from a head, up
+    // and medial, down a NECK to a shaft that starts 3 cm lateral to it. The
+    // old straight path from J.hip is why the bone appeared to grow out of the
+    // side of the pelvis.
+    named(
+      `leg${s}`,
+      "femur",
+      sweep(
+        mat,
+        [
+          J[`hip${s}`],
+          [k * 0.10332, 0.17009, 0.00262],
+          [k * 0.1145, 0.143, 0.0042],
+          [k * 0.101, 0.07, 0.0072],
+          [k * 0.093, -0.01, 0.0086],
+          [k * 0.0885, -0.09, 0.0064],
+          [k * 0.088, -0.1215, 0.0122],
+        ],
+        (t, th) =>
+          round(
+            th,
+            (cm(1.58) -
+              cm(0.3) * Math.exp(-(((t - 0.085) / 0.05) ** 2)) +
+              cm(0.58) * smooth(0.74, 1, t)) *
+              domeStart(t, 0.045),
+          ),
+        { stations: 36, radial: 14 },
+      ),
+    );
+    // DISTAL FEMUR — the condyles, as a block rather than the end of a tube.
+    //
+    // A sweep cannot make this. Its surface converges on the centreline at the
+    // cap, so the lowest point of the bone would be ON the midline, which is
+    // exactly where the intercondylar notch has to be: the bilobe and the
+    // roll-over fight each other. So it is an ellipsoid centred on the
+    // condyles' centre of curvature, 2 cm above the joint line, which is what
+    // makes its inferior surface the articular surface.
+    //
+    // `seg` MUST be a multiple of 4. The notch and the trochlear groove are
+    // both sagittal-midline features and SphereGeometry only puts vertices on
+    // d.x = 0 when it is — otherwise both render off-centre and too shallow.
+    named(
+      `leg${s}`,
+      "condyles",
+      ellipsoid(
+        mat,
+        [k * 0.088, -0.1285, 0.0125],
+        [cm(3.9), cm(2.05), cm(3.1)],
+        (v, d) => {
+          // Intercondylar notch: one block becomes two lobes by RAISING the
+          // floor in the midline over the inferior and posterior surfaces. A
+          // groove cut from outside would only dimple it.
+          v.y +=
+            cm(1.55) *
+            Math.exp(-((d.x / 0.22) ** 2)) *
+            smooth(-0.15, -0.8, d.y + 0.85 * d.z);
+          // Trochlea: the patellar groove, anterior, deepest above the line.
+          v.z -=
+            cm(1.9) *
+            Math.exp(-((d.x / 0.26) ** 2)) *
+            Math.max(0, d.z) ** 1.4 *
+            smooth(-0.75, 0.1, d.y);
+          v.x +=
+            Math.sign(d.x) *
+            cm(0.5) *
+            Math.abs(d.x) ** 6 *
+            Math.exp(-((d.y / 0.5) ** 2));
+          // The MEDIAL condyle hangs lower. This is why a femur is handed.
+          v.y -= cm(0.4) * Math.max(0, -k * d.x) ** 2 * Math.max(0, -d.y);
+        },
+        24,
+      ),
+    );
+
+    // HUMERAL HEAD, on the shoulder pivot for the same reason as the femoral.
+    named(
+      `arm${s}`,
+      "humeralHead",
+      ellipsoid(mat, J[`shoulder${s}`], [cm(2.3), cm(2.3), cm(2.3)], null, 16),
+    );
+    named(
+      `arm${s}`,
+      "humerus",
+      sweep(
+        mat,
+        [
+          J[`shoulder${s}`],
+          [k * 0.2, 0.618, 0.003],
+          [k * 0.2235, 0.5085, 0.0046],
+        ],
+        (t, th) =>
+          round(
+            th,
+            (cm(1.12) -
+              cm(0.18) * Math.exp(-(((t - 0.13) / 0.07) ** 2)) +
+              cm(0.52) * smooth(0.76, 1, t)) *
+              domeStart(t, 0.06),
+          ),
+        { stations: 26, radial: 14 },
+      ),
+    );
+    // DISTAL HUMERUS — a spool. The trochlear groove is a channel at 40% of
+    // the way toward the medial side, the mound lateral of it is the
+    // capitellum, and cutting the channel as a function of d.x is what makes
+    // it wrap front AND back, which is what a pulley is.
+    named(
+      `arm${s}`,
+      "trochlea",
+      ellipsoid(
+        mat,
+        [k * 0.2245, 0.506, 0.0045],
+        [cm(2.85), cm(1.55), cm(1.9)],
+        (v, d) => {
+          v.multiplyScalar(
+            1 -
+              0.22 *
+                Math.exp(-(((d.x + k * 0.4) / 0.22) ** 2)) *
+                (1 - Math.max(0, d.y) ** 2),
+          );
+          // Olecranon fossa: the hollow on the BACK that the point of the
+          // ulna drops into when the arm straightens.
+          v.z +=
+            cm(1.15) *
+            Math.max(0, -d.z) ** 1.5 *
+            Math.exp(-((d.x / 0.3) ** 2)) *
+            Math.exp(-(((d.y - 0.35) / 0.36) ** 2));
+          v.z -=
+            cm(0.75) *
+            Math.max(0, d.z) ** 1.5 *
+            Math.exp(-((d.x / 0.28) ** 2)) *
+            Math.exp(-(((d.y - 0.4) / 0.34) ** 2));
+          // Epicondyles. The medial one is the big one, and subcutaneous —
+          // it is the bone you hit when you hit your funny bone.
+          v.x +=
+            Math.sign(d.x) *
+            (d.x * k < 0 ? cm(0.6) : cm(0.4)) *
+            Math.abs(d.x) ** 5 *
+            Math.exp(-(((d.y - 0.3) / 0.5) ** 2));
+        },
+        20,
       ),
     );
   });
