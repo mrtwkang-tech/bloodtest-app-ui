@@ -140,7 +140,10 @@ const RAW_SYSTEMS = [
         ref: 30,
         max: 80,
         dp: 1,
-        demo: [34.6, 32.5, 30.2, 29.6, 28.3, 28.3, 28.9, 30.3, 30.6, 31.3, 32.2, 33.2],
+        demo: [
+          34.6, 32.5, 30.2, 29.6, 28.3, 28.3, 28.9, 30.3, 30.6, 31.3, 32.2,
+          33.2,
+        ],
       },
       {
         // The raw material. Kyn/Trp says how much is being diverted; this says
@@ -161,7 +164,9 @@ const RAW_SYSTEMS = [
         max: 45,
         dp: 1,
         dir: "low",
-        demo: [17.2, 19, 20.3, 21.4, 22, 21.9, 21.9, 21.5, 20.6, 20.5, 19.8, 19.1],
+        demo: [
+          17.2, 19, 20.3, 21.4, 22, 21.9, 21.9, 21.5, 20.6, 20.5, 19.8, 19.1,
+        ],
       },
       {
         name: "6-sulfatoxymelatonin",
@@ -170,7 +175,9 @@ const RAW_SYSTEMS = [
         max: 40,
         dp: 1,
         dir: "low",
-        demo: [9.4, 11.1, 12.6, 13, 14.3, 13.9, 13.8, 14, 13.4, 13.4, 13.2, 12.8],
+        demo: [
+          9.4, 11.1, 12.6, 13, 14.3, 13.9, 13.8, 14, 13.4, 13.4, 13.2, 12.8,
+        ],
       },
     ],
   },
@@ -373,7 +380,9 @@ const RAW_SYSTEMS = [
         ref: 20,
         max: 35,
         dp: 1,
-        demo: [14.2, 13.9, 13.8, 13.7, 13.8, 14.1, 14.6, 15, 15.5, 16.2, 16.6, 16.8],
+        demo: [
+          14.2, 13.9, 13.8, 13.7, 13.8, 14.1, 14.6, 15, 15.5, 16.2, 16.6, 16.8,
+        ],
       },
       {
         name: "DHEA-S",
@@ -432,7 +441,9 @@ const RAW_SYSTEMS = [
         ref: 1.2,
         max: 3,
         dp: 2,
-        demo: [0.66, 0.7, 0.72, 0.69, 0.7, 0.74, 0.75, 0.81, 0.83, 0.89, 0.93, 0.98],
+        demo: [
+          0.66, 0.7, 0.72, 0.69, 0.7, 0.74, 0.75, 0.81, 0.83, 0.89, 0.93, 0.98,
+        ],
       },
       {
         name: "Albumin",
@@ -449,7 +460,9 @@ const RAW_SYSTEMS = [
         ref: 1.3,
         max: 4,
         dp: 2,
-        demo: [0.88, 0.94, 1.0, 1.06, 1.13, 1.2, 1.27, 1.34, 1.42, 1.5, 1.59, 1.68],
+        demo: [
+          0.88, 0.94, 1.0, 1.06, 1.13, 1.2, 1.27, 1.34, 1.42, 1.5, 1.59, 1.68,
+        ],
       },
     ],
   },
@@ -796,7 +809,10 @@ const RAW_SYSTEMS = [
         max: 80,
         dp: 1,
         dir: "low",
-        demo: [26.4, 27.5, 28.9, 29.8, 30.4, 31.2, 31.5, 31.3, 31.6, 31.8, 31.8, 31.2],
+        demo: [
+          26.4, 27.5, 28.9, 29.8, 30.4, 31.2, 31.5, 31.3, 31.6, 31.8, 31.8,
+          31.2,
+        ],
       },
       {
         name: "Vitamin B12",
@@ -885,6 +901,110 @@ const RAW_SYSTEMS = [
       },
     ],
   },
+  {
+    /**
+     * BONE, AND WHY IT IS ITS OWN PANEL.
+     *
+     * The skeleton used to be drawn under haematology, on the reasoning that
+     * marrow lives in bone. That is true and it is not the same claim: marrow
+     * is a TENANT. A CBC says nothing about the beam it is housed in, and
+     * lighting up a whole skeleton when a reader taps "혈액" told them their
+     * blood panel was about their bones. Haematology now shows the marrow
+     * itself — the red marrow in the spine, sternum, ribs, ilium and the
+     * proximal femur, which is exactly the distribution a marrow biopsy
+     * samples — and the skeleton is here, where it has its own blood panel.
+     *
+     * WHICH IS A REAL PANEL. Bone turnover is measured in serum, not on a
+     * scan: a resorption marker (CTX-1), two formation markers (P1NP, bone
+     * ALP), the hormone that drives the exchange (PTH) and the two minerals
+     * it moves. A DXA scan says how much bone there is TODAY; these say which
+     * way it is going, which is the question a monthly draw can answer and a
+     * two-yearly scan cannot.
+     *
+     * Vitamin D is the other half of this story and it is deliberately NOT
+     * duplicated here — it is a nutrient, it already sits in `nutrition`, and
+     * one analyte appearing in two panels would be counted twice by every
+     * total on the home screen.
+     */
+    key: "skeletal",
+    nameKey: "sys.skeletal",
+    icon: "skeletal",
+    specialtyKey: "spec.skeletal",
+    noteKey: "sys.skeletal.note",
+    conditionKeys: ["cond.osteoporosis", "cond.hyperpara"],
+    markers: [
+      {
+        // The resorption side: a fragment of type-I collagen released as bone
+        // is broken down. Rising here while formation stays flat is
+        // "uncoupled remodelling" — the state that precedes bone loss, and
+        // the only one of these a monthly series can catch early.
+        name: "CTX-1",
+        unit: "ng/mL",
+        ref: 0.58,
+        max: 1.2,
+        dp: 2,
+        demo: [
+          0.31, 0.33, 0.34, 0.37, 0.39, 0.42, 0.44, 0.47, 0.5, 0.53, 0.56, 0.61,
+        ],
+      },
+      {
+        // The formation side. Flat, against a resorption marker that is not.
+        name: "P1NP",
+        unit: "μg/L",
+        ref: 76,
+        max: 150,
+        dp: 0,
+        demo: [48, 47, 49, 46, 48, 50, 47, 49, 46, 48, 47, 49],
+      },
+      {
+        name: "Bone ALP",
+        unit: "μg/L",
+        ref: 20,
+        max: 45,
+        dp: 1,
+        base: 12.4,
+        spread: 1.1,
+      },
+      {
+        name: "PTH",
+        unit: "pg/mL",
+        ref: 65,
+        max: 150,
+        dp: 1,
+        base: 41.0,
+        spread: 4.2,
+      },
+      {
+        name: "Osteocalcin",
+        unit: "ng/mL",
+        ref: 30,
+        max: 60,
+        dp: 1,
+        base: 18.6,
+        spread: 1.9,
+      },
+      {
+        // Albumin-corrected, because half of serum calcium is bound to it and
+        // the uncorrected figure tracks the albumin rather than the calcium.
+        name: "Corrected calcium",
+        unit: "mg/dL",
+        ref: 10.2,
+        max: 12,
+        dp: 2,
+        base: 9.38,
+        spread: 0.18,
+      },
+      {
+        name: "Phosphate",
+        unit: "mg/dL",
+        ref: 4.5,
+        max: 6,
+        dp: 2,
+        base: 3.42,
+        spread: 0.22,
+      },
+    ],
+  },
 ];
 
 export const SYSTEMS = RAW_SYSTEMS.map(withSeries);
@@ -926,7 +1046,7 @@ export function markerLevel(marker, value) {
  * pg/mL and twenty other scales, so a reader shown "33.2" has to know the limit
  * is 30 and do the arithmetic before the number means anything — and cannot
  * compare it to anything else on the screen. A proportion of the limit is the
- * one reading that works the same way for all sixty-nine markers.
+ * one reading that works the same way for all eighty-four markers.
  *
  * `ref` is a THRESHOLD for every marker, not a midpoint, and `dir` says which
  * side is harmful (see markerLevel above). For `dir: "low"` the reference is a
@@ -963,6 +1083,41 @@ export function systemLevel(system, values) {
 }
 export const zoneLevel = systemLevel;
 
+/**
+ * One system's score, 0–100.
+ *
+ * WHY A NUMBER PER SYSTEM AT ALL. "관찰 필요" is a threshold word: it fires the
+ * moment one marker crosses one line and then says the same thing whether that
+ * was by one per cent or by forty. Eleven rows of threshold words cannot be
+ * ranked, and ranking them is the question a reader actually has — which of
+ * these should I look at first. A score can be.
+ *
+ * Same per-marker weights as the whole-body score: an optimal marker is worth
+ * full marks, one merely inside its range most of them, one outside nothing,
+ * and a flagged marker costs again on top so that "out by a lot" is not the
+ * same as "out by a little". Here the whole thing is divided by the system's
+ * own marker count, so a four-marker panel and a twelve-marker panel are on
+ * the same scale and can be read down a column.
+ *
+ * IT IS NOT THE CASE THAT THE BODY SCORE IS THE MEAN OF THESE, and that is
+ * deliberate rather than an oversight. `healthScore` charges every flag
+ * against the whole panel, so nine flags spread across nine systems cost nine
+ * times what one flag costs — which is the right behaviour for a summary of a
+ * person, and the wrong behaviour for a summary of one system.
+ */
+export function systemScore(system, values) {
+  let credit = 0;
+  let penalty = 0;
+  system.markers.forEach((m, i) => {
+    const lv = markerLevel(m, values[i]);
+    if (lv === 0) credit += isOptimal(m, values[i]) ? 1 : 0.82;
+    if (lv === 1) penalty += 0.015;
+    if (lv === 2) penalty += 0.04;
+  });
+  const n = Math.max(1, system.markers.length);
+  return Math.max(0, Math.min(100, Math.round(((credit - penalty) / n) * 100)));
+}
+
 export function formatValue(value, dp) {
   return dp > 0 ? value.toFixed(dp) : String(Math.round(value));
 }
@@ -971,7 +1126,7 @@ export function formatValue(value, dp) {
  * Traffic-light band for one marker, oriented by `dir` so the safe stretch is
  * always the correct side of the reference.
  *
- * Drawn in the pale tints rather than the lamps. At full chroma, sixty-nine of
+ * Drawn in the pale tints rather than the lamps. At full chroma, eighty-four of
  * these on one screen is a wall of colour that drowns out the two or three
  * values actually worth looking at — and the band is background information
  * anyway. The dark pointer riding on it is the foreground.

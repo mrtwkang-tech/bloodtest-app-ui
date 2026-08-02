@@ -86,6 +86,19 @@ export const WINDOW_DAYS = {
   "Vitamin B12": 30,
   "FIB-4": 30,
 
+  // Bone. A remodelling cycle runs three to six months, so a turnover marker
+  // is a running average over most of that — which is precisely why one draw
+  // of CTX-1 is uninterpretable and twelve of them are the whole point. The
+  // two minerals and the hormone that moves them are the exception: those are
+  // regulated hour to hour and report the week they were drawn in.
+  "Corrected calcium": 7,
+  Phosphate: 7,
+  PTH: 7,
+  "CTX-1": 60,
+  Osteocalcin: 60,
+  P1NP: 90,
+  "Bone ALP": 90,
+
   // Longer than the interval. These become context, by rule, not by opinion.
   "FKBP5 intron 7": 75,
   "NR3C1 exon 1F": 75,

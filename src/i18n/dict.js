@@ -267,6 +267,13 @@ export const en = {
   "pn.magnesium": "Magnesium",
   "pn.zinc": "Zinc",
   "pn.omega3": "Omega-3 index",
+  "pn.ctx": "How fast bone is being taken away",
+  "pn.p1np": "How fast bone is being rebuilt",
+  "pn.bonealp": "Bone-building cell activity",
+  "pn.pth": "The hormone that moves calcium out of bone",
+  "pn.osteocalcin": "New bone protein",
+  "pn.calcium": "Calcium in the blood",
+  "pn.phosphate": "Phosphate in the blood",
   "epi.cfMood": "Mood-circuit activity",
   "epi.cfTension": "Threat-circuit activity",
   "epi.cfStress": "Stress-switch activity",
@@ -499,7 +506,7 @@ export const en = {
   "panel.pastedAll": ({ n }) => `${n} matched. Review, then save.`,
   "panel.pastedSome": ({ n, bad }) => `${n} matched. Could not place: ${bad}`,
   "auth.tagline":
-    "One draw a month, read across ten specialties and five regulatory systems.",
+    "One draw a month, read across eleven specialties and five regulatory systems.",
   "auth.email": "Email",
   "auth.password": "Password",
   "auth.name": "Name",
@@ -544,6 +551,9 @@ export const en = {
   "body.refUpper": "Reference",
   "body.refLower": "Lower limit",
   "body.tapOrgan": "Tap an organ system to see the markers behind it",
+  "body.score": ({ n }) => `${n}`,
+  "body.scoreVsPeers": ({ pct }) => `above ${pct}% of peers`,
+  "body.scoreLabel": "Panel score",
   "body.allInRange": "Every marker is inside its reference range",
   "body.disclaimer":
     "Screening results are not a diagnosis. A marker outside its range does not confirm or rule out any condition. Review anything that concerns you with a clinician.",
@@ -573,6 +583,7 @@ export const en = {
   "sys.immune": "Joints & immunity",
   "sys.oncology": "Whole body",
   "sys.nutrition": "Nutrition",
+  "sys.skeletal": "Bones",
   // Where the system is, in the words someone would use pointing at themselves.
   // This is the one thing the figure can say that the list of rows cannot.
   "where.neuro": "Inside the skull, and down the spine",
@@ -585,6 +596,7 @@ export const en = {
   "where.immune": "Lymph nodes and joints, all over",
   "where.oncology": "Not one place. Everywhere at once",
   "where.nutrition": "Breastbone to pelvis, the length of the gut",
+  "where.skeletal": "The frame itself — spine, ribs, pelvis, arms, legs",
   "spec.neuro": "Neurology",
   "spec.cardio": "Cardiology",
   "spec.endocrine": "Endocrinology",
@@ -595,6 +607,7 @@ export const en = {
   "spec.immune": "Rheumatology",
   "spec.oncology": "Oncology",
   "spec.nutrition": "Nutrition & metabolism",
+  "spec.skeletal": "Orthopaedics",
   "sys.neuro.note":
     "Proteins that leak into the blood when nerve cells are damaged or degenerating.",
   "sys.cardio.note": "Vessel inflammation, lipid load and cardiac strain.",
@@ -610,6 +623,8 @@ export const en = {
     "Systemic inflammation and the antibodies behind autoimmune joint disease.",
   "sys.oncology.note":
     "Tumour-related markers that circulate through the whole body rather than sitting in one organ — which is why the whole figure lights up.",
+  "sys.skeletal.note":
+    "How fast bone is being taken away and rebuilt, and the hormone and minerals that set the pace.",
   "sys.nutrition.note":
     "Vitamins, minerals and fatty acids absorbed through the gut.",
   "cond.hypertension": "Hypertension",
@@ -623,6 +638,8 @@ export const en = {
   "cond.ra": "Rheumatoid arthritis",
   "cond.autoimmune": "Autoimmune disease",
   "cond.deficiency": "Nutrient deficiency",
+  "cond.osteoporosis": "Osteoporosis",
+  "cond.hyperpara": "Hyperparathyroidism",
   "body.systems": "Systems",
   // Conditions
   "cond.alzheimers": "Alzheimer’s",
@@ -642,7 +659,7 @@ export const en = {
   "store.kit": "Full-panel test kit",
   "store.inStock": "In stock",
   "store.kitDesc": ({ n, e }) =>
-    `One self-collection kit: ${n} biomarkers across ten specialties, ${e} methylation markers, and five mind indices derived from the same draw.`,
+    `One self-collection kit: ${n} biomarkers across eleven specialties, ${e} methylation markers, and five mind indices derived from the same draw.`,
   "store.choosePlan": "Choose a plan",
   "store.included": "What’s included",
   "store.single": "Single test",
@@ -953,6 +970,13 @@ export const ko = {
   "pn.magnesium": "마그네슘",
   "pn.zinc": "아연",
   "pn.omega3": "오메가-3 지수",
+  "pn.ctx": "뼈를 허무는 속도",
+  "pn.p1np": "뼈를 다시 쌓는 속도",
+  "pn.bonealp": "뼈 만드는 세포의 활동량",
+  "pn.pth": "뼈에서 칼슘을 꺼내는 호르몬",
+  "pn.osteocalcin": "새로 만든 뼈 단백질",
+  "pn.calcium": "혈액 속 칼슘",
+  "pn.phosphate": "혈액 속 인",
   "epi.cfMood": "기분 회로가 쓰인 정도",
   "epi.cfTension": "경계 회로가 쓰인 정도",
   "epi.cfStress": "스트레스 스위치가 쓰인 정도",
@@ -1174,7 +1198,7 @@ export const ko = {
     "저장된 판독값을 지웠습니다. 이미 반영된 값은 새로고침 전까지 남습니다.",
   "panel.pastedAll": ({ n }) => `${n}개 매칭. 확인 후 저장하세요.`,
   "panel.pastedSome": ({ n, bad }) => `${n}개 매칭. 못 찾은 항목: ${bad}`,
-  "auth.tagline": "한 달에 한 번 채혈, 10개 진료과와 5개 조절계로 읽습니다.",
+  "auth.tagline": "한 달에 한 번 채혈, 11개 진료과와 5개 조절계로 읽습니다.",
   "auth.email": "이메일",
   "auth.password": "비밀번호",
   "auth.name": "이름",
@@ -1219,6 +1243,9 @@ export const ko = {
   "body.refUpper": "정상 상한",
   "body.refLower": "정상 하한",
   "body.tapOrgan": "장기를 눌러 근거 수치를 확인하세요",
+  "body.score": ({ n }) => `${n}점`,
+  "body.scoreVsPeers": ({ pct }) => `또래 ${pct}%보다 높음`,
+  "body.scoreLabel": "이 진료과 점수",
   "body.allInRange": "모든 수치가 정상 범위 안입니다",
   "body.disclaimer":
     "스크리닝 결과는 의학적 진단이 아닙니다. 수치가 범위를 벗어났다는 뜻이며, 질환의 확진이나 배제를 의미하지 않습니다. 판단은 반드시 의료진과 함께 하세요.",
@@ -1247,6 +1274,7 @@ export const ko = {
   "sys.immune": "관절·면역",
   "sys.oncology": "전신",
   "sys.nutrition": "영양",
+  "sys.skeletal": "뼈",
   // 계통이 몸의 어디인지. 손으로 짚으며 말할 때 쓰는 말로 —
   // 행 목록이 못 하고 인체 도면만 할 수 있는 말이 이것이다.
   "where.neuro": "머리뼈 안, 그리고 등뼈 속을 따라",
@@ -1259,6 +1287,7 @@ export const ko = {
   "where.immune": "온몸의 림프절과 관절",
   "where.oncology": "한 곳이 아니라 전신",
   "where.nutrition": "명치에서 골반까지, 소화관 전체",
+  "where.skeletal": "몸을 지탱하는 뼈대 — 척추·갈비뼈·골반·팔다리",
   "spec.neuro": "신경과",
   "spec.cardio": "순환기내과",
   "spec.endocrine": "내분비내과",
@@ -1269,6 +1298,7 @@ export const ko = {
   "spec.immune": "류마티스내과",
   "spec.oncology": "종양내과",
   "spec.nutrition": "영양대사",
+  "spec.skeletal": "정형외과",
   "sys.neuro.note":
     "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 수치를 봅니다.",
   "sys.cardio.note": "혈관 염증, 지질 부담, 심장 부하를 봅니다.",
@@ -1280,6 +1310,8 @@ export const ko = {
   "sys.immune.note": "전신 염증과 자가면역 관절질환의 항체를 봅니다.",
   "sys.oncology.note":
     "특정 장기가 아니라 몸 전체를 도는 종양 관련 수치를 봅니다. 그래서 실루엣 전체가 반응합니다.",
+  "sys.skeletal.note":
+    "뼈를 허무는 속도와 다시 쌓는 속도, 그리고 그 속도를 정하는 호르몬과 미네랄을 봅니다.",
   "sys.nutrition.note": "장에서 흡수되는 비타민·미네랄·지방산을 봅니다.",
   "cond.hypertension": "고혈압",
   "cond.thyroid": "갑상선질환",
@@ -1292,6 +1324,8 @@ export const ko = {
   "cond.ra": "류마티스관절염",
   "cond.autoimmune": "자가면역질환",
   "cond.deficiency": "영양결핍",
+  "cond.osteoporosis": "골다공증",
+  "cond.hyperpara": "부갑상선기능항진증",
   "body.systems": "진료과",
   "cond.alzheimers": "알츠하이머",
   "cond.parkinsons": "파킨슨병",
@@ -1308,7 +1342,7 @@ export const ko = {
   "store.kit": "풀배터리 검사 키트",
   "store.inStock": "재고 있음",
   "store.kitDesc": ({ n, e }) =>
-    `10개 분과 ${n}개 검사 항목와 메틸화 ${e}종, 그리고 같은 채혈에서 산출하는 마음 5개 지수를 한 번에 측정하는 자가 채혈 키트`,
+    `11개 분과 ${n}개 검사 항목와 메틸화 ${e}종, 그리고 같은 채혈에서 산출하는 마음 5개 지수를 한 번에 측정하는 자가 채혈 키트`,
   "store.choosePlan": "플랜 선택",
   "store.included": "구성품",
   "store.single": "1회 검사",
@@ -1322,7 +1356,7 @@ export const ko = {
   "store.incl1": "자가 채혈 키트 · 회송 봉투",
   "store.incl2": "QR 등록 · 진행 상태 알림",
   "store.incl3": "같은 채혈에서 산출하는 마음 5개 지수",
-  "store.incl4": ({ n }) => `10개 분과 ${n}개 검사 항목 · 정상 범위 전부 공개`,
+  "store.incl4": ({ n }) => `11개 분과 ${n}개 검사 항목 · 정상 범위 전부 공개`,
   "store.incl5": "회차별 추이 그래프",
   "store.ctaSingle": "89,000원 · 1회 검사 결제",
   "store.ctaQuarter": "분기 구독 시작 · 회당 69,000원",

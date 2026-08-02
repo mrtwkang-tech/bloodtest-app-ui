@@ -4,7 +4,13 @@ import { withEmphasis } from "../components/Emphasis";
 import MarkerBar from "../components/MarkerBar";
 import NextStep from "../components/NextStep";
 import { C, DIVIDER_TOP, LEVEL_COLOR, T } from "../tokens";
-import { BODY_STATUS_KEY, deviationOf, markerLevel } from "../data/body";
+import {
+  BODY_STATUS_KEY,
+  deviationOf,
+  markerLevel,
+  systemScore,
+} from "../data/body";
+import { systemPercentile } from "../data/cohorts";
 import { plainKeyOf } from "../data/plainNames";
 import { SESSIONS, bodySummary, pick } from "../data/sessions";
 import { useLang } from "../i18n";
@@ -32,6 +38,7 @@ export default function ZoneDetail({ zoneKey, sel }) {
   if (!entry) return null;
 
   const { zone, values, level } = entry;
+  const score = systemScore(zone, values);
   const note = pick(session.bodyNote?.[zone.key], lang);
   const action = pick(session.bodyAction?.[zone.key], lang);
   const over = zone.markers
@@ -56,6 +63,29 @@ export default function ZoneDetail({ zoneKey, sel }) {
       </div>
       <div style={{ ...T.caption, color: C.faintest, marginTop: 5 }}>
         {zone.conditionKeys.map((k) => t(k)).join(" · ")}
+      </div>
+
+      {/* The score, spelled out. The row above it carries the bare numeral so
+          the list can be scanned; this is the one place there is room to say
+          what it is and what it is being compared against, which a numeral on
+          its own never says. */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 8,
+          marginTop: 12,
+        }}
+      >
+        <span style={{ ...T.num, fontSize: 21, color: C.ink }}>
+          {t("body.score", { n: score })}
+        </span>
+        <span style={{ ...T.caption, color: C.faint }}>
+          {t("body.scoreLabel")} ·{" "}
+          {t("body.scoreVsPeers", {
+            pct: systemPercentile(score, zone.markers.length),
+          })}
+        </span>
       </div>
 
       {/* What the panel is for, then what this reader's result means. */}

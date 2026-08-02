@@ -119,6 +119,17 @@ const P = {
     </>
   ),
 
+  // Bone: a long bone seen end-on-to-end-on, with the two knobs that make it
+  // a bone rather than a stick. A vertebra would have been more literal about
+  // where the marrow is, but at 17px a vertebra is a blob — and a long bone is
+  // the shape everyone can already draw.
+  skeletal: (
+    <>
+      <path d="M7.9 4.4a2.3 2.3 0 0 0-3.5 2.9 2.3 2.3 0 0 0 2.4 3.4l7.3 7.3a2.3 2.3 0 0 0 3.4 2.4 2.3 2.3 0 0 0 2.9-3.5 2.3 2.3 0 0 0-2.4-3.4L10.7 6.2a2.3 2.3 0 0 0-2.8-1.8Z" />
+      <path d="M6.8 10.7 4.4 8.3M13.3 17.2l2.4 2.4" />
+    </>
+  ),
+
   /* ── Regulatory systems (the mind panel) ───────────────────────────── */
 
   // Neural raw material: a flask with a level in it. The axis asks whether
@@ -182,7 +193,12 @@ export const ICON_KEYS = Object.keys(P);
  * destination, one mark.
  */
 const NAV = {
-  home: <><path d="M3.6 10.4 12 3.6l8.4 6.8" /><path d="M5.9 9.6V20h12.2V9.6" /></>,
+  home: (
+    <>
+      <path d="M3.6 10.4 12 3.6l8.4 6.8" />
+      <path d="M5.9 9.6V20h12.2V9.6" />
+    </>
+  ),
   mind: (
     <>
       <path d="M15.4 20.4v-2.3a5.5 5.5 0 0 0 3.9-5.2c0-3.9-3.2-7.1-7.1-7.1S5.1 9 5.1 12.9c0 1.2.4 2.1 1 2.9l-1 1.7h2v2.9h8.3Z" />
@@ -201,11 +217,19 @@ const NAV = {
     <>
       <path d="M3.4 16.4 8 11.6l3.2 2.6 3.4-4.4" />
       <path d="M15.4 8.4h3.4v3.4" />
-      <path d="M17.2 15.1v.01M19.4 17.6v.01M20.6 20.4v.01" strokeLinecap="round" />
+      <path
+        d="M17.2 15.1v.01M19.4 17.6v.01M20.6 20.4v.01"
+        strokeLinecap="round"
+      />
     </>
   ),
   // Two panels and the lens where they overlap.
-  signal: <><circle cx="8.9" cy="12" r="5.9" /><circle cx="15.1" cy="12" r="5.9" /></>,
+  signal: (
+    <>
+      <circle cx="8.9" cy="12" r="5.9" />
+      <circle cx="15.1" cy="12" r="5.9" />
+    </>
+  ),
   more: (
     <>
       <circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none" />

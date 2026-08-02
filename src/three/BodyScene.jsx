@@ -18,9 +18,21 @@ const ZONE_KEYS = [
   "immune",
   "oncology",
   "nutrition",
+  "skeletal",
 ];
 /** Cancer is the only system drawn as the whole figure. */
 const SHELL_KEYS = new Set(["oncology"]);
+
+/**
+ * Systems that span the whole body rather than sitting in one place.
+ *
+ * A flagged system lights unprompted, which works when it is a liver: one
+ * shape, in one place, next to nine that are dark. A flagged SKELETON lights
+ * two hundred surfaces from skull to toes and buries every other finding on
+ * the screen behind it. So a broad system shows at a fraction of its strength
+ * until it is the one actually asked for, and then it comes up in full.
+ */
+const BROAD_KEYS = new Set(["skeletal"]);
 
 /** Level 0/1/2 → the colour the organ glows. Clear stays cool and quiet. */
 const LEVEL_COLOR = [0x5f9440, 0xd39525, 0xc9553a];
@@ -281,12 +293,15 @@ export default function BodyScene({
         });
       });
 
-      ZONE_KEYS.forEach((k) => {
+      ZONE_KEYS.forEach((k, ki) => {
         const s = state;
         s.intensity[k] += (s.target[k] - s.intensity[k]) * Math.min(1, dt * 7);
         const organ = organs[k];
-        // A slow breath, only on organs that are actually flagged.
-        const pulse = reduced ? 1 : 0.86 + Math.sin(t * 1.9 + k.length) * 0.14;
+        // A slow breath, only on organs that are actually flagged. The phase
+        // offset used to come from the key's character count, which meant any
+        // two keys of equal length breathed in lock-step — "oncology" and
+        // "skeletal" are both eight. The index cannot collide.
+        const pulse = reduced ? 1 : 0.86 + Math.sin(t * 1.9 + ki * 0.9) * 0.14;
         const lit = s.intensity[k];
         organ.materials.forEach((m) => {
           m.opacity = lit * (SHELL_KEYS.has(k) ? 0.2 : 0.92);
@@ -344,7 +359,9 @@ export default function BodyScene({
           // Flagged organs are always visible; a tap brings any organ forward.
           // With ten systems, lighting every clear one at once is soup:
           // only a flagged system shows unprompted.
-          const base = level > 0 ? 0.5 + level * 0.22 : 0;
+          const base =
+            (level > 0 ? 0.5 + level * 0.22 : 0) *
+            (BROAD_KEYS.has(k) ? 0.4 : 1);
           state.target[k] = isActive ? 1 : active ? 0 : base;
           state.color[k].setHex(LEVEL_COLOR[level]);
           if (state.target[k] > 0.05) anyLit = true;

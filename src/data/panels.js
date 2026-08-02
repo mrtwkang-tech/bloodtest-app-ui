@@ -2,7 +2,7 @@ import { SYSTEMS, markerLevel, valuesAt } from "./body";
 import { EPIGEN } from "./epigenetics";
 
 /**
- * Every panel a marker can come from: the ten organ systems plus the
+ * Every panel a marker can come from: the eleven organ systems plus the
  * methylation panel. Lookups go through here so that a rename anywhere fails
  * loudly at import time instead of silently scoring zero.
  */

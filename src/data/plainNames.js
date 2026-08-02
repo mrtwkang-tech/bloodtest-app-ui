@@ -118,6 +118,18 @@ const PLAIN = {
   Magnesium: "pn.magnesium",
   Zinc: "pn.zinc",
   "Omega-3 index": "pn.omega3",
+
+  // Bone. Note "Bone ALP" is a DIFFERENT key from "ALP" above: this map is
+  // global and keyed by the marker's exact name, so the liver's total ALP and
+  // the bone isoenzyme have to be spelled apart or one would inherit the
+  // other's plain name.
+  "CTX-1": "pn.ctx",
+  P1NP: "pn.p1np",
+  "Bone ALP": "pn.bonealp",
+  PTH: "pn.pth",
+  Osteocalcin: "pn.osteocalcin",
+  "Corrected calcium": "pn.calcium",
+  Phosphate: "pn.phosphate",
 };
 
 /**

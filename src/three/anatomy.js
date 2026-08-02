@@ -21,7 +21,7 @@ import {
 export { J, buildBody, makeBodyMaterial } from "./figure";
 
 /**
- * The ten organ systems, one per specialty panel.
+ * The eleven organ systems, one per specialty panel.
  *
  * REFERENCE. The proportions, levels and lobar structure here were taken from
  * the open anatomy atlases — BodyParts3D (DBCLS, CC BY-SA 2.1 JP), which is
@@ -1173,10 +1173,17 @@ function buildEndocrine(color) {
   return { group, materials: [mat], focus: new THREE.Vector3(0, 0.56, 0) };
 }
 
-/* -------------------------------------------------------------- hematology */
+/* ---------------------------------------------------------------- skeletal */
 
 /**
- * The marrow-bearing skeleton, plus the spleen.
+ * The skeleton.
+ *
+ * IT USED TO BE DRAWN UNDER HAEMATOLOGY, and that was a category error with a
+ * visible consequence: tapping "혈액" lit up a whole skeleton, which tells a
+ * reader their blood count is a statement about their bones. Marrow lives in
+ * bone the way a tenant lives in a building. Haematology now draws the tenant
+ * — see `buildHematology` below — and the building is here, with its own
+ * panel of bone-turnover markers behind it.
  *
  * Ribs by table rather than by formula. The two facts that make a rib cage
  * read as one are that the ribs slope down from spine to sternum — steeply in
@@ -1473,7 +1480,7 @@ function limbBones(group, mat, s, k) {
   }
 }
 
-function buildHematology(color) {
+function buildSkeletal(color) {
   const group = new THREE.Group();
   const mat = organMaterial(color);
 
@@ -1667,16 +1674,15 @@ function buildHematology(color) {
     );
   });
 
-  // Long bones. Marrow is in the axial skeleton and the proximal long bones,
-  // which is exactly what a haematology panel is sampling — but the skeleton
-  // still has to be a whole skeleton. It used to stop at the elbow and the
-  // knee: two bones per limb, and then nothing where a reader's eye goes
-  // first, because a hand and a foot are the parts of a skeleton everyone can
-  // draw from memory. Everything distal to those two joints is below.
+  // Long bones, and the girdle they hang from. The skeleton has to be a whole
+  // skeleton: it used to stop at the elbow and the knee, and it had no
+  // shoulder girdle at all, so each arm floated beside a rib cage it was not
+  // attached to.
   [
     ["L", 1],
     ["R", -1],
   ].forEach(([s, k]) => {
+    shoulderGirdle(group, mat, s, k);
     limbBones(group, mat, s, k);
     group.add(
       rides(
@@ -1732,6 +1738,271 @@ function buildHematology(color) {
     ),
   );
 
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.55, 0) };
+}
+
+/**
+ * The shoulder girdle: clavicle and scapula.
+ *
+ * These were the conspicuous absence once the forearm and hand arrived. An arm
+ * that begins at a humeral head with nothing behind it does not read as
+ * attached; the girdle is what joins a limb to a trunk, and the clavicle is
+ * the ONLY bony joint between them — the scapula is held on by muscle and
+ * floats over the rib cage, which is why it can slide and the collarbone
+ * breaks.
+ *
+ * Both ride the arm. The scapula is not strictly a limb bone, but it moves
+ * with the arm rather than with the trunk — every time you raise an arm past
+ * the horizontal the scapula rotates under it — so parenting it to the trunk
+ * would be the more wrong of the two available answers.
+ */
+function shoulderGirdle(group, mat, s, k) {
+  const arm = `arm${s}`;
+
+  // Clavicle: an S, convex forward at the sternal two thirds and convex
+  // backward at the acromial third. Drawn as an S because a straight bar here
+  // is the single most recognisable mistake in a skeleton drawing.
+  group.add(
+    rides(
+      arm,
+      sweep(
+        mat,
+        [
+          [k * cm(1.5), 0.7555, cm(6.4)],
+          [k * 0.062, 0.7525, cm(5.6)],
+          [k * 0.112, 0.7495, cm(1.8)],
+          [k * 0.148, 0.7455, -cm(1.4)],
+          [k * 0.166, 0.7425, -cm(2.2)],
+        ],
+        (t, th) => {
+          // Round at the sternal end, flattening to a blade at the acromial.
+          const r = cm(0.72) - cm(0.26) * smooth(0.15, 0.9, t);
+          const flat = smooth(0.55, 1, t);
+          return ellipse(th, r * (1 + 0.55 * flat), r * (1 - 0.38 * flat));
+        },
+        {
+          stations: 26,
+          radial: 10,
+          seed: new THREE.Vector3(0, 1, 0),
+        },
+      ),
+    ),
+  );
+
+  // Scapula: a flat triangle lying on the back of the rib cage, ribs 2 to 7,
+  // narrowing to the inferior angle you can feel through the skin.
+  group.add(
+    rides(
+      arm,
+      ellipsoid(
+        mat,
+        [k * 0.079, 0.687, -0.0635],
+        [cm(4.6), cm(7.4), cm(0.5)],
+        (v, d) => {
+          // Down to a point at the inferior angle, and shorter along the top.
+          v.x *= 1 - 0.66 * Math.max(0, -d.y) ** 1.25;
+          v.x *= 1 - 0.2 * Math.max(0, d.y) ** 2;
+          // It WRAPS. The lateral edge curves forward around the cage, which
+          // is what stops a flat plate from standing off the back like a lid.
+          v.z += cm(3.4) * Math.max(0, k * d.x) ** 1.6;
+        },
+        26,
+      ),
+    ),
+  );
+
+  // Spine of the scapula, running out and up to the acromion — the ridge you
+  // can trace with a finger from the midline to the point of the shoulder.
+  group.add(
+    rides(
+      arm,
+      sweep(
+        mat,
+        [
+          [k * 0.042, 0.706, -0.066],
+          [k * 0.096, 0.716, -0.062],
+          [k * 0.142, 0.7275, -0.048],
+          [k * 0.168, 0.7375, -0.026],
+        ],
+        (t, th) => {
+          const r = cm(0.85) + cm(0.55) * smooth(0.55, 1, t);
+          return ellipse(th, r * 0.55, r);
+        },
+        { stations: 20, radial: 10, seed: new THREE.Vector3(0, 0, 1) },
+      ),
+    ),
+  );
+
+  // Coracoid: the hook in front that the biceps and pectoralis minor pull on.
+  // Small, but a scapula without it is a plate rather than a scapula.
+  group.add(
+    rides(
+      arm,
+      sweep(
+        mat,
+        [
+          [k * 0.118, 0.7345, -cm(1.0)],
+          [k * 0.116, 0.7395, cm(0.6)],
+          [k * 0.104, 0.7365, cm(1.9)],
+        ],
+        (t, th) => round(th, cm(0.72) * (1 - 0.25 * t) * domeEnd(t, 0.2)),
+        { stations: 14, radial: 8 },
+      ),
+    ),
+  );
+}
+
+/* -------------------------------------------------------------- hematology */
+
+/**
+ * The marrow, and the spleen.
+ *
+ * WHAT THIS PANEL IS ACTUALLY ABOUT. A CBC counts cells; the cells are made in
+ * red marrow and destroyed in the spleen. So the view is the marrow itself —
+ * not the bones around it, which are now a system of their own — and the
+ * distribution below is the real adult one: red marrow retreats out of the
+ * limbs during childhood and ends up in the axial skeleton and the two
+ * proximal metaphyses. The iliac crest is drawn heaviest because it holds the
+ * most and because it is where a needle actually goes.
+ *
+ * Each piece sits INSIDE its bone, at roughly the calibre of the cavity. Lit
+ * on its own it reads as a spine, a sternum and two wings glowing through the
+ * skin, which is what a marrow map looks like — and never as a skeleton.
+ */
+function buildHematology(color) {
+  const group = new THREE.Group();
+  const mat = organMaterial(color);
+
+  // Vertebral marrow. Every body from C7 down is red marrow in an adult; the
+  // cervical ones above it have largely converted to fat, so the column starts
+  // at the shoulders rather than at the skull.
+  const levels = [
+    LEVEL.C7,
+    LEVEL.T1,
+    LEVEL.T2,
+    LEVEL.T3,
+    LEVEL.T4,
+    LEVEL.T5,
+    LEVEL.T6,
+    LEVEL.T7,
+    LEVEL.T8,
+    LEVEL.T9,
+    LEVEL.T10,
+    LEVEL.T11,
+    LEVEL.T12,
+    LEVEL.L1,
+    LEVEL.L2,
+    LEVEL.L3,
+    LEVEL.L4,
+    LEVEL.L5,
+  ];
+  levels.forEach((y, i) => {
+    const gap = i < levels.length - 1 ? y - levels[i + 1] : 0.038;
+    // Inside the cortex of the body drawn by buildSkeletal, so the two never
+    // fight for the same surface.
+    const r = (cm(1.3) + cm(1.5) * ((i + 6) / 24)) * 0.72;
+    group.add(
+      ellipsoid(
+        mat,
+        onSpine(y),
+        [r, gap * 0.3, r * 0.78],
+        (v, d) => {
+          const w = 1 / Math.max(0.7, Math.sqrt(1 - d.y * d.y));
+          v.x *= w;
+          v.z *= w;
+        },
+        14,
+      ),
+    );
+  });
+
+  // Sternal marrow — the other classic aspiration site, and the reason a
+  // sternum is worth drawing at all in a blood panel.
+  group.add(
+    sweep(
+      mat,
+      [
+        [0, 0.752, cm(7.5)],
+        [0, 0.7, cm(8.4)],
+        [0, 0.62, cm(8.0)],
+      ],
+      (t, th) =>
+        ellipse(th, cm(1.5) * (1 - 0.35 * t), cm(0.28) * domeEnd(t, 0.12)),
+      { stations: 16, radial: 10, seed: new THREE.Vector3(-1, 0, 0) },
+    ),
+  );
+
+  // Rib marrow: the posterior half of each rib, which is the part that stays
+  // red. The anterior arches convert early and are left out.
+  RIBS.slice(0, 10).forEach((rib, i) => {
+    const yBack = LEVEL.T1 - (i / 11) * (LEVEL.T1 - LEVEL.T12);
+    [1, -1].forEach((k) => {
+      group.add(
+        tube(
+          mat,
+          [
+            [k * cm(1.9), yBack, -cm(2.2)],
+            [k * cm(5.0), yBack - rib.fall * 0.12, -cm(6.2)],
+            [k * rib.wide * 0.92, yBack - rib.fall * 0.4, -cm(1.6)],
+          ],
+          cm(0.3),
+          { radial: 6, stations: 16, caps: false },
+        ),
+      );
+    });
+  });
+
+  // Iliac marrow. The heaviest deposit in the adult body and the site of a
+  // marrow biopsy — so it is drawn as the mass it is rather than as a rim.
+  [1, -1].forEach((k) => {
+    group.add(
+      ellipsoid(
+        mat,
+        [k * 0.072, 0.238, -0.01],
+        [cm(1.0), cm(4.2), cm(4.6)],
+        (v, d) => {
+          v.x += k * cm(3.2) * Math.max(0, d.y) ** 1.4;
+          v.z -= cm(1.4) * Math.max(0, -d.y);
+          v.y *= 1 - 0.3 * Math.max(0, -d.z);
+        },
+        20,
+      ),
+    );
+  });
+
+  // The two proximal metaphyses that keep red marrow into adult life.
+  [
+    ["L", 1],
+    ["R", -1],
+  ].forEach(([s, k]) => {
+    group.add(
+      rides(
+        `leg${s}`,
+        sweep(
+          mat,
+          [J[`hip${s}`], [k * 0.085, 0.11, 0.003], [k * 0.086, 0.05, 0.005]],
+          (t, th) => round(th, cm(1.5) * (1 - 0.4 * t) * domeStart(t, 0.14)),
+          { stations: 16, radial: 10 },
+        ),
+      ),
+    );
+    group.add(
+      rides(
+        `arm${s}`,
+        sweep(
+          mat,
+          [
+            J[`shoulder${s}`],
+            [k * 0.192, 0.678, 0.002],
+            [k * 0.198, 0.632, 0.003],
+          ],
+          (t, th) => round(th, cm(1.05) * (1 - 0.4 * t) * domeStart(t, 0.16)),
+          { stations: 14, radial: 10 },
+        ),
+      ),
+    );
+  });
+
   // Spleen, between ribs 9 and 11 on the left, its long axis along the tenth.
   // The notched anterior border is its signature, and it is what a surgeon
   // palpates for.
@@ -1753,7 +2024,7 @@ function buildHematology(color) {
     ),
   );
 
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.55, 0) };
+  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.5, 0) };
 }
 
 /* ------------------------------------------------------------------ immune */
@@ -2130,10 +2401,10 @@ function buildSystemic(color, bodyGroup) {
   return { group, rig, materials: [mat], focus: new THREE.Vector3(0, 0.35, 0) };
 }
 
-/** Organ systems keyed to the ten specialty panels. */
+/** Organ systems keyed to the eleven specialty panels. */
 export function buildOrgans(bodyGroup) {
   // Hues are spread around the wheel rather than clustered in earth tones:
-  // with ten systems, "which organ am I looking at" has to survive being
+  // with eleven systems, "which organ am I looking at" has to survive being
   // answered by colour alone.
   const systems = {
     neuro: buildNeuro(0x7c5cd6), // violet
@@ -2145,6 +2416,10 @@ export function buildOrgans(bodyGroup) {
     pulmonary: buildPulmonary(0x2f8fd6), // sky
     immune: buildImmune(0x3fae55), // green
     nutrition: buildNutrition(0x9ec219), // lime
+    // Ivory, and deliberately the least saturated of the eleven: bone is the
+    // one system everyone already has a colour for, and a magenta skeleton
+    // would be the only object on screen fighting its own name.
+    skeletal: buildSkeletal(0xa9906c),
   };
   // Rigged here rather than inside each builder so that the ones with nothing
   // in a limb — a liver, a pair of lungs — still hand back the same five

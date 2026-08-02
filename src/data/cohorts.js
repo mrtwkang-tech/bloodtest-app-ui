@@ -48,3 +48,28 @@ export function cohortPercentile(score, cohortKey) {
   const c = COHORTS.find((x) => x.key === cohortKey) ?? COHORTS[0];
   return percentileOf(score, c.mean, c.sd);
 }
+
+/**
+ * Where ONE system's score sits, 1–99, read the same way: "better than this
+ * many".
+ *
+ * ONE RULE RATHER THAN ELEVEN INVENTED NUMBERS. The three cohorts above carry
+ * hand-picked means and standard deviations, and doing that eleven more times
+ * would be eleven more numbers nobody could check. So this derives the spread
+ * instead, from the one thing that genuinely differs between the panels: how
+ * many markers they average. A mean of n readings has a standard deviation
+ * proportional to 1/√n, so a four-marker panel really is a wider distribution
+ * than a twelve-marker one, and the same score means less in it. Anchored so a
+ * six-marker panel gets the ±11 the body cohorts use.
+ *
+ * The mean sits above the body cohorts' because these scores are higher by
+ * construction — `systemScore` divides by its own system's marker count, so a
+ * flag does not cost it what a flag costs the whole panel.
+ */
+const SYSTEM_MEAN = 76;
+
+export function systemPercentile(score, markerCount) {
+  const n = Math.max(1, markerCount);
+  const sd = Math.max(6, Math.min(18, 11 * Math.sqrt(6 / n)));
+  return percentileOf(score, SYSTEM_MEAN, sd);
+}

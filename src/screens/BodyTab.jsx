@@ -6,7 +6,13 @@ import TrendChart from "../components/TrendChart";
 import ZoneRow from "../components/ZoneRow";
 import { Card, Caret, SectionTitle } from "../components/primitives";
 import { C, LEVEL_COLOR, LEVEL_LAMP, T, fadeUp } from "../tokens";
-import { BODY_STATUS_KEY, formatValue, markerLevel } from "../data/body";
+import {
+  BODY_STATUS_KEY,
+  formatValue,
+  markerLevel,
+  systemScore,
+} from "../data/body";
+import { systemPercentile } from "../data/cohorts";
 import {
   BODY_METRICS,
   SESSIONS,
@@ -129,6 +135,7 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
             icon={zone.icon}
             name={t(zone.nameKey)}
             level={level}
+            score={systemScore(zone, values)}
             statusLabel={t(BODY_STATUS_KEY[level])}
             detail={zoneSummaryLine(zone, values, t)}
             onOpen={() => openZone(zone.key)}
@@ -222,25 +229,35 @@ function PlaceLabel({ zone }) {
   const { t } = useLang();
   if (!zone) return null;
 
-  const { zone: z, level } = zone;
+  const { zone: z, level, values } = zone;
+  const score = systemScore(z, values);
   return (
     <div
       style={{
         position: "absolute",
         top: 10,
         right: 14,
-        maxWidth: "52%",
+        // The head is centred and about 11% of the canvas wide, so it occupies
+        // 44–56%. Anything wider than 44% here runs into it — which is what
+        // happened as soon as the label grew a third line.
+        maxWidth: "44%",
         textAlign: "right",
         pointerEvents: "none",
         ...fadeUp(0),
       }}
     >
+      {/* Name and score on one line, because both are short and because the
+          score belongs to the name rather than to the sentence under it.
+          Everything wraps: the widest line here sits at the height of the
+          skull, and an unwrapped flex row would overflow the cap and run
+          across the face. */}
       <div
         style={{
           display: "flex",
-          alignItems: "center",
+          alignItems: "baseline",
           justifyContent: "flex-end",
-          gap: 6,
+          flexWrap: "wrap",
+          gap: "0 7px",
         }}
       >
         {level > 0 && (
@@ -250,16 +267,36 @@ function PlaceLabel({ zone }) {
               height: 6,
               borderRadius: "50%",
               flex: "none",
+              alignSelf: "center",
               background: LEVEL_LAMP[level],
             }}
           />
         )}
         <span style={{ ...T.label, color: C.ink }}>{t(z.nameKey)}</span>
+        <span style={{ ...T.num, fontSize: 14.5, color: C.ink }}>
+          {t("body.score", { n: score })}
+        </span>
       </div>
+      {/* What the score is measured against, and then where the thing is.
+          Both are answers the rows below cannot give: a row can say "관찰
+          필요", which is a threshold word that reads the same one per cent
+          past the line as forty per cent past it. */}
       <div
         style={{
           ...T.caption,
           color: C.faint,
+          marginTop: 2,
+          textWrap: "pretty",
+        }}
+      >
+        {t("body.scoreVsPeers", {
+          pct: systemPercentile(score, z.markers.length),
+        })}
+      </div>
+      <div
+        style={{
+          ...T.caption,
+          color: C.faintest,
           marginTop: 2,
           textWrap: "pretty",
         }}
