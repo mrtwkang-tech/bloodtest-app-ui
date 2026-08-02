@@ -1367,6 +1367,20 @@ function limbBones(group, mat, s, k) {
       18,
     ),
   );
+  // THE TIBIA ENDS IN TWO FLAT SURFACES, AND BOTH ARE DELIBERATE.
+  //
+  // A `sweep` cap is a triangle fan in the frame plane at the endpoint, so with
+  // a near-vertical tangent it is a horizontal disc. That is a defect at the
+  // shaft of a bone and it is exactly right at the two ends of this one: the
+  // tibial plateau and the tibial plafond are both flat to within about 3 mm,
+  // which at this scale is half a pixel. So neither end gets a dome — they get
+  // an ELLIPTICAL cap instead, wide medio-laterally and shallower front to
+  // back, and the flatness that was wrong everywhere else becomes the joint.
+  //
+  // This is also where the shank's 3.7 cm hole gets closed. The bone used to
+  // taper to a POINT at y −0.479 with the talus 3.7 cm below it, because the
+  // whole tarsus was drawn down at toe level. The plafond now stops at the
+  // ankle joint line and the talus has come up to meet it.
   add(
     leg,
     sweep(
@@ -1374,19 +1388,56 @@ function limbBones(group, mat, s, k) {
       [
         [med(0.088, 0.7), kn[1] + cm(0.6), kn[2] - cm(0.3)],
         [med(0.09, 0.6), -0.3, 0.004],
-        [med(0.092, 0.9), an[1] - cm(0.4), -0.003],
+        [med(0.0895, 0.55), -0.44, -0.001],
+        [med(0.0895, 0.45), an[1] - cm(0.3), -0.002],
       ],
       (t, th) => {
-        // Triangular in section, with the subcutaneous crest facing forward
-        // and slightly medial. This is the shin you bark on furniture.
         const r =
-          cm(2.05) -
-          cm(0.95) * smooth(0.03, 0.45, t) +
-          cm(0.4) * smooth(0.78, 1, t);
-        const crest = 1 + 0.16 * Math.exp(-((dTheta(th, k * 0.3) / 0.5) ** 2));
-        return round(th, r * crest * domeStart(t, 0.05) * domeEnd(t, 0.05));
+          cm(1.95) -
+          cm(0.85) * smooth(0.06, 0.45, t) +
+          cm(0.45) * smooth(0.82, 1, t);
+        // THE SHIN, and it used to point the wrong way. `sweep`'s default seed
+        // makes N ≈ +x̂, so θ = 0 is lateral-ish and the old `dTheta(th, k*0.3)`
+        // put the subcutaneous crest 17° off +x — on the OUTSIDE of the left
+        // leg. Anterior is θ = π/2; a shin faces forward and slightly medial.
+        const crest =
+          1 +
+          0.16 *
+            smooth(0.1, 0.3, t) *
+            Math.exp(-((dTheta(th, Math.PI / 2 + k * 0.35) / 0.5) ** 2));
+        // Plateau above, plafond below: the flare is medio-lateral, so the
+        // cap is an ellipse rather than a circle.
+        const flare = smooth(0.09, 0, t);
+        return [
+          Math.cos(th) * (r + cm(1.7) * flare) * crest,
+          Math.sin(th) * (r + cm(0.65) * flare) * crest,
+        ];
       },
-      { stations: 26, radial: 12 },
+      { stations: 34, radial: 14 },
+    ),
+  );
+  // MEDIAL MALLEOLUS — the prong the tibia sends down the inside of the ankle,
+  // and half of what makes an ankle read as a mortise rather than as a stump.
+  // It rolls over anisotropically: `domeEnd` takes a radius to ZERO, so the
+  // width is domed late and the depth early, and the bone stays broad
+  // front-to-back all the way to a closed tip.
+  add(
+    leg,
+    sweep(
+      mat,
+      [
+        [med(0.0895, 1.05), an[1] + cm(0.9), -0.0025],
+        [med(0.0895, 1.5), an[1] - cm(0.4), -0.0028],
+        [med(0.0895, 1.6), an[1] - cm(1.3), -0.003],
+      ],
+      (t, th) => {
+        const r = cm(0.95) - cm(0.4) * smooth(0.3, 1, t);
+        return [
+          Math.cos(th) * r * domeEnd(t, 0.14),
+          Math.sin(th) * r * 1.35 * domeEnd(t, 0.34),
+        ];
+      },
+      { stations: 10, radial: 8 },
     ),
   );
   add(
@@ -1398,18 +1449,20 @@ function limbBones(group, mat, s, k) {
         // the body's weight, and the gap is the point.
         [lat(0.088, 1.7), kn[1] - cm(2.4), kn[2] - cm(0.9)],
         [lat(0.09, 1.6), -0.32, -0.002],
-        // …and its malleolus hangs lower than the tibia's.
-        [lat(0.092, 1.5), an[1] - cm(1.9), -0.008],
+        // …and its malleolus hangs lower than the tibia's. Every plate shows
+        // that asymmetry and it is the one thing a reader can check.
+        [lat(0.092, 1.35), an[1] - cm(2.4), -0.0065],
       ],
-      (t, th) =>
-        round(
-          th,
-          (cm(0.42) +
-            cm(0.3) * Math.exp(-((t / 0.09) ** 2)) +
-            cm(0.34) * smooth(0.82, 1, t)) *
-            domeStart(t, 0.06) *
-            domeEnd(t, 0.06),
-        ),
+      (t, th) => {
+        const r =
+          cm(0.42) +
+          cm(0.3) * Math.exp(-((t / 0.09) ** 2)) +
+          cm(0.4) * smooth(0.86, 1, t);
+        return [
+          Math.cos(th) * r * domeStart(t, 0.06) * domeEnd(t, 0.1),
+          Math.sin(th) * r * domeStart(t, 0.06) * domeEnd(t, 0.3),
+        ];
+      },
       { stations: 24, radial: 10 },
     ),
   );
@@ -1422,9 +1475,11 @@ function limbBones(group, mat, s, k) {
     sweep(
       mat,
       [
-        [k * 0.092, -0.5065, -0.019],
-        [k * 0.092, -0.524, -0.005],
-        [k * 0.092, -0.5265, 0.018],
+        // The tuberosity reaches back into the heel. It used to stop 3 cm
+        // short of the skin behind it, so the heel was hollow.
+        [k * 0.0905, -0.5075, -0.0345],
+        [k * 0.0905, -0.524, -0.008],
+        [k * 0.0905, -0.5265, 0.018],
       ],
       (t, th) =>
         round(
@@ -1434,15 +1489,38 @@ function limbBones(group, mat, s, k) {
       { stations: 16, radial: 10, seed: new THREE.Vector3(0, 1, 0) },
     ),
   );
-  // Talus and the midfoot cluster, riding on top of it.
+  // TALUS, lifted 2.6 cm to sit under the plafond where it belongs.
+  //
+  // The whole tarsus used to be drawn near `J.toe`, which left 3.7 cm of open
+  // air between the shank and the foot — the largest hole in the skeleton, and
+  // the reason the ankle read as an amputation. The dome now sits 2.5 mm under
+  // the tibia and between the two malleoli, which is a mortise.
   add(
     leg,
     ellipsoid(
       mat,
-      [k * 0.092, -0.5185, 0.006],
-      [cm(1.3), cm(0.9), cm(1.5)],
+      [k * 0.0895, -0.4965, 0.0035],
+      [cm(1.25), cm(1.85), cm(2.4)],
+      (v, d) => {
+        // The head reaches forward to the navicular, and the neck between the
+        // two is the only thing that stops a talus reading as a pebble.
+        v.z += cm(1.1) * Math.max(0, d.z) ** 2;
+        v.multiplyScalar(1 - 0.14 * Math.exp(-(((d.z - 0.55) / 0.28) ** 2)));
+      },
+      16,
+    ),
+  );
+  // Navicular and the cuneiform block, bridging the talar head down and
+  // forward to the toe rays — which start 3 cm below the talus and had
+  // nothing between them and it.
+  add(
+    leg,
+    ellipsoid(
+      mat,
+      [k * 0.0905, -0.5155, 0.0345],
+      [cm(1.5), cm(1.0), cm(1.3)],
       null,
-      14,
+      12,
     ),
   );
   for (let i = 0; i < 5; i++) {
