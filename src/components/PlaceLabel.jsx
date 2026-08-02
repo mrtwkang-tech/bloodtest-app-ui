@@ -23,6 +23,14 @@ import { useT } from "../i18n";
  * Top right rather than over the figure: the whole point of opening a row in
  * place was that nothing should cover the picture. Right-aligned and capped in
  * width so the text grows away from it, never across it.
+ *
+ * BOTH OF THOSE PREMISES ASSUME A CENTRED FIGURE — 11% of the canvas wide,
+ * both top corners empty. A picture that fills its canvas has no free corner to
+ * pin to, and no amount of capping or scrimming fixes that: a backdrop wide
+ * enough to carry four lines covers a quarter of the drawing. The day dial is
+ * such a picture, and it is also not a map of a place, so `MindTab` does not
+ * give it one of these. Anything added here that fills a corner should make the
+ * same call rather than reach for a plate.
  */
 export default function PlaceLabel({
   name,

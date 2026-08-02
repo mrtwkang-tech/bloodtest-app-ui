@@ -193,7 +193,15 @@ export default function MindTab({ sel, onPickSession }) {
       >
         <div style={{ position: "relative" }}>
           {picture}
-          {activeMeta && (
+          {/* ONLY OVER THE TWO VIEWS THAT DRAW ANATOMY. `PlaceLabel` answers
+              "where is this in me", pins itself to the top right, and assumes a
+              centred figure leaves that corner free. Neither assumption holds
+              for the other two: the dial draws time and the radar draws five
+              indices, so neither has a "where" to name, and both fill their
+              canvas — the label landed on the dial's night arc and on the
+              radar's own header. The open row below carries the score and the
+              percentile either way. */}
+          {activeMeta && (view === "circuit" || view === "section") && (
             <PlaceLabel
               key={active}
               name={t(activeMeta.axisKey)}
