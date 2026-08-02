@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FoilText } from "../components/Emphasis";
 import DisclosureRow from "../components/DisclosureRow";
 import NextStep from "../components/NextStep";
 import RiskBody, { riskLevel } from "../components/RiskEstimates";
@@ -122,8 +123,12 @@ export default function SignalTab({ sel, onPickSession }) {
             {t(lead.level > 0 ? "signal.leadLabel" : "signal.contextLabel")}
           </span>
         </div>
-        <h2 style={{ ...T.title2, color: C.ink, margin: "8px 0 0" }}>
-          {lead.title}
+        {/* The lead is the one thing on this screen worth reading first, and
+            at 19px the stroke is thick enough to carry the foil as ink rather
+            than as a ground. Nothing else on the screen gets it — a second
+            gold headline and the first stops meaning "start here". */}
+        <h2 style={{ ...T.title2, margin: "8px 0 0" }}>
+          <FoilText>{lead.title}</FoilText>
         </h2>
         {lead.meta && (
           <div style={{ ...T.caption, color: C.faintest, marginTop: 4 }}>

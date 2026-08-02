@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Collapse, DisclosureButton } from "../components/Collapse";
+import { FoilText } from "../components/Emphasis";
 import { Display } from "../components/primitives";
 import { C, DIVIDER, DIVIDER_TOP, T } from "../tokens";
 import { cellAgeReport, paceReport } from "../data/models";
@@ -36,7 +37,9 @@ export default function PredictionDetail({ sel }) {
           marginTop: 2,
         }}
       >
-        <Display size={48}>{age.value.toFixed(1)}</Display>
+        <Display size={48}>
+          <FoilText>{age.value.toFixed(1)}</FoilText>
+        </Display>
         <span style={{ ...T.caption, color: C.faint }}>
           {t("model.vsCalendar", {
             age: PROFILE.age,

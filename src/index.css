@@ -138,3 +138,85 @@ button { font-family: inherit; color: inherit; }
   .glassbar-layer { display: none !important; }
   .tab-pill { background: rgba(23, 24, 26, .07) !important; backdrop-filter: none !important; }
 }
+
+/* ── Gold foil ──────────────────────────────────────────────────────────────
+   The optical effect of a shimmer sticker, which paper cannot do.
+
+   What makes foil read as metal rather than as yellow is not the hue, it is
+   that the highlight MOVES independently of the object. Three things stacked:
+
+     1. a broad specular band sweeping across a deep-gold ground, running
+        amber → pale → near-white → amber, because gold is never one colour
+     2. a fine grain lattice at a different rate, which is the glitter
+     3. the whole thing keyed to scroll as well as time, so tilting the page
+        catches the light the way tilting a sticker does
+
+   `--foil-shift` is written by one rAF-throttled scroll handler. Scrolling
+   therefore changes the phase without React re-rendering anything. */
+@keyframes foil-sweep {
+  to { background-position: -300% 0, 62px 40px, -44px -28px; }
+}
+
+.foil {
+  background-image:
+    /* The peak is #c9a445, not white. On a white page a highlight that runs to
+       white erases the glyph it is passing over — the first version made the
+       last two syllables of a headline vanish. Metal here has to shine by the
+       SIZE OF THE STEP from deep gold to bright gold, not by approaching the
+       background. #c9a445 holds ~3:1 on white, which is the floor for large
+       text; the near-white belongs in the grain below, where it is points
+       rather than area. */
+    linear-gradient(
+      100deg,
+      #5c4310 0%, #6f5214 14%, #7f5f18 30%, #a07c28 41%,
+      #c9a445 47%, #d4b45c 50%, #c9a445 53%, #a07c28 59%,
+      #7f5f18 70%, #6f5214 86%, #5c4310 100%
+    ),
+    radial-gradient(circle at 30% 40%, rgba(255,255,255,.85) 0 .6px, transparent 1.2px),
+    radial-gradient(circle at 70% 65%, rgba(255,246,212,.7) 0 .5px, transparent 1px);
+  background-size: 300% 100%, 11px 13px, 17px 9px;
+  background-position: 0 0, 0 0, 0 0;
+  /* The sweep TILES. With no-repeat, animating it one tile to the left walks
+     the gradient clean off the element and the text disappears for most of the
+     cycle — which is exactly what happened the first time. Both ends of the
+     gradient are the same deep gold, so a repeat is seamless and the glyphs
+     are always covered. */
+  background-repeat: repeat-x, repeat, repeat;
+  /* Scroll shifts the phase; the animation carries it while you are still. */
+  transform: translateZ(0);
+  animation: foil-sweep 7s linear infinite;
+  animation-delay: calc(var(--foil-shift, 0) * -1s);
+}
+
+/* Foil AS INK: the glyphs themselves are the metal. Only safe at display
+   sizes — at body size the highlight eats the stroke and legibility goes. */
+.foil-ink {
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Foil AS GROUND: the sticker the words sit on. The text stays ink, so this
+   is the one that is safe in running prose — which is where most of the
+   emphasis in this product lives. */
+.foil-wash {
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin: 0 -1px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  /* Held well back: at full strength the ground competes with the glyphs it
+     is behind, and a highlight passing under text is what makes it unreadable
+     rather than what makes it shine. */
+  opacity: .3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foil {
+    animation: none;
+    /* Park the sweep off the highlight so the resting state is the deep gold
+       rather than a frozen white flare. */
+    background-position: -84% 0, 0 0, 0 0;
+  }
+}

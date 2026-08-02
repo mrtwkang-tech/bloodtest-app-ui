@@ -37,6 +37,40 @@ export default function App() {
 
   // A tab is a place, not a scroll position.
   const scrollerRef = useRef(null);
+
+  // Scroll → `--foil-shift`, which offsets the gold sweep's phase.
+  //
+  // This is the difference between an animation playing and a surface catching
+  // the light. A sticker does not shimmer on its own; it shimmers because YOU
+  // moved. One rAF-throttled handler writing one custom property gets that for
+  // free, and React never re-renders for it.
+  useEffect(() => {
+    let raf = 0;
+    const write = () => {
+      raf = 0;
+      const top = scrollerRef.current?.scrollTop ?? 0;
+      document.documentElement.style.setProperty(
+        "--foil-shift",
+        (top * 0.006).toFixed(3),
+      );
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(write);
+    };
+    // Capture on window rather than a listener bound to the scroller. Scroll
+    // does not bubble, but it does capture, so this catches whichever element
+    // actually moved — the page, a sheet, or the scroller — without depending
+    // on a ref being populated at the moment the effect first runs.
+    window.addEventListener("scroll", onScroll, {
+      capture: true,
+      passive: true,
+    });
+    write();
+    return () => {
+      window.removeEventListener("scroll", onScroll, { capture: true });
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
   useEffect(() => {
     if (scrollerRef.current) scrollerRef.current.scrollTop = 0;
   }, [tab, sel]);

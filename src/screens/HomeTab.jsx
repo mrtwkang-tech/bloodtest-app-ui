@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { FoilText } from "../components/Emphasis";
 import Masthead, { Avatar } from "../components/Masthead";
 import Pressable from "../components/Pressable";
 import { NavIcon } from "../components/Icon";
@@ -122,7 +123,13 @@ export default function HomeTab({ onGoStore, onGoTab, onOpenPrediction }) {
             marginTop: 2,
           }}
         >
-          <Display size={60}>{score}</Display>
+          {/* Foil on the display numerals only. At 60px the stroke carries a
+              moving highlight; at body size it would eat the glyph. The rule
+              across the app: the one answer and the one lead wear metal,
+              everything else stays ink. */}
+          <Display size={60}>
+            <FoilText>{score}</FoilText>
+          </Display>
           <Delta value={delta} />
         </div>
 

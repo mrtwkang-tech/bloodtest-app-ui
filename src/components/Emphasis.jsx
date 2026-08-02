@@ -1,4 +1,4 @@
-import { C, T, tint } from "../tokens";
+import { C, T } from "../tokens";
 
 /**
  * Marks the phrase in a sentence that carries it.
@@ -10,10 +10,18 @@ import { C, T, tint } from "../tokens";
  * channel — the phrase is found before it is read — and leaves the letterforms
  * alone.
  *
- * ACHROMATIC ON PURPOSE. Colour in this product means a value is outside its
- * range; a highlighter in amber would claim a result that is not there. This
- * is ink at seven percent, which reads as a mark made by a person rather than
- * as a status.
+ * GOLD, AND WHY IT DOES NOT BREAK THE COLOUR RULE. The rule so far has been
+ * that colour means a value is outside its range — so a flat amber highlighter
+ * would claim a result that is not there. Foil is not a flat colour. It is a
+ * MATERIAL: a highlight that moves independently of the thing it is on, which
+ * no status swatch in this product does and no printed page can do at all.
+ * That difference is the whole reason it can carry a second meaning — "this is
+ * the sentence worth reading" — without being mistaken for 주의 amber.
+ *
+ * The words stay ink. The foil is the ground they sit on, held at low opacity,
+ * because a highlight travelling under a glyph is what destroys legibility
+ * rather than what makes it shine. Foil as ink is reserved for display sizes
+ * where the stroke is thick enough to survive it.
  *
  * Text goes through `render` so a dictionary string can carry its own emphasis
  * with *asterisks*, keeping the editorial decision next to the sentence rather
@@ -21,17 +29,32 @@ import { C, T, tint } from "../tokens";
  */
 export default function Emphasis({ children, tone = C.ink }) {
   return (
-    <span
-      style={{
-        background: tint(C.ink, 0.07),
-        color: tone,
-        borderRadius: 3,
-        padding: "1px 4px",
-        margin: "0 -1px",
-        boxDecorationBreak: "clone",
-        WebkitBoxDecorationBreak: "clone",
-      }}
-    >
+    <span style={{ position: "relative", color: tone }}>
+      {/* The foil is a sibling rather than this span's own background: a
+          background cannot be given its own opacity without taking the text
+          down with it, and the text has to stay at full strength. */}
+      <span className="foil foil-wash" aria-hidden="true" style={FOIL_BEHIND} />
+      <span style={{ position: "relative" }}>{children}</span>
+    </span>
+  );
+}
+
+const FOIL_BEHIND = {
+  position: "absolute",
+  inset: "-1px -4px",
+  zIndex: 0,
+  pointerEvents: "none",
+};
+
+/**
+ * Foil as ink — the glyphs are the metal.
+ *
+ * Only for display sizes. Below about 18px the sweep passes through a stroke
+ * thinner than the highlight and the word blinks out as it goes.
+ */
+export function FoilText({ children, style }) {
+  return (
+    <span className="foil foil-ink" style={style}>
       {children}
     </span>
   );
