@@ -13,6 +13,7 @@ import {
   backlight,
   fadeUp,
 } from "../tokens";
+import { cellAgeReport } from "../data/models";
 import { interactionsFor } from "../data/interactions";
 import { riskEstimates } from "../data/bayes";
 import { inbodyLinksFor } from "../data/inbody";
@@ -63,7 +64,7 @@ const previous = SESSIONS[1];
  * Body is in. That is the difference between a table of contents and a
  * dashboard, and it is the whole reason this screen gets to exist.
  */
-export default function HomeTab({ onGoStore, onGoTab }) {
+export default function HomeTab({ onGoStore, onGoTab, onOpenPrediction }) {
   const { t, lang } = useLang();
   const [cohort, setCohort] = useState(DEFAULT_COHORT);
 
@@ -73,6 +74,7 @@ export default function HomeTab({ onGoStore, onGoTab }) {
   // missing entirely.
   const delta = score - healthScore(previous);
 
+  const cellAge = cellAgeReport(latest.roundIndex, PROFILE.age);
   const mind = mindSummary(latest);
   const body = bodySummary(latest);
   const crossPanel =
@@ -175,6 +177,18 @@ export default function HomeTab({ onGoStore, onGoTab }) {
           label={t("signal.title")}
           state={t("home.state.signals", { n: crossPanel })}
           onClick={() => onGoTab("signal")}
+        />
+        {/* The fourth domain. Adding one was supposed to mean adding a row
+            rather than redesigning the screen — this is that claim being
+            tested, and it holds. */}
+        <DomainRow
+          icon="predict"
+          label={t("predict.title")}
+          state={t("home.state.predict", {
+            age: cellAge.value.toFixed(1),
+            gap: `${cellAge.gap > 0 ? "+" : ""}${cellAge.gap.toFixed(1)}`,
+          })}
+          onClick={onOpenPrediction}
           last
         />
       </div>

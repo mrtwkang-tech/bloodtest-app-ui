@@ -10,6 +10,8 @@ import StoreTab from "./screens/StoreTab";
 import HomeDetail from "./screens/HomeDetail";
 import ScaleDetail from "./screens/ScaleDetail";
 import ZoneDetail from "./screens/ZoneDetail";
+import PredictionDetail from "./screens/PredictionDetail";
+import PanelEntry from "./screens/PanelEntry";
 import { SYSTEMS } from "./data/body";
 import InfoDoc from "./screens/InfoDoc";
 import { C, LEVEL_LAMP, STATUS_LAMP } from "./tokens";
@@ -22,6 +24,14 @@ export default function App() {
   const t = useT();
   const [tab, setTab] = useState("home");
   const [sheet, setSheet] = useState(null); // null | 'store' | `doc:<key>`
+  // Bumped whenever a plate is entered. The derivation reads mutable series,
+  // so React needs telling that numbers it already rendered have moved.
+  const [panelVersion, setPanelVersion] = useState(0);
+  // The entry screen is unguarded until auth lands; until then it is behind a
+  // flag so it cannot be stumbled into.
+  const isAdmin =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("admin");
   const [plan, setPlan] = useState("monthly");
   // The round lives here so switching between mind and body keeps the visit.
   const [sel, setSel] = useState(0);
@@ -90,14 +100,15 @@ export default function App() {
             >
               {tab === "home" && (
                 <HomeTab
-                  key="home"
+                  key={`home-${panelVersion}`}
                   onGoTab={goTab}
                   onGoStore={() => setSheet("store")}
+                  onOpenPrediction={() => setSheet("predict")}
                 />
               )}
               {tab === "mind" && (
                 <MindTab
-                  key={`mind-${sel}`}
+                  key={`mind-${sel}-${panelVersion}`}
                   sel={sel}
                   onPickSession={setSel}
                   onOpenScale={(k) => setSheet(`scale:${k}`)}
@@ -105,7 +116,7 @@ export default function App() {
               )}
               {tab === "body" && (
                 <BodyTab
-                  key={`body-${sel}`}
+                  key={`body-${sel}-${panelVersion}`}
                   sel={sel}
                   onPickSession={setSel}
                   onOpenComposition={() => setSheet("home:composition")}
@@ -114,7 +125,7 @@ export default function App() {
               )}
               {tab === "signal" && (
                 <SignalTab
-                  key={`signal-${sel}`}
+                  key={`signal-${sel}-${panelVersion}`}
                   sel={sel}
                   onPickSession={setSel}
                 />
@@ -125,6 +136,8 @@ export default function App() {
                   onOpenDoc={(k) => setSheet(`doc:${k}`)}
                   onGoStore={() => setSheet("store")}
                   onOpenHistory={() => setSheet("home:history")}
+                  isAdmin={isAdmin}
+                  onOpenPanel={() => setSheet("panel")}
                 />
               )}
             </main>
@@ -178,6 +191,29 @@ export default function App() {
               onClose={() => setSheet(null)}
             >
               <ZoneDetail zoneKey={zoneKey} sel={sel} />
+            </Sheet>
+          )}
+
+          {sheet === "predict" && (
+            <Sheet
+              title={t("predict.title")}
+              subtitle={t("predict.subtitle")}
+              onClose={() => setSheet(null)}
+            >
+              <PredictionDetail sel={sel} />
+            </Sheet>
+          )}
+
+          {sheet === "panel" && (
+            <Sheet
+              title={t("panel.title")}
+              subtitle={t("panel.subtitle")}
+              onClose={() => setSheet(null)}
+            >
+              <PanelEntry
+                sel={sel}
+                onChanged={() => setPanelVersion((v) => v + 1)}
+              />
             </Sheet>
           )}
 

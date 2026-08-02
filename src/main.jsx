@@ -4,9 +4,14 @@ import App from "./App";
 import { LangProvider } from "./i18n";
 import "./index.css";
 import { applyAccent, storedAccent } from "./theme/accents";
+import { hydratePanels } from "./data/panel";
 
 // Before first paint, so nothing flashes the default tint.
 applyAccent(storedAccent());
+// Before first render, so an entered plate is already in the series by the
+// time the first index is computed — otherwise the generated numbers paint
+// and then jump.
+hydratePanels();
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

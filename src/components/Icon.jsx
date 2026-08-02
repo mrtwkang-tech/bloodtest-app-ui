@@ -195,6 +195,15 @@ const NAV = {
       <path d="M8.5 20.2v-4.6H7V11a2.4 2.4 0 0 1 2.4-2.4h5.2A2.4 2.4 0 0 1 17 11v4.6h-1.5v4.6" />
     </>
   ),
+  // A measured run, then a dashed continuation: the model extends the line it
+  // was given rather than producing a number from nowhere.
+  predict: (
+    <>
+      <path d="M3.4 16.4 8 11.6l3.2 2.6 3.4-4.4" />
+      <path d="M15.4 8.4h3.4v3.4" />
+      <path d="M17.2 15.1v.01M19.4 17.6v.01M20.6 20.4v.01" strokeLinecap="round" />
+    </>
+  ),
   // Two panels and the lens where they overlap.
   signal: <><circle cx="8.9" cy="12" r="5.9" /><circle cx="15.1" cy="12" r="5.9" /></>,
   more: (

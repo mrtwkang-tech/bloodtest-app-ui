@@ -30,7 +30,13 @@ const LEGAL_ORDER = [
   "opensource",
 ];
 
-export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
+export default function MoreTab({
+  onOpenDoc,
+  onGoStore,
+  onOpenHistory,
+  isAdmin,
+  onOpenPanel,
+}) {
   const { t, lang, setLang } = useLang();
   const [accent, setAccent] = useState(storedAccent);
   // The notice is written per jurisdiction, not translated.
@@ -155,6 +161,11 @@ export default function MoreTab({ onOpenDoc, onGoStore, onOpenHistory }) {
       <SectionTitle>{t("more.account")}</SectionTitle>
       <Card variant="group" style={{ overflow: "hidden", padding: 0 }} delay={40}>
         <MenuRow label={t("more.subscription")} value={t("store.monthly")} />
+        {/* Unguarded on purpose for now, and behind ?admin so it cannot be
+            stumbled into. The real lock arrives with auth. */}
+        {isAdmin && (
+          <MenuRow label={t("panel.title")} value={t("panel.adminOnly")} onClick={onOpenPanel} />
+        )}
         <MenuRow label={t("more.address")} />
         <MenuRow label={t("more.notifications")} value={t("more.on")} />
         <MenuRow
