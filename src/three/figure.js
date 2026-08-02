@@ -175,20 +175,47 @@ function torsoGeometry() {
   return geo;
 }
 
-/** The translucent figure. Nine surfaces, no visible joins. */
+/**
+ * Hangs meshes off a pivot so they can be rotated at a joint.
+ *
+ * The sweeps are built in world coordinates — a forearm's vertices are where
+ * the forearm is. Rotating that mesh spins it about the origin, somewhere
+ * around the subject's knees. Translating the GEOMETRY back by the joint and
+ * putting the group AT the joint means `rotation.x` on the group is the
+ * shoulder flexing, which is the only thing that lets this figure move.
+ *
+ * Meshes stay in the same array and the same material, so nothing downstream
+ * has to know a hierarchy appeared.
+ */
+function pivotAt(parent, at, meshes, name) {
+  const g = new THREE.Group();
+  // Named so a clone of this hierarchy can be driven by the same pose.
+  g.name = name;
+  g.position.set(at[0], at[1], at[2]);
+  meshes.forEach((m) => {
+    m.geometry.translate(-at[0], -at[1], -at[2]);
+    g.add(m);
+  });
+  parent.add(g);
+  return g;
+}
+
+/** The translucent figure. Nine surfaces, no visible joins, and a rig. */
 export function buildBody() {
   const mat = makeBodyMaterial();
   const group = new THREE.Group();
   const parts = [];
-  const push = (m) => {
+  const made = {};
+  const push = (m, name) => {
     group.add(m);
     parts.push(m);
+    if (name) made[name] = m;
     return m;
   };
 
   // Head as one mass. It used to be a cranium sphere with a jaw sphere pushed
   // into it, and the seam between them ran straight across the face.
-  push(
+  made.head = push(
     ellipsoid(
       mat,
       [0, 0.951, 0.006],
@@ -208,7 +235,7 @@ export function buildBody() {
   );
 
   // Neck, widening into the shoulders instead of ending at them.
-  push(
+  made.neck = push(
     sweep(
       mat,
       [
@@ -231,7 +258,7 @@ export function buildBody() {
     ),
   );
 
-  push(new THREE.Mesh(torsoGeometry(), mat));
+  made.torso = push(new THREE.Mesh(torsoGeometry(), mat));
 
   // Arms: one surface each, shoulder to fingertip. The path starts INSIDE the
   // torso so the deltoid grows out of the chest wall rather than being parked
@@ -250,7 +277,7 @@ export function buildBody() {
       [0.9, 0.03], // palm
       [1, 0.013], // fingers
     ]);
-    push(
+    made[`arm${s}`] = push(
       sweep(
         mat,
         [
@@ -297,7 +324,7 @@ export function buildBody() {
       [0.88, 0.031],
       [1, 0.027], // ankle
     ]);
-    push(
+    made[`leg${s}`] = push(
       sweep(
         mat,
         [
@@ -326,7 +353,7 @@ export function buildBody() {
       [0.8, 0.03],
       [1, 0.016],
     ]);
-    push(
+    made[`foot${s}`] = push(
       sweep(
         mat,
         [
@@ -345,7 +372,25 @@ export function buildBody() {
     );
   });
 
-  return { group, material: mat, parts };
+  // ---- rig -----------------------------------------------------------
+  //
+  // Five hinges, which is all a figure this size needs to read as alive: the
+  // head nods, each arm swings from its shoulder, each leg from its hip. The
+  // foot rides with its leg, so it is parented into the same pivot rather than
+  // given one of its own.
+  //
+  // Rotations stay small on purpose. These surfaces meet by overlapping — the
+  // arm's domed top is buried inside the shoulder yoke — and a large rotation
+  // would drag it out into the open and reopen the seam the last pass closed.
+  const rig = {
+    head: pivotAt(group, [0, 0.855, -0.004], [made.head, made.neck], "head"),
+    armL: pivotAt(group, J.shoulderL, [made.armL], "armL"),
+    armR: pivotAt(group, J.shoulderR, [made.armR], "armR"),
+    legL: pivotAt(group, J.hipL, [made.legL, made.footL], "legL"),
+    legR: pivotAt(group, J.hipR, [made.legR, made.footR], "legR"),
+  };
+
+  return { group, material: mat, parts, rig };
 }
 
 export { v3 };

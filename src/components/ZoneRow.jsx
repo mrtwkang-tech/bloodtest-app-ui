@@ -1,7 +1,7 @@
 import Pressable from "./Pressable";
-import { Caret } from "./primitives";
+import { Collapse } from "./Collapse";
 import Icon from "./Icon";
-import { C, DIVIDER, LEVEL_COLOR, T } from "../tokens";
+import { C, DIVIDER, EASE, LEVEL_COLOR, T } from "../tokens";
 
 /**
  * One body system, as a single row.
@@ -14,9 +14,15 @@ import { C, DIVIDER, LEVEL_COLOR, T } from "../tokens";
  * systems were not shown at all, the ten never scanned as ten of the same
  * thing — you saw four essays and a legend.
  *
- * So: one shape, all ten, about 54px each. Everything that was in the panel is
- * in the sheet, which arrives over the page instead of shoving it and leaves
- * the reader where they were.
+ * So: one shape, all ten, about 54px each — and the detail OPENS IN PLACE.
+ *
+ * It was a sheet first, mirroring the mind scales, and that was wrong here for
+ * a reason specific to this screen: the figure is the context. A sheet slides
+ * up over the one thing that says WHERE the liver is, at the moment you tapped
+ * the liver. Opening in place keeps them on screen together, and tapping a row
+ * also lights that organ in the figure above, so the row and the body are
+ * visibly the same object. Only one row is open at a time, so the list can
+ * never go back to being a wall of essays.
  *
  * The second line is the row's actual content and changes with state: what is
  * out of range when something is, and what the panel screens for when nothing
@@ -30,9 +36,12 @@ export default function ZoneRow({
   detail,
   statusLabel,
   onOpen,
+  open = false,
   last,
+  children,
 }) {
   return (
+    <div style={{ boxShadow: last && !open ? "none" : DIVIDER }}>
     <Pressable
       as="button"
       type="button"
@@ -47,7 +56,7 @@ export default function ZoneRow({
         border: "none",
         textAlign: "left",
         cursor: "pointer",
-        boxShadow: last ? "none" : DIVIDER,
+        background: open ? C.surfaceHover : "transparent",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
@@ -62,7 +71,24 @@ export default function ZoneRow({
             {statusLabel}
           </span>
         )}
-        <Caret />
+        {/* The caret turns rather than pointing away, because the detail
+            arrives here rather than somewhere else. */}
+        <span
+          aria-hidden="true"
+          style={{
+            display: "flex",
+            flex: "none",
+            color: C.faintest,
+            transform: open ? "rotate(90deg)" : "none",
+            transition: `transform 260ms ${EASE}`,
+          }}
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+               strokeLinejoin="round">
+            <path d="M9.5 5.5 16 12l-6.5 6.5" />
+          </svg>
+        </span>
       </div>
       <div
         style={{
@@ -77,5 +103,9 @@ export default function ZoneRow({
         {detail}
       </div>
     </Pressable>
+      <Collapse open={open}>
+        <div style={{ padding: "2px 16px 18px" }}>{children}</div>
+      </Collapse>
+    </div>
   );
 }

@@ -9,7 +9,6 @@ import MoreTab from "./screens/MoreTab";
 import StoreTab from "./screens/StoreTab";
 import HomeDetail from "./screens/HomeDetail";
 import ScaleDetail from "./screens/ScaleDetail";
-import ZoneDetail from "./screens/ZoneDetail";
 import PredictionDetail from "./screens/PredictionDetail";
 import PanelEntry from "./screens/PanelEntry";
 import SignIn from "./screens/SignIn";
@@ -95,9 +94,6 @@ export default function App() {
   // A mind scale opens over the page rather than unfolding inside it.
   const scaleKey = sheet?.startsWith("scale:") ? sheet.slice(6) : null;
   const scaleMeta = SCALE_META.find((m) => m.key === scaleKey);
-  // A body system opens the same way a mind scale does.
-  const zoneKey = sheet?.startsWith("zone:") ? sheet.slice(5) : null;
-  const zone = SYSTEMS.find((z) => z.key === zoneKey);
   // Each of Home's second-layer views is a sheet with its own title.
   // Home no longer owns these; the tabs whose subject they are do.
   const HOME_TITLES = {
@@ -180,7 +176,6 @@ export default function App() {
                   sel={sel}
                   onPickSession={setSel}
                   onOpenComposition={() => setSheet("home:composition")}
-                  onOpenZone={(k) => setSheet(`zone:${k}`)}
                 />
               )}
               {tab === "signal" && (
@@ -242,16 +237,6 @@ export default function App() {
               onClose={() => setSheet(null)}
             >
               <ScaleDetail scaleKey={scaleKey} sel={sel} />
-            </Sheet>
-          )}
-
-          {zone && (
-            <Sheet
-              title={t(zone.nameKey)}
-              subtitle={t("body.systems")}
-              onClose={() => setSheet(null)}
-            >
-              <ZoneDetail zoneKey={zoneKey} sel={sel} />
             </Sheet>
           )}
 

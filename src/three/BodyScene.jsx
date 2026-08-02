@@ -33,10 +33,50 @@ const LEVEL_COLOR = [0x5f9440, 0xd39525, 0xc9553a];
  * towards their targets, so a selection change mid-animation is picked up
  * from the current value instead of restarting.
  */
+/**
+ * How the figure carries itself, from 0 (spent) to 1 (well).
+ *
+ * A pose is a better carrier for this than any bar: people read posture before
+ * they read numbers, and they read it without being taught the scale. The two
+ * ends are not the same animation at different speeds — a slump is a different
+ * SHAPE, with the head forward and the shoulders rolled in, which is why the
+ * droop terms are offsets rather than a lower amplitude.
+ */
+function pose(rig, root, t, v, reduced) {
+  const droop = 1 - v;
+  // Tempo, not just size: a tired body is slower as well as smaller.
+  const w = Math.PI * 2 * (0.28 + 0.62 * v);
+  const a = reduced ? 0 : v;
+  const swing = Math.sin(w * t);
+  const bounce = Math.sin(w * t * 2);
+
+  // Weight shifts side to side; the bounce is at double time, as in a step.
+  root.position.y = bounce * 0.013 * a - 0.012 * droop;
+  root.rotation.z = swing * 0.035 * a;
+  // Slumping folds the whole figure forward a little.
+  root.rotation.x = 0.07 * droop;
+
+  rig.head.rotation.x = -0.22 * droop + bounce * 0.09 * a;
+  rig.head.rotation.z = swing * 0.09 * a;
+
+  // Arms in antiphase — the thing that makes a walk or a dance read at all.
+  // Droop rolls them forward and lets them hang closer to the body.
+  rig.armL.rotation.x = swing * 0.5 * a - 0.3 * droop;
+  rig.armR.rotation.x = -swing * 0.5 * a - 0.3 * droop;
+  rig.armL.rotation.z = -bounce * 0.14 * a + 0.05 * droop;
+  rig.armR.rotation.z = bounce * 0.14 * a - 0.05 * droop;
+
+  // Legs counter the arms, at a third of the travel: this is a dance on the
+  // spot, not a walk across the card.
+  rig.legL.rotation.x = -swing * 0.17 * a;
+  rig.legR.rotation.x = swing * 0.17 * a;
+}
+
 export default function BodyScene({
   zones,
   activeZone,
   onPickZone,
+  vitality = 1,
   height = 340,
 }) {
   const mountRef = useRef(null);
@@ -76,7 +116,7 @@ export default function BodyScene({
     const body = buildBody();
     root.add(body.group);
 
-    const organs = buildOrgans(body.parts);
+    const organs = buildOrgans(body.group);
     ZONE_KEYS.forEach((k) => root.add(organs[k].group));
 
     const glow = buildGlow(0xffffff);
@@ -102,6 +142,10 @@ export default function BodyScene({
       glowColor: new THREE.Color(0xffffff),
       bodyOpacity: 0.5,
       bodyOpacityTarget: 0.5,
+      // Eased, so a round change or a new plate re-poses the figure over a
+      // second rather than snapping it into a different mood.
+      vitality: 1,
+      vitalityTarget: 1,
     };
 
     // ---- pointer: 1:1 rotation with momentum -----------------------------
@@ -217,6 +261,17 @@ export default function BodyScene({
       }
       root.rotation.y = state.yaw;
 
+      state.vitality +=
+        (state.vitalityTarget - state.vitality) * Math.min(1, dt * 1.6);
+      pose(body.rig, body.group, t, state.vitality, reduced);
+      // The cancer view is a shell OF this figure, so it wears the same pose.
+      const shell = organs.oncology;
+      shell.group.position.copy(body.group.position);
+      shell.group.rotation.copy(body.group.rotation);
+      Object.entries(shell.rig).forEach(([n, node]) => {
+        node.rotation.copy(body.rig[n].rotation);
+      });
+
       ZONE_KEYS.forEach((k) => {
         const s = state;
         s.intensity[k] += (s.target[k] - s.intensity[k]) * Math.min(1, dt * 7);
@@ -300,6 +355,9 @@ export default function BodyScene({
         state.glowColor = glowColor;
         state.bodyOpacityTarget = anyLit ? 0.3 : 0.5;
       },
+      setVitality(v) {
+        state.vitalityTarget = Math.max(0, Math.min(1, v));
+      },
       reset() {
         state.yawTarget = 0;
       },
@@ -330,6 +388,10 @@ export default function BodyScene({
   useEffect(() => {
     apiRef.current?.apply(zones, activeZone);
   }, [zones, activeZone]);
+
+  useEffect(() => {
+    apiRef.current?.setVitality(vitality);
+  }, [vitality]);
 
   useEffect(() => {
     if (apiRef.current) apiRef.current.onPick = onPickZone;

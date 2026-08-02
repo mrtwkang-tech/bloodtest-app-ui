@@ -12,9 +12,10 @@ import {
   SESSIONS,
   bodySeries,
   bodySummary,
+  healthScore,
 } from "../data/sessions";
 import { plainKeyOf } from "../data/plainNames";
-import { zoneSummaryLine } from "./ZoneDetail";
+import ZoneDetail, { zoneSummaryLine } from "./ZoneDetail";
 import { useLang } from "../i18n";
 
 /**
@@ -29,20 +30,21 @@ import { useLang } from "../i18n";
  * that were clear appeared only as icons, so the ten never scanned as ten of
  * the same thing.
  *
- * The mind screen had solved this already: one row per axis, identical height,
- * detail in a sheet. So Body does the same. The rows subsume both the chip
- * rail and the legend — they are that list, with the state written out instead
- * of encoded in an icon's tint — and the figure keeps the job only it can do,
- * which is saying WHERE.
+ * The mind screen had solved half of this already: one row per axis, identical
+ * height. The rows subsume both the chip rail and the legend — they are that
+ * list, with the state written out instead of encoded in an icon's tint.
  *
- * Tapping a row and tapping an organ do the same thing: light it, and open it.
+ * The other half is where the detail goes, and here Body must NOT copy Mind.
+ * Mind puts it in a sheet, which is right there because a mind scale has no
+ * picture to stay next to. Body does: the figure is the thing that says WHERE
+ * the liver is, and a sheet slides up over it at exactly the moment you asked
+ * about the liver. So it opens in place, one row at a time, and opening a row
+ * lights that organ above — the row and the body are the same object, and the
+ * screen should be able to say so without covering one with the other.
+ *
+ * Tapping a row and tapping an organ do the same thing.
  */
-export default function BodyTab({
-  sel,
-  onPickSession,
-  onOpenComposition,
-  onOpenZone,
-}) {
+export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
   const { t } = useLang();
   const [active, setActive] = useState(null);
   const [metric, setMetric] = useState(0);
@@ -50,13 +52,20 @@ export default function BodyTab({
   const session = SESSIONS[sel];
   const summary = bodySummary(session);
 
-  const openZone = useCallback(
-    (key) => {
-      setActive(key);
-      onOpenZone(key);
-    },
-    [onOpenZone],
+  // How the figure carries itself. Mapped from the same health score the home
+  // screen shows, over the range where the score actually varies — 40 to 85 —
+  // because normalising 0–100 would leave every real result in the middle and
+  // the posture would never change.
+  const vitality = Math.max(
+    0,
+    Math.min(1, (healthScore(session) - 40) / 45),
   );
+
+  // One row open at a time, and opening it lights the organ above. The row
+  // and the figure are the same object; the screen should say so.
+  const openZone = useCallback((key) => {
+    setActive((cur) => (cur === key ? null : key));
+  }, []);
 
   const pickMetric = BODY_METRICS[metric];
   // The trend chart picker listed assay names too — the same wall, in a control.
@@ -85,6 +94,7 @@ export default function BodyTab({
           zones={summary.zones}
           activeZone={active}
           onPickZone={openZone}
+          vitality={vitality}
           height={340}
         />
         <div
@@ -118,8 +128,11 @@ export default function BodyTab({
             statusLabel={t(BODY_STATUS_KEY[level])}
             detail={zoneSummaryLine(zone, values, t)}
             onOpen={() => openZone(zone.key)}
+            open={active === zone.key}
             last={i === summary.zones.length - 1}
-          />
+          >
+            {active === zone.key && <ZoneDetail zoneKey={zone.key} sel={sel} />}
+          </ZoneRow>
         ))}
       </Card>
 

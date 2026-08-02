@@ -1640,23 +1640,33 @@ function buildNutrition(color) {
  * Whole-body shell. Cancer has no single organ, so the systemic view is the
  * figure itself rather than an anchor point.
  */
-function buildSystemic(color, bodyParts) {
-  const group = new THREE.Group();
+function buildSystemic(color, bodyGroup) {
   const mat = organMaterial(color);
   mat.side = THREE.BackSide;
-  bodyParts.forEach((part) => {
-    const shell = new THREE.Mesh(part.geometry, mat);
-    shell.position.copy(part.position);
-    shell.rotation.copy(part.rotation);
-    shell.quaternion.copy(part.quaternion);
-    shell.scale.copy(part.scale).multiplyScalar(1.055);
-    group.add(shell);
+  // Clone the whole figure rather than copying each mesh's own transform. The
+  // limbs now hang off joint pivots, so a mesh's local transform no longer
+  // says where it is — only the hierarchy does. Cloning keeps the hierarchy,
+  // shares the geometry, and means the shell moves when the figure dances
+  // instead of standing still inside it.
+  const group = bodyGroup.clone(true);
+  group.scale.setScalar(1.055);
+  group.traverse((o) => {
+    if (o.isMesh) o.material = mat;
   });
-  return { group, materials: [mat], focus: new THREE.Vector3(0, 0.35, 0) };
+  // The clone has its own Object3D nodes, so it does not inherit the figure's
+  // pose. Handing back the matching pivots lets the frame loop drive both from
+  // one set of numbers — otherwise the shell stands still while the body it is
+  // a shell of dances, which is worse than not animating at all.
+  const rig = {};
+  ["head", "armL", "armR", "legL", "legR"].forEach((n) => {
+    const node = group.getObjectByName(n);
+    if (node) rig[n] = node;
+  });
+  return { group, rig, materials: [mat], focus: new THREE.Vector3(0, 0.35, 0) };
 }
 
 /** Organ systems keyed to the ten specialty panels. */
-export function buildOrgans(bodyParts) {
+export function buildOrgans(bodyGroup) {
   // Hues are spread around the wheel rather than clustered in earth tones:
   // with ten systems, "which organ am I looking at" has to survive being
   // answered by colour alone.
@@ -1669,7 +1679,7 @@ export function buildOrgans(bodyParts) {
     hematology: buildHematology(0xd42a72), // magenta
     pulmonary: buildPulmonary(0x2f8fd6), // sky
     immune: buildImmune(0x3fae55), // green
-    oncology: buildSystemic(0x5f6bd8, bodyParts), // indigo shell
+    oncology: buildSystemic(0x5f6bd8, bodyGroup), // indigo shell
     nutrition: buildNutrition(0x9ec219), // lime
   };
 }
