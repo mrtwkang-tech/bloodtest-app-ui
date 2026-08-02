@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { buildBody, buildGlow, buildOrgans } from "./anatomy";
+import { flex } from "./figure";
 import {
   createVelocityTracker,
   prefersReducedMotion,
@@ -82,6 +83,41 @@ function pose(rig, root, t, v, reduced) {
   // spot, not a walk across the card.
   rig.legL.rotation.x = -swing * 0.17 * a;
   rig.legR.rotation.x = swing * 0.17 * a;
+
+  // ELBOWS AND KNEES, which until now did not exist: a forearm turned about
+  // the shoulder and a shin about the hip, so the figure swung two rigid
+  // sticks. What tells you a limb has a joint in it is not the joint's own
+  // range but its PHASE — an elbow folds most as the arm comes forward and
+  // opens as it goes back, a knee folds as the leg goes back.
+  //
+  // Everything runs through `flex`, which clamps to the joint's own range.
+  // An elbow that opens past straight or a knee that folds forwards is not a
+  // stylised pose, it is an injury, and a reader spots it instantly.
+  //
+  // A tired body keeps a little more bend in everything, which is the other
+  // half of a slump: droop adds to the flexion rather than reducing it.
+  const bend = 0.34 * a;
+  rig.elbowL.rotation.x = flex(
+    "elbow",
+    0.22 + bend * (1 + swing) + 0.3 * droop,
+  );
+  rig.elbowR.rotation.x = flex(
+    "elbow",
+    0.22 + bend * (1 - swing) + 0.3 * droop,
+  );
+  rig.kneeL.rotation.x = flex(
+    "knee",
+    -0.1 - 0.16 * a * (1 - swing) - 0.1 * droop,
+  );
+  rig.kneeR.rotation.x = flex(
+    "knee",
+    -0.1 - 0.16 * a * (1 + swing) - 0.1 * droop,
+  );
+
+  // The ankle keeps the foot roughly level as the knee folds, which is what
+  // stops a bent leg reading as a dropped foot.
+  rig.ankleL.rotation.x = flex("ankle", -0.4 * rig.kneeL.rotation.x);
+  rig.ankleR.rotation.x = flex("ankle", -0.4 * rig.kneeR.rotation.x);
 }
 
 export default function BodyScene({

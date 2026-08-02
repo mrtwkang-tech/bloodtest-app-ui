@@ -196,6 +196,7 @@ export function sweep(mat, pts, profile, opts = {}) {
     seed = new THREE.Vector3(1, 0, 0),
     caps = true,
     tension = 0.5,
+    skin = null,
   } = opts;
 
   const curve = new THREE.CatmullRomCurve3(
@@ -210,9 +211,38 @@ export function sweep(mat, pts, profile, opts = {}) {
   const index = [];
   const p = new THREE.Vector3();
 
+  /**
+   * SKIN WEIGHTS, AND WHY THEY COST ALMOST NOTHING HERE.
+   *
+   * `skin(t)` returns `[boneA, boneB, w]` — two adjacent bones and how much of
+   * the second one applies. Two influences is enough because a vertex on a limb
+   * is only ever between one pair of bones.
+   *
+   * The reason this is nearly free is that `t` is already the right number.
+   * `sweep` parameterises by ARC LENGTH, and `ARM_AT`/`LEG_AT` in figure.js
+   * record where each joint falls along that same arc, so the blend is just an
+   * ease across the joint's fraction. The alternative — splitting the limb into
+   * one mesh per segment — would reintroduce every seam the single-sweep skin
+   * was built to remove, on a material where each intersection between two
+   * solids draws its own silhouette.
+   *
+   * One value per STATION, repeated across the ring: a cross-section is at one
+   * place along the bone, so every vertex on it blends identically.
+   */
+  const skinIndex = skin ? [] : null;
+  const skinWeight = skin ? [] : null;
+  const weigh = (t) => {
+    const [a, b, w] = skin(t);
+    for (let j = 0; j < radial; j++) {
+      skinIndex.push(a, b, 0, 0);
+      skinWeight.push(1 - w, w, 0, 0);
+    }
+  };
+
   for (let i = 0; i <= stations; i++) {
     const t = i / stations;
     curve.getPointAt(t, p);
+    if (skin) weigh(t);
     for (let j = 0; j < radial; j++) {
       const th = (j / radial) * Math.PI * 2;
       const [u, v] = profile(t, th);
@@ -240,11 +270,21 @@ export function sweep(mat, pts, profile, opts = {}) {
     const head = position.length / 3;
     const p0 = curve.getPointAt(0);
     position.push(p0.x, p0.y, p0.z);
+    if (skin) {
+      const [a, b, w] = skin(0);
+      skinIndex.push(a, b, 0, 0);
+      skinWeight.push(1 - w, w, 0, 0);
+    }
     for (let j = 0; j < radial; j++) index.push(head, (j + 1) % radial, j);
 
     const tail = position.length / 3;
     const p1 = curve.getPointAt(1);
     position.push(p1.x, p1.y, p1.z);
+    if (skin) {
+      const [a, b, w] = skin(1);
+      skinIndex.push(a, b, 0, 0);
+      skinWeight.push(1 - w, w, 0, 0);
+    }
     const last = stations * radial;
     for (let j = 0; j < radial; j++) {
       index.push(tail, last + j, last + ((j + 1) % radial));
@@ -255,6 +295,17 @@ export function sweep(mat, pts, profile, opts = {}) {
   geo.setAttribute("position", new THREE.Float32BufferAttribute(position, 3));
   geo.setIndex(index);
   geo.computeVertexNormals();
+  if (skin) {
+    geo.setAttribute(
+      "skinIndex",
+      new THREE.Uint16BufferAttribute(skinIndex, 4),
+    );
+    geo.setAttribute(
+      "skinWeight",
+      new THREE.Float32BufferAttribute(skinWeight, 4),
+    );
+    return new THREE.SkinnedMesh(geo, mat);
+  }
   return new THREE.Mesh(geo, mat);
 }
 

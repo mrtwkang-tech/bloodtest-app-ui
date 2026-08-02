@@ -92,6 +92,63 @@ export const PIVOTS = {
   legR: J.hipR,
 };
 
+/**
+ * The same hinges, as a chain.
+ *
+ * WHAT THE FLAT TABLE COULD NOT SAY. `PIVOTS` is five independent groups, so
+ * every distal bone was a direct child of a proximal one: the ulna rotated
+ * about the SHOULDER and the tibia about the HIP. A forearm that cannot bend
+ * at the elbow is not a rig with a missing feature, it is a mannequin, and the
+ * elbow is one of the two joints a reader can name without being taught.
+ *
+ * `parent` is what makes it a skeleton rather than a list. A child's group sits
+ * at its offset FROM ITS PARENT JOINT, so rotating the shoulder carries the
+ * elbow with it and rotating the elbow does not move the shoulder — which is
+ * the whole of forward kinematics and all this product needs.
+ *
+ * `PIVOTS` stays because the five roots are still the only things the organ
+ * systems without limb structures care about, and because deleting a public
+ * name to rename a concept is churn. This table is a superset of it.
+ */
+export const CHAIN = {
+  head: { at: PIVOTS.head, parent: null },
+  armL: { at: J.shoulderL, parent: null },
+  elbowL: { at: J.elbowL, parent: "armL" },
+  wristL: { at: J.wristL, parent: "elbowL" },
+  armR: { at: J.shoulderR, parent: null },
+  elbowR: { at: J.elbowR, parent: "armR" },
+  wristR: { at: J.wristR, parent: "elbowR" },
+  legL: { at: J.hipL, parent: null },
+  kneeL: { at: J.kneeL, parent: "legL" },
+  ankleL: { at: J.ankleL, parent: "kneeL" },
+  legR: { at: J.hipR, parent: null },
+  kneeR: { at: J.kneeR, parent: "legR" },
+  ankleR: { at: J.ankleR, parent: "kneeR" },
+};
+
+/**
+ * How far a joint may travel, in radians, and which way.
+ *
+ * Nothing enforced a range before because nothing bent. An elbow that opens
+ * past straight or a knee that bends forwards is not a stylised pose, it is an
+ * injury, and a reader spots it instantly even when they could not say why.
+ *
+ * Flexion is positive for the elbow and negative for the knee because that is
+ * the direction each actually goes: an arm folds forwards, a leg folds back.
+ */
+export const LIMITS = {
+  elbow: [0, 2.6],
+  knee: [-2.4, 0],
+  ankle: [-0.5, 0.35],
+  wrist: [-1.2, 1.2],
+};
+
+/** Clamp to a joint's range. */
+export const flex = (joint, x) => {
+  const [lo, hi] = LIMITS[joint];
+  return x < lo ? lo : x > hi ? hi : x;
+};
+
 /** Frosted-mannequin surface — light passes through so organs read inside. */
 export function makeBodyMaterial() {
   return new THREE.MeshPhysicalMaterial({
@@ -457,6 +514,98 @@ function pivotAt(parent, at, meshes, name) {
   return g;
 }
 
+/**
+ * The chain as actual THREE.Bones, plus the Skeleton bound to them.
+ *
+ * SKINNING IS `pivotAt` WITH A WEIGHT, and the maths is identical. There, the
+ * geometry is translated back by the joint and the group put at the joint, so
+ * the rest pose is unchanged and `rotation` becomes a rotation about that
+ * joint. Here the bone sits at the joint in world space with a rest rotation of
+ * zero, so its bind-time inverse is exactly `translate(-joint)` and its bone
+ * matrix at rest is the identity — the same change of basis, except a vertex
+ * can now belong partly to two of them.
+ *
+ * Which is the whole reason to do it. A limb is ONE swept surface on purpose:
+ * splitting it at the elbow would put two solids end to end on a material where
+ * every intersection draws its own silhouette, and that seam is what the
+ * single-sweep skin was built to remove. Blending does not split anything.
+ *
+ * `bindMatrix` is therefore the identity, which is only true because every
+ * surface in this file is authored in world coordinates.
+ */
+function buildRigBones() {
+  const bones = {};
+  const order = [];
+  // The head is rigid and keeps its own `pivotAt` group, so it gets no bone —
+  // and must not get one, because two objects called "head" under the same
+  // parent make `getObjectByName` a coin toss, and the oncology shell recovers
+  // its whole rig that way.
+  Object.entries(CHAIN)
+    .filter(([name]) => name !== "head")
+    .forEach(([name, { at, parent }]) => {
+      const b = new THREE.Bone();
+      b.name = name;
+      const p = parent ? CHAIN[parent].at : [0, 0, 0];
+      // Local offset from the parent joint — this is what makes rotating the
+      // shoulder carry the elbow and rotating the elbow leave the shoulder.
+      b.position.set(at[0] - p[0], at[1] - p[1], at[2] - p[2]);
+      bones[name] = b;
+      order.push(name);
+    });
+  order.forEach((name) => {
+    const { parent } = CHAIN[name];
+    if (parent) bones[parent].add(bones[name]);
+  });
+  const list = order.map((n) => bones[n]);
+  return {
+    bones,
+    list,
+    index: Object.fromEntries(order.map((n, i) => [n, i])),
+  };
+}
+
+/**
+ * A weight function for one limb: which two bones a point at arc fraction `t`
+ * belongs to, and how much of the second.
+ *
+ * `joints` is `[[at, band], …]` in order down the limb, using the same arc
+ * fractions `ARM_AT`/`LEG_AT` already carry — so a change to a limb's path
+ * moves the pinch, the surface detail and the skin weight together, which is
+ * the reason those fractions live in one table.
+ */
+let RIG_INDEX = null;
+function skinChain(root, joints) {
+  const chain = [root, ...joints.map((_, i) => CHAIN_OF[root][i])];
+  return (t) => {
+    for (let i = 0; i < joints.length; i++) {
+      const [at, band] = joints[i];
+      if (t < at + band) {
+        const w = smooth(at - band, at + band, t);
+        return [RIG_INDEX[chain[i]], RIG_INDEX[chain[i + 1]], w];
+      }
+    }
+    const last = chain[chain.length - 1];
+    return [RIG_INDEX[last], RIG_INDEX[last], 0];
+  };
+}
+
+/** Root → the joints below it, in order. Derived from CHAIN so it cannot drift. */
+const CHAIN_OF = Object.fromEntries(
+  Object.keys(CHAIN)
+    .filter((n) => CHAIN[n].parent === null)
+    .map((root) => {
+      const out = [];
+      let cur = root;
+      for (;;) {
+        const next = Object.keys(CHAIN).find((n) => CHAIN[n].parent === cur);
+        if (!next) break;
+        out.push(next);
+        cur = next;
+      }
+      return [root, out];
+    }),
+);
+
 /** The translucent figure. Nine surfaces, no visible joins, and a rig. */
 export function buildBody() {
   const mat = makeBodyMaterial();
@@ -469,6 +618,10 @@ export function buildBody() {
     if (name) made[name] = m;
     return m;
   };
+  // Built before any surface, because `skinChain` closes over the bone indices
+  // and the limb sweeps ask for them while they are being generated.
+  const bones = buildRigBones();
+  RIG_INDEX = bones.index;
 
   // Head as one mass. It used to be a cranium sphere with a jaw sphere pushed
   // into it, and the seam between them ran straight across the face.
@@ -569,7 +722,19 @@ export function buildBody() {
         // The old 70 × 26 put fewer than three rows across the first and one
         // segment across the second, and a landmark narrower than the mesh
         // does not exist however carefully it is written.
-        { stations: 104, radial: 40, seed: new THREE.Vector3(0, 0, 1) },
+        {
+          stations: 104,
+          radial: 40,
+          seed: new THREE.Vector3(0, 0, 1),
+          // Shoulder → elbow → wrist, blended across each joint's own arc
+          // fraction. The band is ±0.055 of the path, about 4 cm, which is
+          // roughly the width of the crease a real elbow makes; narrower and
+          // the bend creases like paper, wider and it bows like a hose.
+          skin: skinChain(`arm${s}`, [
+            [ARM_AT.elbow, 0.055],
+            [ARM_AT.wrist, 0.045],
+          ]),
+        },
       ),
     );
   });
@@ -615,7 +780,12 @@ export function buildBody() {
           const rr = r(t) * domeStart(t, 0.1) * legDetail(t, th, k);
           return ellipse(th, rr * 0.96, rr);
         },
-        { stations: 96, radial: 40, seed: new THREE.Vector3(0, 0, 1) },
+        {
+          stations: 96,
+          radial: 40,
+          seed: new THREE.Vector3(0, 0, 1),
+          skin: skinChain(`leg${s}`, [[LEG_AT.knee, 0.05]]),
+        },
       ),
     );
 
@@ -682,23 +852,72 @@ export function buildBody() {
 
   // ---- rig -----------------------------------------------------------
   //
-  // Five hinges, which is all a figure this size needs to read as alive: the
-  // head nods, each arm swings from its shoulder, each leg from its hip. The
-  // foot rides with its leg, so it is parented into the same pivot rather than
-  // given one of its own.
+  // TWO KINDS OF RIG, because the figure has two kinds of surface.
+  //
+  // The head, neck and feet are rigid: they belong to exactly one joint and
+  // move with it whole, so they go on groups, and `pivotAt` is unchanged.
+  //
+  // The arms and legs are SKINNED, because each is one uninterrupted sweep from
+  // shoulder to fingertip and from hip to ankle. That was a deliberate choice —
+  // the joints read from the pinch in the taper, not from a ball dropped in —
+  // and it is what removed the joint seams. A group rig cannot bend a single
+  // mesh, so the elbow and the knee did not exist and the forearm rotated about
+  // the shoulder. Blending each vertex between two bones bends the surface
+  // without cutting it.
   //
   // Rotations stay small on purpose. These surfaces meet by overlapping — the
   // arm's domed top is buried inside the shoulder yoke — and a large rotation
   // would drag it out into the open and reopen the seam the last pass closed.
   const rig = {
     head: pivotAt(group, PIVOTS.head, [made.head, made.neck], "head"),
-    armL: pivotAt(group, PIVOTS.armL, [made.armL], "armL"),
-    armR: pivotAt(group, PIVOTS.armR, [made.armR], "armR"),
-    legL: pivotAt(group, PIVOTS.legL, [made.legL, made.footL], "legL"),
-    legR: pivotAt(group, PIVOTS.legR, [made.legR, made.footR], "legR"),
+    footL: null,
+    footR: null,
   };
 
-  return { group, material: mat, parts, rig };
+  // ORDER MATTERS HERE AND IT IS THE ONE THING THAT IS EASY TO GET WRONG.
+  //
+  // `new THREE.Skeleton(bones)` computes each bone's inverse from its
+  // `matrixWorld`. A bone that has never been in the scene graph has an
+  // identity `matrixWorld`, so building the skeleton first gives every bone an
+  // identity inverse — and then each bone matrix is its full world transform
+  // instead of a delta from rest, which detaches every limb and scatters it.
+  //
+  // So: parent the bones, update their world matrices while the figure is still
+  // at rest, and only then take the inverses.
+  ["armL", "armR", "legL", "legR"].forEach((n) => group.add(bones.bones[n]));
+  group.updateMatrixWorld(true);
+  const skeleton = new THREE.Skeleton(bones.list);
+
+  // `bindMatrix` is the identity because every surface in this file is authored
+  // in WORLD coordinates and the mesh's own local transform is identity. Under
+  // the default attached bind mode three recomputes `bindMatrixInverse` from
+  // the mesh's current world matrix each frame, so the group's sway applies
+  // exactly once — the same cancellation `pivotAt` gets for free.
+  [made.armL, made.armR, made.legL, made.legR].forEach((m) => {
+    m.bind(skeleton, new THREE.Matrix4());
+  });
+
+  // The feet stay rigid and ride the ankle bone, which is the distal end of the
+  // chain the shank is skinned to — so a foot follows a bending knee without
+  // being deformed by it, which is what a foot does.
+  [
+    ["L", made.footL],
+    ["R", made.footR],
+  ].forEach(([s, foot]) => {
+    const at = CHAIN[`ankle${s}`].at;
+    foot.geometry.translate(-at[0], -at[1], -at[2]);
+    bones.bones[`ankle${s}`].add(foot);
+    rig[`foot${s}`] = foot;
+  });
+
+  // Every joint in the chain is addressable by name, so `pose()` can write to
+  // an elbow the same way it writes to a shoulder, and the oncology shell —
+  // which recovers its rig by name from a clone — finds all of them.
+  Object.keys(CHAIN).forEach((n) => {
+    if (!rig[n]) rig[n] = bones.bones[n];
+  });
+
+  return { group, material: mat, parts, rig, skeleton };
 }
 
 export { v3 };

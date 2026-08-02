@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { J, PIVOTS } from "./figure";
+import { CHAIN, J } from "./figure";
 import {
   LEVEL,
   capsule,
@@ -129,17 +129,29 @@ function rides(name, mesh) {
  */
 function rigify(group) {
   const rig = {};
-  Object.entries(PIVOTS).forEach(([name, at]) => {
+  // NESTED, not five siblings. A group per joint, each positioned at its offset
+  // FROM ITS PARENT JOINT — which is what makes rotating a shoulder carry the
+  // elbow with it, and rotating an elbow leave the shoulder alone. While the
+  // table was flat every distal bone was a direct child of a proximal pivot, so
+  // the ulna turned about the shoulder and the tibia about the hip.
+  Object.entries(CHAIN).forEach(([name, { at, parent }]) => {
     const g = new THREE.Group();
-    g.position.set(at[0], at[1], at[2]);
-    group.add(g);
+    g.name = name;
+    const p = parent ? CHAIN[parent].at : [0, 0, 0];
+    g.position.set(at[0] - p[0], at[1] - p[1], at[2] - p[2]);
     rig[name] = g;
+  });
+  Object.entries(CHAIN).forEach(([name, { parent }]) => {
+    (parent ? rig[parent] : group).add(rig[name]);
   });
   // Copy first: re-parenting mutates `children` underneath the iteration.
   group.children
     .filter((o) => o.userData.rides)
     .forEach((m) => {
-      const at = PIVOTS[m.userData.rides];
+      const at = CHAIN[m.userData.rides].at;
+      // Still the WORLD joint, not the local offset: the geometry is authored
+      // in world coordinates and has to come back to the joint it turns about,
+      // whatever that joint's parent happens to be.
       m.geometry.translate(-at[0], -at[1], -at[2]);
       rig[m.userData.rides].add(m);
     });
@@ -327,20 +339,31 @@ function buildNeuro(color) {
         { radial: 7, stations: 16, caps: false },
       ),
     );
+    // CUT AGAIN AT THE ELBOW, for the same reason it is cut at the shoulder.
+    // The elbow bends now, and a single run from shoulder to wrist would keep
+    // the forearm's half straight while the forearm turned away from it — so
+    // the nerve would leave the arm through the skin. Two meshes sharing the
+    // joint centre exactly means the bend lands in the nerve, which is what an
+    // elbow does to a real one.
     group.add(
       rides(
         `arm${s}`,
         tube(
           mat,
-          [
-            J[`shoulder${s}`],
-            [k * 0.202, 0.618, 0.005],
-            J[`elbow${s}`],
-            [k * 0.242, 0.382, 0.013],
-            J[`wrist${s}`],
-          ],
+          [J[`shoulder${s}`], [k * 0.202, 0.618, 0.005], J[`elbow${s}`]],
           cm(0.3),
-          { radial: 7, stations: 26, caps: false },
+          { radial: 7, stations: 14, caps: false },
+        ),
+      ),
+    );
+    group.add(
+      rides(
+        `elbow${s}`,
+        tube(
+          mat,
+          [J[`elbow${s}`], [k * 0.242, 0.382, 0.013], J[`wrist${s}`]],
+          cm(0.3),
+          { radial: 7, stations: 14, caps: false },
         ),
       ),
     );
@@ -387,12 +410,28 @@ function buildNeuro(color) {
           mat,
           [
             [k * 0.088, -0.104, -0.006],
+            [k * 0.088, -0.13, -0.002],
+            J[`knee${s}`],
+          ],
+          cm(0.23),
+          { radial: 6, stations: 8, caps: false },
+        ),
+      ),
+    );
+    // And the shank's share of it, on the knee — same cut, same reason.
+    group.add(
+      rides(
+        `knee${s}`,
+        tube(
+          mat,
+          [
+            J[`knee${s}`],
             [k * 0.084, -0.2, 0.002],
             [k * 0.09, -0.38, -0.004],
             J[`ankle${s}`],
           ],
           cm(0.23),
-          { radial: 6, stations: 18, caps: false },
+          { radial: 6, stations: 14, caps: false },
         ),
       ),
     );
@@ -599,20 +638,28 @@ function buildCardio(color) {
         { radial: 8, stations: 14, caps: false },
       ),
     );
+    // Cut at the elbow as well as the shoulder, now that the elbow bends. Each
+    // half carries its own slice of the taper — brachial above, radial-ulnar
+    // below — so the calibre is still continuous across the join.
     group.add(
       rides(
         `arm${s}`,
         sweep(
           mat,
-          [
-            J[`shoulder${s}`],
-            [k * 0.202, 0.618, 0.006],
-            J[`elbow${s}`],
-            [k * 0.242, 0.382, 0.014],
-            J[`wrist${s}`],
-          ],
-          (t, th) => round(th, cm(0.55) - cm(0.29) * t),
-          { radial: 8, stations: 26, caps: false },
+          [J[`shoulder${s}`], [k * 0.202, 0.618, 0.006], J[`elbow${s}`]],
+          (t, th) => round(th, cm(0.55) - cm(0.145) * t),
+          { radial: 8, stations: 14, caps: false },
+        ),
+      ),
+    );
+    group.add(
+      rides(
+        `elbow${s}`,
+        sweep(
+          mat,
+          [J[`elbow${s}`], [k * 0.242, 0.382, 0.014], J[`wrist${s}`]],
+          (t, th) => round(th, cm(0.405) - cm(0.145) * t),
+          { radial: 8, stations: 14, caps: false },
         ),
       ),
     );
@@ -634,15 +681,20 @@ function buildCardio(color) {
         `leg${s}`,
         sweep(
           mat,
-          [
-            J[`hip${s}`],
-            [k * 0.086, 0.022, 0.004],
-            J[`knee${s}`],
-            [k * 0.09, -0.3, -0.002],
-            J[`ankle${s}`],
-          ],
-          (t, th) => round(th, cm(0.69) - cm(0.39) * t),
-          { radial: 8, stations: 26, caps: false },
+          [J[`hip${s}`], [k * 0.086, 0.022, 0.004], J[`knee${s}`]],
+          (t, th) => round(th, cm(0.69) - cm(0.195) * t),
+          { radial: 8, stations: 14, caps: false },
+        ),
+      ),
+    );
+    group.add(
+      rides(
+        `knee${s}`,
+        sweep(
+          mat,
+          [J[`knee${s}`], [k * 0.09, -0.3, -0.002], J[`ankle${s}`]],
+          (t, th) => round(th, cm(0.495) - cm(0.195) * t),
+          { radial: 8, stations: 14, caps: false },
         ),
       ),
     );
@@ -1308,13 +1360,41 @@ function limbBones(group, mat, s, k) {
     "toe4",
     "toe5",
   ];
+  // WHICH JOINT EACH BONE TURNS ABOUT, now that there is more than one per
+  // limb. Everything here used to ride the shoulder or the hip, because those
+  // were the only pivots that existed — so a forearm swung from the shoulder
+  // and a shin from the hip, which is a mannequin's arm and not an arm.
+  const RIDES = {
+    ulna: "elbow",
+    radius: "elbow",
+    carpus: "wrist",
+    carpusDistal: "wrist",
+    digit2: "wrist",
+    digit3: "wrist",
+    digit4: "wrist",
+    digit5: "wrist",
+    thumb: "wrist",
+    patella: "knee",
+    tibia: "knee",
+    medialMalleolus: "knee",
+    fibula: "knee",
+    calcaneus: "ankle",
+    talus: "ankle",
+    navicular: "ankle",
+    toe1: "ankle",
+    toe2: "ankle",
+    toe3: "ankle",
+    toe4: "ankle",
+    toe5: "ankle",
+  };
   let nth = 0;
   const add = (limb, mesh) => {
     if (nth >= ORDER.length) {
       throw new Error(`limbBones: mesh #${nth} has no name in ORDER`);
     }
-    mesh.name = `${ORDER[nth++]}${s}`;
-    return group.add(rides(limb, mesh));
+    const name = ORDER[nth++];
+    mesh.name = `${name}${s}`;
+    return group.add(rides(RIDES[name] ? `${RIDES[name]}${s}` : limb, mesh));
   };
   const arm = `arm${s}`;
   const leg = `leg${s}`;
@@ -2042,7 +2122,7 @@ function buildSkeletal(color) {
     // both sagittal-midline features and SphereGeometry only puts vertices on
     // d.x = 0 when it is — otherwise both render off-centre and too shallow.
     named(
-      `leg${s}`,
+      `knee${s}`,
       "condyles",
       ellipsoid(
         mat,
@@ -2106,7 +2186,7 @@ function buildSkeletal(color) {
     // capitellum, and cutting the channel as a function of d.x is what makes
     // it wrap front AND back, which is what a pulley is.
     named(
-      `arm${s}`,
+      `elbow${s}`,
       "trochlea",
       ellipsoid(
         mat,
