@@ -8,7 +8,6 @@ import SignalTab from "./screens/SignalTab";
 import MoreTab from "./screens/MoreTab";
 import StoreTab from "./screens/StoreTab";
 import HomeDetail from "./screens/HomeDetail";
-import ScaleDetail from "./screens/ScaleDetail";
 import PredictionDetail from "./screens/PredictionDetail";
 import PanelEntry from "./screens/PanelEntry";
 import SignIn from "./screens/SignIn";
@@ -17,7 +16,6 @@ import { SYSTEMS } from "./data/body";
 import InfoDoc from "./screens/InfoDoc";
 import { C, LEVEL_LAMP, STATUS_LAMP } from "./tokens";
 import { SESSIONS, bodySummary, mindSummary } from "./data/sessions";
-import { SCALE_META } from "./data/scales";
 import { docByKey } from "./data/legal";
 import { useT } from "./i18n";
 
@@ -91,9 +89,9 @@ export default function App() {
 
   const docKey = sheet?.startsWith("doc:") ? sheet.slice(4) : null;
   const homeView = sheet?.startsWith("home:") ? sheet.slice(5) : null;
-  // A mind scale opens over the page rather than unfolding inside it.
-  const scaleKey = sheet?.startsWith("scale:") ? sheet.slice(6) : null;
-  const scaleMeta = SCALE_META.find((m) => m.key === scaleKey);
+  // A mind scale used to open over the page in a sheet. It opens inside its
+  // own row now, for the reason the body systems do: there is a picture above
+  // the list and a sheet would cover it. See MindTab.
   // Each of Home's second-layer views is a sheet with its own title.
   // Home no longer owns these; the tabs whose subject they are do.
   const HOME_TITLES = {
@@ -167,7 +165,6 @@ export default function App() {
                   key={`mind-${sel}-${panelVersion}`}
                   sel={sel}
                   onPickSession={setSel}
-                  onOpenScale={(k) => setSheet(`scale:${k}`)}
                 />
               )}
               {tab === "body" && (
@@ -227,16 +224,6 @@ export default function App() {
                 roundIndex={latest.roundIndex}
                 onOpenSession={openSession}
               />
-            </Sheet>
-          )}
-
-          {scaleMeta && (
-            <Sheet
-              title={t(scaleMeta.axisKey)}
-              subtitle={t("mind.scales")}
-              onClose={() => setSheet(null)}
-            >
-              <ScaleDetail scaleKey={scaleKey} sel={sel} />
             </Sheet>
           )}
 

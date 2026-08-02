@@ -4,35 +4,31 @@ import Icon from "./Icon";
 import { C, DIVIDER, EASE, LEVEL_COLOR, T } from "../tokens";
 
 /**
- * One body system, as a single row.
+ * One panel — a body system or a mind scale — as a single row that opens.
  *
- * The same move the mind scales made, for the same reason. Body used to render
- * every flagged system as a ~300px panel: heading, specialty, condition list,
- * out-of-range summary, the panel's own explanation, this reader's note, a
- * marker bar per finding, a disclosure that added another few hundred pixels,
- * and an action. Four of those made a screen 3,400px long, and because clear
- * systems were not shown at all, the ten never scanned as ten of the same
- * thing — you saw four essays and a legend.
+ * WHY THERE IS NOW ONE OF THESE INSTEAD OF TWO. `ScaleRow` and `ZoneRow` were
+ * written eight months apart and converged on the same object without either
+ * knowing: same `Pressable`, same 11/16/12 padding, same 9px gap, same 24px
+ * icon, same second line inset 33px to clear it. They differed in two ways that
+ * mattered — Zone had a score column and opened in place, Scale had neither —
+ * and in one that did not: Zone drew its own rotating chevron, Scale used the
+ * static `Caret`. Keeping two copies meant every improvement had to be made
+ * twice, and the score column and the in-place open are exactly the two
+ * improvements Mind was waiting on.
  *
- * So: one shape, all ten, about 54px each — and the detail OPENS IN PLACE.
+ * THE SECOND LINE IS THE ONLY THING THAT VARIES BY TAB, and it varies because
+ * the subjects do: a body system says what is out of range, a mind scale says
+ * how it compares to peers. Both are one line of `detail`, passed in.
  *
- * It was a sheet first, mirroring the mind scales, and that was wrong here for
- * a reason specific to this screen: the figure is the context. A sheet slides
- * up over the one thing that says WHERE the liver is, at the moment you tapped
- * the liver. Opening in place keeps them on screen together, and tapping a row
- * also lights that organ in the figure above, so the row and the body are
- * visibly the same object. Only one row is open at a time, so the list can
- * never go back to being a wall of essays.
- *
- * The second line is the row's actual content and changes with state: what is
- * out of range when something is, and what the panel screens for when nothing
- * is. That is the one place the two cases genuinely differ, so it is the only
- * place the row differs.
+ * `level` is the 0/1/2 contract `Icon` and `LEVEL_COLOR` already share, so a
+ * mind status has to be converted at the call site rather than here — there is
+ * no sensible default mapping and guessing one is how a "watch" ends up drawn
+ * as an "alert".
  */
-export default function ZoneRow({
+export default function PanelRow({
   icon,
   name,
-  level,
+  level = 0,
   score,
   detail,
   statusLabel,
@@ -53,7 +49,6 @@ export default function ZoneRow({
           display: "block",
           width: "100%",
           padding: "11px 16px 12px",
-          background: "transparent",
           border: "none",
           textAlign: "left",
           cursor: "pointer",
@@ -65,20 +60,23 @@ export default function ZoneRow({
           <span style={{ ...T.label, color: C.ink, flex: 1, minWidth: 0 }}>
             {name}
           </span>
-          {level > 0 && (
+          {level > 0 && statusLabel && (
             <span
               style={{ ...T.caption, color: LEVEL_COLOR[level], flex: "none" }}
             >
               {statusLabel}
             </span>
           )}
-          {/* The score, in a column of its own so eleven of them can be read
+          {/* The score, in a column of its own so a list of them can be read
               DOWN rather than one at a time — which is the whole reason it
               exists. "관찰 필요" is a threshold word: it says the same thing
               one per cent past the line as forty per cent past it, so a list
-              of eleven panels cannot be ranked by it, and ranking them is the
-              question the list actually asks. Mono at tabular width, like
-              every other measured number here, so the digits line up. */}
+              cannot be ranked by it, and ranking is the question the list
+              actually asks. Mono at tabular width so the digits line up.
+
+              It means the same thing on both tabs: higher is better. Getting
+              that wrong across two adjacent screens is the reason
+              `scaleScore` exists at all. */}
           {score != null && (
             <span
               style={{
@@ -94,7 +92,7 @@ export default function ZoneRow({
             </span>
           )}
           {/* The caret turns rather than pointing away, because the detail
-            arrives here rather than somewhere else. */}
+              arrives here rather than somewhere else. */}
           <span
             aria-hidden="true"
             style={{
@@ -119,18 +117,20 @@ export default function ZoneRow({
             </svg>
           </span>
         </div>
-        <div
-          style={{
-            ...T.caption,
-            color: level > 0 ? C.body : C.faint,
-            margin: "4px 0 0 33px",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {detail}
-        </div>
+        {detail && (
+          <div
+            style={{
+              ...T.caption,
+              color: level > 0 ? C.body : C.faint,
+              margin: "4px 0 0 33px",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {detail}
+          </div>
+        )}
       </Pressable>
       <Collapse open={open}>
         <div style={{ padding: "2px 16px 18px" }}>{children}</div>

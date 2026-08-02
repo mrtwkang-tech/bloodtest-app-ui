@@ -210,16 +210,57 @@ export function statusOf(index) {
 }
 
 /**
- * Radar polygon in a 200x200 viewBox, plotted on the indices.
- * Every axis is the same 0–100 load scale, so the shape is comparable and
- * the peer average is a regular pentagon at 50.
+ * The number the reader is shown. Higher is better.
+ *
+ * WHY THIS EXISTS RATHER THAN JUST PRINTING THE INDEX. The body screen prints
+ * `systemScore`, where 92 is good. The mind screen printed `scaleIndex`, where
+ * 92 is bad. Two adjacent tabs, the same position in the same-shaped row, the
+ * same three digits — and opposite meanings. That is not a subtlety a reader
+ * will discover; it is a reading they will get wrong and never find out about.
+ *
+ * The arithmetic underneath does NOT change. `markerLoad` still measures load,
+ * `scaleIndex` still averages it, and `scaleDrivers` still reports which marker
+ * pushed the load up — those are the honest units of the model and the sheet
+ * still explains them in those terms. Only the headline number is oriented, and
+ * it is oriented to match the rest of the product.
+ *
+ * 50 stays fixed under the flip, which is the point: the peer average is at 50
+ * on both scales, so the radar's pentagon, the row's notch and the trend
+ * chart's reference line all keep meaning exactly what they meant.
  */
-export function radarPoints(values, radius = 78) {
-  return values
-    .map((p, i) => {
-      const a = (AXES[i] * Math.PI) / 180;
-      const r = radius * Math.max(0.06, Math.min(1, p / 100));
-      return `${(100 + r * Math.cos(a)).toFixed(1)},${(100 + r * Math.sin(a)).toFixed(1)}`;
-    })
-    .join(" ");
+export function scaleScore(meta, roundIndex) {
+  return 100 - scaleIndex(meta, roundIndex);
 }
+
+/** The same three bands, read off a score instead of a load. */
+export function statusOfScore(score) {
+  return statusOf(100 - score);
+}
+
+/**
+ * The score as a comparison rather than a number.
+ *
+ * The cut points have to be `statusOf`'s own, or the sentence contradicts the
+ * badge beside it — a score of 48 read as "about the same as your peers" while
+ * the badge said 주의, because 50 is the average and the threshold at once.
+ *
+ * This lived in `ScaleRow` until the row merged with `ZoneRow`. It is a
+ * threshold, not a layout decision, so it belongs beside the thresholds.
+ */
+export function band(score) {
+  if (score <= 34) return "below";
+  if (score <= 50) return "belowAvg";
+  if (score <= 60) return "avg";
+  return "above";
+}
+
+/** Mind status → the 0/1/2 level the icons and colours share with Body. */
+export const SCALE_LEVEL = { good: 0, watch: 1, alert: 2 };
+
+/*
+ * `radarPoints` used to live here — a second polygon helper on a 200×200
+ * viewBox that RadarChart never called, since it has its own on a 300×244 one.
+ * Removed rather than left: it was written against the load orientation, and a
+ * dead helper that plots the wrong way round is exactly the thing someone
+ * reaches for later and gets a mirrored chart from.
+ */

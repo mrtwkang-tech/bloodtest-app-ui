@@ -1,29 +1,121 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import RadarChart from "../components/RadarChart";
+import BrainMap from "../components/BrainMap";
+import DayDial from "../components/DayDial";
+import MindScene from "../three/MindScene";
+import PanelRow from "../components/PanelRow";
+import PlaceLabel from "../components/PlaceLabel";
 import { withEmphasis } from "../components/Emphasis";
-import ScaleRow from "../components/ScaleRow";
-import { band } from "../components/ScaleRow";
 import TrendChart from "../components/TrendChart";
 import Masthead from "../components/Masthead";
 import {
   Card,
   SectionLabel,
   SectionTitle,
+  Segmented,
   Status,
 } from "../components/primitives";
-import { C, R, STATUS_COLOR, T, fadeUp } from "../tokens";
-import { SCALE_META } from "../data/scales";
+import { C, STATUS_COLOR, T, fadeUp } from "../tokens";
+import { SCALE_LEVEL, SCALE_META, band } from "../data/scales";
+import { scalePercentile } from "../data/cohorts";
 import { SESSIONS, mindSummary, pick } from "../data/sessions";
+import ScaleDetail from "./ScaleDetail";
 import { useLang } from "../i18n";
 
-export default function MindTab({ sel, onPickSession, onOpenScale }) {
+/**
+ * The mind screen: a picture, then one row per scale.
+ *
+ * WHY THIS IS NOW THE SAME SHAPE AS THE BODY SCREEN, having deliberately not
+ * been for several passes. The stated reason for the divergence was that "a
+ * mind scale has no picture to stay next to" — so its detail went into a sheet,
+ * where the body's could not, because the body's would have covered the figure.
+ * That reason has expired: the mind panel's own data names five brain
+ * structures, one per index, and states the mapping as the argument for the
+ * whole panel. The picture was always implied; it just had not been drawn.
+ *
+ * FOUR PICTURES, TEMPORARILY. The switcher below is a choosing tool, not a
+ * feature — four candidates rendered from the same data so they can be compared
+ * against each other rather than described. When one is chosen the other three
+ * and the switcher come out. They are, in order:
+ *
+ *   회로   the neuroendocrine circuit in 3D, on the same figure Body uses
+ *   단면   the same anatomy as a flat mid-sagittal section
+ *   하루   the 24-hour dial — one axis, rendered properly
+ *   지수   the radar that is here today, flipped to the score direction
+ *
+ * THE NUMBER FLIPPED. Every scale now shows `score`, where higher is better,
+ * because the body screen's numeral means that and two adjacent tabs cannot
+ * disagree about which way is up. The load index is still what the model
+ * computes and still what the opened panel explains.
+ */
+
+const VIEWS = ["circuit", "section", "day", "radar"];
+const VIEW_KEY = "pedia.mind.view";
+
+export default function MindTab({ sel, onPickSession }) {
   const { t, lang } = useLang();
   const [metric, setMetric] = useState(2);
+  const [active, setActive] = useState(null);
+  const [view, setView] = useState(
+    () => localStorage.getItem(VIEW_KEY) ?? VIEWS[0],
+  );
+  useEffect(() => {
+    localStorage.setItem(VIEW_KEY, view);
+  }, [view]);
+
   const session = SESSIONS[sel];
   const summary = mindSummary(session);
   const meta = SCALE_META[metric];
   const rounds = [...SESSIONS].reverse();
   const activities = pick(session.mindActivities, lang);
+
+  // One row open at a time, and opening it lights that circuit above — the
+  // same contract Body has, for the same reason: the row and the picture are
+  // the same object and the screen should be able to say so.
+  const openScale = useCallback((key) => {
+    setActive((cur) => (cur === key ? null : key));
+  }, []);
+
+  const activeIdx = SCALE_META.findIndex((m) => m.key === active);
+  const activeMeta = activeIdx >= 0 ? SCALE_META[activeIdx] : null;
+
+  const picture = {
+    circuit: (
+      <MindScene
+        scores={session.scores}
+        statuses={session.status}
+        active={active}
+        onPick={openScale}
+        height={340}
+      />
+    ),
+    section: (
+      <BrainMap
+        scores={session.scores}
+        statuses={session.status}
+        active={active}
+        onPick={openScale}
+      />
+    ),
+    day: (
+      <DayDial
+        scores={session.scores}
+        statuses={session.status}
+        active={active}
+        onPick={openScale}
+        roundIndex={session.roundIndex}
+      />
+    ),
+    radar: (
+      <RadarChart
+        values={session.scores}
+        statuses={session.status}
+        active={active}
+        onPick={openScale}
+        delay={80}
+      />
+    ),
+  }[view];
 
   return (
     <div>
@@ -53,14 +145,14 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
           >
             {summary.keys.map((k) => {
               const i = SCALE_META.findIndex((m) => m.key === k);
-              const meta = SCALE_META[i];
+              const m = SCALE_META[i];
               return (
                 <Status
                   key={k}
-                  icon={meta.icon}
-                  level={session.status[i] === "alert" ? 2 : 1}
+                  icon={m.icon}
+                  level={SCALE_LEVEL[session.status[i]]}
                 >
-                  {t(meta.axisKey)}
+                  {t(m.axisKey)}
                 </Status>
               );
             })}
@@ -84,15 +176,52 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
         )}
       </Card>
 
-      <div style={{ marginTop: 10 }}>
-        <RadarChart
-          values={session.indices}
-          statuses={session.status}
-          delay={80}
+      {/* TEMPORARY — the chooser. Comes out with three of the four pictures. */}
+      <div style={{ marginTop: 12, ...fadeUp(60) }}>
+        <Segmented
+          items={VIEWS.map((v) => ({ key: v, label: t(`mind.view.${v}`) }))}
+          value={view}
+          onChange={setView}
         />
       </div>
 
-      <SectionTitle>{t("mind.scales")}</SectionTitle>
+      <Card
+        variant="group"
+        style={{ padding: "4px 0 11px", overflow: "hidden", marginTop: 10 }}
+        delay={80}
+      >
+        <div style={{ position: "relative" }}>
+          {picture}
+          {activeMeta && (
+            <PlaceLabel
+              key={active}
+              name={t(activeMeta.axisKey)}
+              level={SCALE_LEVEL[session.status[activeIdx]]}
+              score={session.scores[activeIdx]}
+              percentile={scalePercentile(
+                session.scores[activeIdx],
+                activeMeta.drivers.length,
+              )}
+              where={t(`where.${activeMeta.key}`)}
+              anatomy={t(`anat.${activeMeta.key}`)}
+            />
+          )}
+        </div>
+        <div
+          style={{
+            ...T.caption,
+            color: C.faintest,
+            textAlign: "center",
+            padding: "0 18px",
+          }}
+        >
+          {t("mind.tapAxis")}
+        </div>
+      </Card>
+
+      <SectionTitle value={`${summary.ok}/${SCALE_META.length}`}>
+        {t("mind.scales")}
+      </SectionTitle>
       <p
         style={{
           ...T.caption,
@@ -103,36 +232,35 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
       >
         {t("mind.cadenceNote")}
       </p>
-      {/* Five rows of one shape. The card used to be thin when the index was
-          fine and tall when it was not, so the five never scanned as five of
-          the same thing — and the detail unfolded downward, costing the reader
-          their place. It opens in a sheet now. */}
+      {/* Five rows of one shape, opening in place. Same component the body
+          systems use — they were two copies of one object for months. */}
       <Card
         variant="group"
         style={{ overflow: "hidden", padding: 0, ...fadeUp(120) }}
       >
         {SCALE_META.map((m, i) => (
-          <ScaleRow
+          <PanelRow
             key={m.key}
-            meta={{
-              icon: m.icon,
-              label: t(m.axisKey),
-              comparison: t(`mind.vsPeer.${band(session.indices[i])}`),
-              statusLabel: t(`status.${session.status[i]}`),
-            }}
-            index={session.indices[i]}
-            status={session.status[i]}
-            onOpen={() => onOpenScale(m.key)}
+            icon={m.icon}
+            name={t(m.axisKey)}
+            level={SCALE_LEVEL[session.status[i]]}
+            score={session.scores[i]}
+            statusLabel={t(`status.${session.status[i]}`)}
+            detail={t(`mind.vsPeer.${band(session.scores[i])}`)}
+            onOpen={() => openScale(m.key)}
+            open={active === m.key}
             last={i === SCALE_META.length - 1}
-          />
+          >
+            {active === m.key && <ScaleDetail scaleKey={m.key} sel={sel} />}
+          </PanelRow>
         ))}
       </Card>
 
       <SectionTitle>{t("mind.trendLabel")}</SectionTitle>
       <TrendChart
         title={t(meta.axisKey)}
-        unit={t("mind.index")}
-        series={rounds.map((s) => s.indices[metric])}
+        unit={t("mind.scoreLabel")}
+        series={rounds.map((s) => s.scores[metric])}
         labels={rounds.map((s) => t("round.n", { n: s.round }))}
         reference={50}
         referenceLabel={t("mind.peerAvg")}
@@ -141,6 +269,7 @@ export default function MindTab({ sel, onPickSession, onOpenScale }) {
         options={SCALE_META.map((m) => ({ key: m.key, label: t(m.axisKey) }))}
         selectedOption={metric}
         onPickOption={setMetric}
+        higherIsBetter
       />
 
       {/* Heading and card together, or neither. Six of the twelve rounds have

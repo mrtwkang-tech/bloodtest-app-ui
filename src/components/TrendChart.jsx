@@ -24,18 +24,28 @@ export default function TrendChart({
   selectedOption,
   onPickOption,
   formatValue = (v) => String(v),
+  // Which way is good. Body markers are almost all harmful-when-high, so
+  // falling is improving and that was hardcoded here. Mind plots a SCORE,
+  // where the arrow points the other way — and a chart that labels a rising
+  // score "감소 · 개선" is worse than one that says nothing.
+  higherIsBetter = false,
   delay = 0,
 }) {
   const t = useT();
   const tr = computeTrend({ series, reference, selIndex: sel });
-  const deltaColor = tr.isFirst ? C.faint : tr.diff <= 0 ? C.optimal : C.watch;
+  const better = higherIsBetter ? tr.diff > 0 : tr.diff < 0;
+  const deltaColor = tr.isFirst || tr.diff === 0
+    ? C.faint
+    : better
+      ? C.optimal
+      : C.watch;
   const delta = tr.isFirst
     ? t("trend.first")
     : tr.diff === 0
       ? t("trend.same")
       : tr.diff < 0
-        ? t("trend.down", { p: tr.pctChange })
-        : t("trend.up", { p: tr.pctChange });
+        ? t(better ? "trend.downGood" : "trend.down", { p: tr.pctChange })
+        : t(better ? "trend.upGood" : "trend.up", { p: tr.pctChange });
 
   return (
     <Card pad="md" delay={delay}>

@@ -301,7 +301,17 @@ export const SESSIONS = RAW.map((s, i) => ({
   // so a number on screen can never disagree with the marker behind it.
   .map((s) => {
     const indices = SCALE_META.map((meta) => scaleIndex(meta, s.roundIndex));
-    return { ...s, indices, status: indices.map(statusOf) };
+    return {
+      ...s,
+      indices,
+      // The same measurement twice, in both orientations. `indices` is the load
+      // the model computes and the sheet explains; `scores` is what a reader is
+      // shown, oriented like every other number in the product so that a big
+      // number is a good number here as well. Derived rather than stored so the
+      // two can never drift.
+      scores: indices.map((v) => 100 - v),
+      status: indices.map(statusOf),
+    };
   });
 
 /** Pick the language variant of a content field. */

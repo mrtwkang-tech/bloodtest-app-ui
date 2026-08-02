@@ -73,3 +73,26 @@ export function systemPercentile(score, markerCount) {
   const sd = Math.max(6, Math.min(18, 11 * Math.sqrt(6 / n)));
   return percentileOf(score, SYSTEM_MEAN, sd);
 }
+
+/**
+ * The same, for a mind scale.
+ *
+ * A DIFFERENT MEAN, AND THE REASON IS IN THE ARITHMETIC RATHER THAN IN AN
+ * OPINION. A mind score is `100 − scaleIndex`, and `markerLoad` returns exactly
+ * 0.5 for a marker sitting on its reference — so a person at every reference
+ * scores 50 by construction. That is the peer average, it is stamped on the
+ * radar as a pentagon and on every row as a notch, and it would be incoherent
+ * for the percentile to disagree with it. The body cohorts sit at 76 because
+ * `systemScore` is built the other way, out of credit for being in range.
+ *
+ * The spread follows the same 1/√n rule: an index averaged over four drivers is
+ * a wider distribution than one averaged over eight, so the same score means
+ * less in it.
+ */
+const SCALE_MEAN = 50;
+
+export function scalePercentile(score, driverCount) {
+  const n = Math.max(1, driverCount);
+  const sd = Math.max(7, Math.min(20, 13 * Math.sqrt(6 / n)));
+  return percentileOf(score, SCALE_MEAN, sd);
+}

@@ -27,23 +27,37 @@ const ringPoly = (v) =>
     .join(" ");
 
 /**
- * Percentile radar.
+ * Five scores on one radar.
  *
- * Plotting score/max would not be comparable across instruments — MBI 28/60
- * and PHQ-9 4/27 look wildly different while both sit near the 30th
- * percentile. On a percentile radar every axis means the same thing, the peer
- * average is a regular pentagon at 50, and distance from centre is readable.
+ * WHAT IT PLOTS, since the docstring here claimed the wrong thing for months.
+ * It said "percentile radar" and cited MBI 28/60 against PHQ-9 4/27 — but no
+ * percentile was ever computed for the mind panel, and what arrived in `values`
+ * was `scaleIndex`, a load. The argument was still right, which is why the
+ * error survived: every axis IS on one 0–100 scale, so the shape is comparable
+ * and the peer average IS a regular pentagon at 50. It just was not a
+ * percentile. It is now a score, and 50 is unmoved by the flip, so the pentagon
+ * means exactly what it always meant.
+ *
+ * OUTWARD IS BETTER, which is the other thing the flip changed. It used to be
+ * inward, and a chart where a bigger shape is a worse result is a chart every
+ * reader mis-reads once before learning better.
  *
  * The graduated rings, spokes and per-axis readouts are what turn it from a
  * decorative blob into something you can actually take a measurement off.
  */
-export default function RadarChart({ values, statuses, delay = 40 }) {
+export default function RadarChart({
+  values,
+  statuses,
+  active,
+  onPick,
+  delay = 40,
+}) {
   const t = useT();
 
   return (
     <Card pad="sm" delay={delay}>
       <SectionLabel value={`${t("mind.me")} · ${t("mind.peer")}`}>
-        {t("mind.index")}
+        {t("mind.scoreLabel")}
       </SectionLabel>
 
       <svg
@@ -114,17 +128,33 @@ export default function RadarChart({ values, statuses, delay = 40 }) {
             (Math.max(3, Math.min(100, v)) / 100) * R_MAX,
           );
           const lit = statuses[i] !== "good";
+          const on = active === SCALE_META[i].key;
           return (
-            <circle
+            <g
               key={SCALE_META[i].key}
-              cx={x}
-              cy={y}
-              r={lit ? 3.8 : 2.8}
-              fill={lit ? STATUS_LAMP[statuses[i]] : C.ink}
-              stroke={C.bg}
-              strokeWidth="1.6"
-              style={{ transition: `all 560ms ${EASE}` }}
-            />
+              onClick={onPick ? () => onPick(SCALE_META[i].key) : undefined}
+              style={{ cursor: onPick ? "pointer" : "default" }}
+            >
+              {/* A 2.8px dot is not a tap target; this is. */}
+              <circle cx={x} cy={y} r="15" fill="transparent" />
+              {on && (
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="8"
+                  fill={tint(lit ? STATUS_LAMP[statuses[i]] : C.ink, 0.16)}
+                />
+              )}
+              <circle
+                cx={x}
+                cy={y}
+                r={on ? 4.6 : lit ? 3.8 : 2.8}
+                fill={lit ? STATUS_LAMP[statuses[i]] : C.ink}
+                stroke={C.bg}
+                strokeWidth="1.6"
+                style={{ transition: `all 560ms ${EASE}` }}
+              />
+            </g>
           );
         })}
 

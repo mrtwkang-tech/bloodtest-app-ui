@@ -3,9 +3,10 @@ import BodyScene from "../three/BodyScene";
 import Masthead from "../components/Masthead";
 import Pressable from "../components/Pressable";
 import TrendChart from "../components/TrendChart";
-import ZoneRow from "../components/ZoneRow";
+import PanelRow from "../components/PanelRow";
+import PlaceLabel from "../components/PlaceLabel";
 import { Card, Caret, SectionTitle } from "../components/primitives";
-import { C, LEVEL_COLOR, LEVEL_LAMP, T, fadeUp } from "../tokens";
+import { C, LEVEL_COLOR, T, fadeUp } from "../tokens";
 import {
   BODY_STATUS_KEY,
   formatValue,
@@ -71,6 +72,9 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
   }, []);
 
   const activeZone = summary.zones.find((z) => z.zone.key === active) ?? null;
+  const activeScore = activeZone
+    ? systemScore(activeZone.zone, activeZone.values)
+    : null;
 
   const pickMetric = BODY_METRICS[metric];
   // The trend chart picker listed assay names too — the same wall, in a control.
@@ -105,7 +109,19 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
           />
           {/* Keyed on the selection so switching systems replays the fade
               rather than swapping the words under a static label. */}
-          <PlaceLabel key={active} zone={activeZone} />
+          {activeZone && (
+            <PlaceLabel
+              key={active}
+              name={t(activeZone.zone.nameKey)}
+              level={activeZone.level}
+              score={activeScore}
+              percentile={systemPercentile(
+                activeScore,
+                activeZone.zone.markers.length,
+              )}
+              where={t(`where.${activeZone.zone.key}`)}
+            />
+          )}
         </div>
         <div
           style={{
@@ -130,7 +146,7 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         style={{ overflow: "hidden", padding: 0, ...fadeUp(90) }}
       >
         {summary.zones.map(({ zone, values, level }, i) => (
-          <ZoneRow
+          <PanelRow
             key={zone.key}
             icon={zone.icon}
             name={t(zone.nameKey)}
@@ -143,7 +159,7 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
             last={i === summary.zones.length - 1}
           >
             {active === zone.key && <ZoneDetail zoneKey={zone.key} sel={sel} />}
-          </ZoneRow>
+          </PanelRow>
         ))}
       </Card>
 
@@ -207,102 +223,6 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         onPickOption={setMetric}
         formatValue={(v) => formatValue(v, pickMetric.marker.dp)}
       />
-    </div>
-  );
-}
-
-/**
- * What is lit, and where it is — pinned to the top right of the figure.
- *
- * The rows below already name the system and give its state, so a label that
- * only repeated the name would be decoration. What the rows cannot say, and
- * the figure can, is WHERE — and "where" is exactly the question a reader has
- * when a shape somewhere inside a translucent body starts glowing. A kidney
- * lighting up behind the waist is unrecognisable at 340px unless something
- * says "the small of your back", and then it is obvious.
- *
- * Top right rather than over the figure: the whole point of opening a row in
- * place last round was that nothing should cover the body. Right-aligned and
- * capped in width so the text grows away from the figure, never across it.
- */
-function PlaceLabel({ zone }) {
-  const { t } = useLang();
-  if (!zone) return null;
-
-  const { zone: z, level, values } = zone;
-  const score = systemScore(z, values);
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: 10,
-        right: 14,
-        // The head is centred and about 11% of the canvas wide, so it occupies
-        // 44–56%. Anything wider than 44% here runs into it — which is what
-        // happened as soon as the label grew a third line.
-        maxWidth: "44%",
-        textAlign: "right",
-        pointerEvents: "none",
-        ...fadeUp(0),
-      }}
-    >
-      {/* Name and score on one line, because both are short and because the
-          score belongs to the name rather than to the sentence under it.
-          Everything wraps: the widest line here sits at the height of the
-          skull, and an unwrapped flex row would overflow the cap and run
-          across the face. */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "flex-end",
-          flexWrap: "wrap",
-          gap: "0 7px",
-        }}
-      >
-        {level > 0 && (
-          <span
-            style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              flex: "none",
-              alignSelf: "center",
-              background: LEVEL_LAMP[level],
-            }}
-          />
-        )}
-        <span style={{ ...T.label, color: C.ink }}>{t(z.nameKey)}</span>
-        <span style={{ ...T.num, fontSize: 14.5, color: C.ink }}>
-          {t("body.score", { n: score })}
-        </span>
-      </div>
-      {/* What the score is measured against, and then where the thing is.
-          Both are answers the rows below cannot give: a row can say "관찰
-          필요", which is a threshold word that reads the same one per cent
-          past the line as forty per cent past it. */}
-      <div
-        style={{
-          ...T.caption,
-          color: C.faint,
-          marginTop: 2,
-          textWrap: "pretty",
-        }}
-      >
-        {t("body.scoreVsPeers", {
-          pct: systemPercentile(score, z.markers.length),
-        })}
-      </div>
-      <div
-        style={{
-          ...T.caption,
-          color: C.faintest,
-          marginTop: 2,
-          textWrap: "pretty",
-        }}
-      >
-        {t(`where.${z.key}`)}
-      </div>
     </div>
   );
 }

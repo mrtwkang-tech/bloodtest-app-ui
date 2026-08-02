@@ -1,26 +1,34 @@
 import Emphasis, { withEmphasis } from "../components/Emphasis";
 import { Dot } from "../components/primitives";
-import { band } from "../components/ScaleRow";
 import { C, DIVIDER_TOP, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { plainKeyOf } from "../data/plainNames";
-import { SCALE_META, scaleDrivers } from "../data/scales";
+import { SCALE_META, band, scaleDrivers } from "../data/scales";
 import { windowKeyOf } from "../data/window";
 import { SESSIONS } from "../data/sessions";
+import { scalePercentile } from "../data/cohorts";
 import { useT } from "../i18n";
 
 /**
- * One mind index in full, in a sheet.
+ * One mind index in full, opened inside its row.
  *
- * This is the content that used to unfold inside the scale card and push the
- * page down by four hundred pixels — the whole driver chain, each marker's
- * value, its assay name, the span of time it covers and the mechanism that ties
- * it to the index. It is the same information; the difference is that arriving
- * over the page rather than inside it means the reader keeps their position.
+ * It was a sheet, and the reason it was a sheet has expired. The argument in
+ * `BodyTab` ran: Body opens in place because the figure is the context and a
+ * sheet would cover the one thing that says where the liver is, while "a mind
+ * scale has no picture to stay next to". Mind now has a picture. So the sheet
+ * would cover the same thing here that it would have covered there, and the
+ * two screens converge — not because one was copied, but because the reason
+ * they diverged stopped being true.
  *
- * The chain is the point of the screen. An index of 54 is not interpretable on
+ * The chain is the point of the screen. A score of 54 is not interpretable on
  * its own, and the honest answer to "why 54?" is a list of measurements and
  * what each one does — so that list is the body, not a disclosure inside it.
+ *
+ * NOTE THE UNITS SHIFT HALFWAY DOWN, deliberately. The headline is a SCORE,
+ * oriented like the rest of the product: higher is better. Everything from the
+ * driver list on is stated in LOAD, because load is what `markerLoad` actually
+ * computes and what each mechanism sentence describes. Printing the model in
+ * the reader's units would mean rewriting what the model does.
  */
 export default function ScaleDetail({ scaleKey, sel }) {
   const t = useT();
@@ -28,6 +36,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
   const session = SESSIONS[sel];
   const i = SCALE_META.indexOf(meta);
   const index = session.indices[i];
+  const score = session.scores[i];
   const status = session.status[i];
   const drivers = scaleDrivers(meta, session.roundIndex);
   // The window rule, made visible. A marker slower than the interval is still
@@ -40,7 +49,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
         <span style={{ ...T.bodyText, color: C.ink }}>
-          <Emphasis>{t(`mind.vsPeer.${band(index)}`)}</Emphasis>
+          <Emphasis>{t(`mind.vsPeer.${band(score)}`)}</Emphasis>
         </span>
         <span
           style={{
@@ -66,7 +75,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
           style={{
             position: "absolute",
             inset: "0 auto 0 0",
-            width: `${index}%`,
+            width: `${score}%`,
             background: status === "good" ? C.ink2 : STATUS_LAMP[status],
             borderRadius: 2.5,
             transition: `width 520ms ${EASE}`,
@@ -88,6 +97,28 @@ export default function ScaleDetail({ scaleKey, sel }) {
       </div>
       <div style={{ ...T.caption, color: C.faintest }}>
         {t("mind.peerMark")}
+      </div>
+
+      {/* The score, spelled out. The row above carries the bare numeral so the
+          list can be scanned; this is the one place with room to say what it is
+          and what it is being compared against. */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 8,
+          marginTop: 12,
+        }}
+      >
+        <span style={{ ...T.num, fontSize: 21, color: C.ink }}>
+          {t("body.score", { n: score })}
+        </span>
+        <span style={{ ...T.caption, color: C.faint }}>
+          {t("mind.scoreLabel")} ·{" "}
+          {t("body.scoreVsPeers", {
+            pct: scalePercentile(score, meta.drivers.length),
+          })}
+        </span>
       </div>
 
       <p
@@ -202,7 +233,9 @@ export default function ScaleDetail({ scaleKey, sel }) {
           >
             {context.map((d) => (
               <div key={d.marker.name}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <div
+                  style={{ display: "flex", alignItems: "baseline", gap: 8 }}
+                >
                   <span style={{ ...T.label, color: C.muted }}>
                     {plainKeyOf(d.marker)
                       ? t(plainKeyOf(d.marker))
@@ -229,9 +262,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
                     {d.marker.unit || "—"}
                   </span>
                 </div>
-                <div
-                  style={{ ...T.micro, color: C.faintest, marginTop: 3 }}
-                >
+                <div style={{ ...T.micro, color: C.faintest, marginTop: 3 }}>
                   {d.marker.name} · {t(windowKeyOf(d.marker))}
                 </div>
               </div>
@@ -239,6 +270,25 @@ export default function ScaleDetail({ scaleKey, sel }) {
           </div>
         </div>
       )}
+
+      {/* The terms these numbers come under, on the screen that shows the
+          assays. This is the deepest surface in the mind panel — every
+          brain-region cfDNA marker is named here with a value beside it — and
+          it was the one place the "these assays are hypothetical" sentence did
+          not reach. It only ever rendered on the parent tab, in a footnote a
+          reader arriving here by tapping a row may never have scrolled to. */}
+      <p
+        style={{
+          ...T.caption,
+          color: C.faintest,
+          margin: "20px 0 0",
+          paddingTop: 12,
+          boxShadow: DIVIDER_TOP,
+          textWrap: "pretty",
+        }}
+      >
+        {t("epi.hypothetical")} {t("mind.notDiagnosis")}
+      </p>
     </div>
   );
 }
