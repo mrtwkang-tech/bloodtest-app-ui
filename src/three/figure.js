@@ -1,5 +1,13 @@
 import * as THREE from "three";
-import { domeStart, ellipse, ellipsoid, smooth, sweep, v3 } from "./geometry";
+import {
+  dTheta,
+  domeStart,
+  ellipse,
+  ellipsoid,
+  smooth,
+  sweep,
+  v3,
+} from "./geometry";
 
 /**
  * The translucent mannequin the organs sit inside.
@@ -101,17 +109,80 @@ function taper(stops) {
 }
 
 /**
- * Torso lofted through ellipse rings keyed to the spine joints. A capsule
- * reads as a pill; the shoulder-to-waist-to-hip taper is what makes the
- * figure read as a person.
+ * Surface anatomy of the trunk, as a radial multiplier on (height, angle).
+ *
+ * WHY THIS IS THE PIECE THAT WAS MISSING. The figure had correct proportions,
+ * joints that narrowed properly and a seamless skin, and still read as a shop
+ * mannequin — because a real trunk is not a smooth loft. What tells you you
+ * are looking at a body is a short list of landmarks, and at 340px tall only
+ * the ones that change the SILHOUETTE or catch a highlight survive. These
+ * five do; pores and pectorals would not.
+ *
+ * Angles follow the loft's own parameter: 0 is +x, π/2 is anterior (+z), π is
+ * −x, 3π/2 is posterior. Since +x is the subject's LEFT here, "lateral" is
+ * |cos a| on either side.
+ */
+function trunkDetail(y, a) {
+  const front = Math.max(0, Math.sin(a));
+  const back = Math.max(0, -Math.sin(a));
+  const lateral = Math.abs(Math.cos(a));
+  const g = (x, mu, sigma) => Math.exp(-(((x - mu) / sigma) ** 2));
+  let k = 1;
+
+  // 1. STERNAL NOTCH — the hollow between the collarbones. Tiny, and the
+  //    single fastest way to say "this is a neck meeting a chest".
+  k -= 0.075 * g(y, 0.7485, 0.008) * g(dTheta(a, Math.PI / 2), 0, 0.34);
+
+  // 2. CLAVICLES — a paired ridge running from the notch out to each acromion.
+  //    They read at this size because they sit on the shoulder's top edge, so
+  //    they alter the outline rather than only the shading.
+  k += 0.055 * g(y, 0.7525, 0.0075) * Math.max(0, Math.sin(a) + 0.45);
+
+  // 3. COSTAL MARGIN — the inverted V under the ribs, lowest at the xiphoid
+  //    and rising as it runs laterally. This is the most recognisable landmark
+  //    on a bare trunk and the one whose absence made the torso a tube.
+  const margin = 0.503 + 0.045 * lateral;
+  k += 0.042 * g(y - margin, 0, 0.015) * (front * 0.85 + lateral * 0.5);
+  //    Just below it the abdominal wall falls away from the rib line.
+  k -= 0.03 * g(y - margin + 0.035, 0, 0.022) * front;
+
+  // 4. SPINAL FURROW — the groove over the spinous processes. Present the
+  //    whole length of the back and deepest over the lumbar curve.
+  k -= (0.05 + 0.02 * g(y, 0.4, 0.09)) *
+    g(dTheta(a, (3 * Math.PI) / 2), 0, 0.3) *
+    smooth(0.78, 0.7, y) * smooth(0.16, 0.24, y);
+
+  // 5. ILIAC CREST — the shelf you rest your hands on. It is what stops the
+  //    waist-to-hip transition reading as an upholstered curve.
+  k += 0.038 * g(y, 0.226, 0.017) * (lateral * 0.9 + back * 0.4);
+
+  // Detail stops before the neck junction. Above this the trunk is a narrow
+  // cone rising INTO the neck, and an indent there pulls its surface inside
+  // the neck's — which opened a black slot under the chin, because what you
+  // then see through the gap is the inside of a back face.
+  return 1 + (k - 1) * smooth(0.772, 0.756, y);
+}
+
+/**
+ * Torso lofted through ellipse rings keyed to the spine joints, then given a
+ * surface.
+ *
+ * The control rings set the mass — the shoulder-to-waist-to-hip taper that
+ * makes the figure a person rather than a pill. They are RESAMPLED before the
+ * detail is applied: the thirteen control rings jump 10cm at a time through
+ * the chest, and a costal margin 1.5cm wide cannot exist on a mesh whose rows
+ * are further apart than the feature is tall.
  */
 function torsoGeometry() {
-  const rings = [
-    // Narrow at the neck, then out to the shoulder line in one step. The yoke
-    // is what the arms grow out of; without it they had to be buried in the
-    // chest, and burying them meant the sweep started sideways and its end cap
-    // stood off the shoulder as a flat disc.
-    { y: 0.772, rx: 0.072, rz: 0.06 },
+  const control = [
+    // The first ring is NARROWER than the neck at the same height (~0.047), so
+    // the trunk emerges from inside it instead of punching through its wall.
+    // A wider ring here left a lens-shaped hole under the chin: the cone came
+    // out of the neck, went back in, and you saw the inside of it through the
+    // gap between the two surfaces.
+    { y: 0.776, rx: 0.044, rz: 0.04 },
+    { y: 0.768, rx: 0.076, rz: 0.058 },
+    { y: 0.762, rx: 0.1, rz: 0.07 },
     { y: 0.758, rx: 0.118, rz: 0.08 },
     { y: 0.744, rx: 0.158, rz: 0.091 },
     { y: 0.728, rx: 0.176, rz: 0.099 },
@@ -122,21 +193,42 @@ function torsoGeometry() {
     { y: 0.34, rx: 0.133, rz: 0.092 },
     { y: 0.25, rx: 0.152, rz: 0.101 },
     { y: 0.17, rx: 0.163, rz: 0.104 },
-    // Closes over the hips rather than stopping above them: the legs now start
-    // inside this surface, so there is no pelvis sphere to overlap it.
     { y: 0.135, rx: 0.152, rz: 0.098 },
     { y: 0.105, rx: 0.126, rz: 0.084 },
   ];
-  const radial = 34;
+
+  /** Linear interpolation down the control profile. */
+  const at = (y) => {
+    for (let i = 0; i < control.length - 1; i++) {
+      const a = control[i];
+      const b = control[i + 1];
+      if (y <= a.y && y >= b.y) {
+        const u = (a.y - y) / (a.y - b.y);
+        return { rx: a.rx + (b.rx - a.rx) * u, rz: a.rz + (b.rz - a.rz) * u };
+      }
+    }
+    return y > control[0].y ? control[0] : control[control.length - 1];
+  };
+
+  const ROWS = 68;
+  const radial = 44;
+  const top = control[0].y;
+  const bottom = control[control.length - 1].y;
+  const rings = [];
+  for (let r = 0; r < ROWS; r++) {
+    const y = top - ((top - bottom) * r) / (ROWS - 1);
+    rings.push({ y, ...at(y) });
+  }
+
   const positions = [];
   const indices = [];
-
   rings.forEach((ring) => {
     for (let i = 0; i < radial; i++) {
       const a = (i / radial) * Math.PI * 2;
+      const k = trunkDetail(ring.y, a);
       // Slight front/back asymmetry: chest forward, back flatter.
-      const z = Math.sin(a) * ring.rz * (Math.sin(a) > 0 ? 1.06 : 0.92);
-      positions.push(Math.cos(a) * ring.rx, ring.y, z);
+      const z = Math.sin(a) * ring.rz * (Math.sin(a) > 0 ? 1.06 : 0.92) * k;
+      positions.push(Math.cos(a) * ring.rx * k, ring.y, z);
     }
   });
 
@@ -147,10 +239,7 @@ function torsoGeometry() {
       const c = (r + 1) * radial + i;
       const d = (r + 1) * radial + ((i + 1) % radial);
       // Rings run top to bottom and θ runs +x toward +z, so winding round θ
-      // first is what puts the normal on the OUTSIDE. It was the other way
-      // round, which meant the torso had been rendering inside-out since it
-      // was written — invisible while the material was transmissive, and the
-      // reason the chest read as a flat dark slab the moment it was not.
+      // first is what puts the normal on the OUTSIDE.
       indices.push(a, b, c, b, d, c);
     }
   }
@@ -159,7 +248,7 @@ function torsoGeometry() {
   // The apex sits INSIDE the neck, so the torso rises out of it as a cone —
   // which is the trapezius. Stopping short left a flat annulus round the neck
   // with a dark rim, and the rim read as a collar.
-  positions.push(0, rings[0].y + 0.032, 0);
+  positions.push(0, rings[0].y + 0.016, 0);
   for (let i = 0; i < radial; i++) indices.push(topC, (i + 1) % radial, i);
 
   const botC = positions.length / 3;
