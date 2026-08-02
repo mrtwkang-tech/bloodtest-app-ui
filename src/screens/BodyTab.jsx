@@ -5,7 +5,7 @@ import Pressable from "../components/Pressable";
 import TrendChart from "../components/TrendChart";
 import ZoneRow from "../components/ZoneRow";
 import { Card, Caret, SectionTitle } from "../components/primitives";
-import { C, LEVEL_COLOR, T, fadeUp } from "../tokens";
+import { C, LEVEL_COLOR, LEVEL_LAMP, T, fadeUp } from "../tokens";
 import { BODY_STATUS_KEY, formatValue, markerLevel } from "../data/body";
 import {
   BODY_METRICS,
@@ -56,16 +56,15 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
   // screen shows, over the range where the score actually varies — 40 to 85 —
   // because normalising 0–100 would leave every real result in the middle and
   // the posture would never change.
-  const vitality = Math.max(
-    0,
-    Math.min(1, (healthScore(session) - 40) / 45),
-  );
+  const vitality = Math.max(0, Math.min(1, (healthScore(session) - 40) / 45));
 
   // One row open at a time, and opening it lights the organ above. The row
   // and the figure are the same object; the screen should say so.
   const openZone = useCallback((key) => {
     setActive((cur) => (cur === key ? null : key));
   }, []);
+
+  const activeZone = summary.zones.find((z) => z.zone.key === active) ?? null;
 
   const pickMetric = BODY_METRICS[metric];
   // The trend chart picker listed assay names too — the same wall, in a control.
@@ -90,13 +89,18 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         style={{ padding: "4px 0 11px", overflow: "hidden" }}
         delay={40}
       >
-        <BodyScene
-          zones={summary.zones}
-          activeZone={active}
-          onPickZone={openZone}
-          vitality={vitality}
-          height={340}
-        />
+        <div style={{ position: "relative" }}>
+          <BodyScene
+            zones={summary.zones}
+            activeZone={active}
+            onPickZone={openZone}
+            vitality={vitality}
+            height={340}
+          />
+          {/* Keyed on the selection so switching systems replays the fade
+              rather than swapping the words under a static label. */}
+          <PlaceLabel key={active} zone={activeZone} />
+        </div>
         <div
           style={{
             ...T.caption,
@@ -196,6 +200,72 @@ export default function BodyTab({ sel, onPickSession, onOpenComposition }) {
         onPickOption={setMetric}
         formatValue={(v) => formatValue(v, pickMetric.marker.dp)}
       />
+    </div>
+  );
+}
+
+/**
+ * What is lit, and where it is — pinned to the top right of the figure.
+ *
+ * The rows below already name the system and give its state, so a label that
+ * only repeated the name would be decoration. What the rows cannot say, and
+ * the figure can, is WHERE — and "where" is exactly the question a reader has
+ * when a shape somewhere inside a translucent body starts glowing. A kidney
+ * lighting up behind the waist is unrecognisable at 340px unless something
+ * says "the small of your back", and then it is obvious.
+ *
+ * Top right rather than over the figure: the whole point of opening a row in
+ * place last round was that nothing should cover the body. Right-aligned and
+ * capped in width so the text grows away from the figure, never across it.
+ */
+function PlaceLabel({ zone }) {
+  const { t } = useLang();
+  if (!zone) return null;
+
+  const { zone: z, level } = zone;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 14,
+        maxWidth: "52%",
+        textAlign: "right",
+        pointerEvents: "none",
+        ...fadeUp(0),
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          gap: 6,
+        }}
+      >
+        {level > 0 && (
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              flex: "none",
+              background: LEVEL_LAMP[level],
+            }}
+          />
+        )}
+        <span style={{ ...T.label, color: C.ink }}>{t(z.nameKey)}</span>
+      </div>
+      <div
+        style={{
+          ...T.caption,
+          color: C.faint,
+          marginTop: 2,
+          textWrap: "pretty",
+        }}
+      >
+        {t(`where.${z.key}`)}
+      </div>
     </div>
   );
 }

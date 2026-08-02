@@ -188,27 +188,72 @@ button { font-family: inherit; color: inherit; }
   animation-delay: calc(var(--foil-shift, 0) * -1s);
 }
 
-/* Foil AS INK: the glyphs themselves are the metal. Only safe at display
-   sizes — at body size the highlight eats the stroke and legibility goes. */
+/* The same metal, dropped a stop, for text at reading size.
+
+   The display gradient tops out at #d4b45c, which is 2.2:1 on white. That is
+   fine under a 60px numeral and illegible under a 15px sentence. So the range
+   slides down until its brightest moment is 4.7:1 — the floor for text this
+   size — and the shimmer is bought out of the dark end instead of the light
+   one.
+
+   HOW FAR DOWN, THOUGH. The first attempt took the dark end to #33240a and
+   the sentence stopped being gold: at rest it read as bold black text, and
+   the sweep looked like a glitch passing over it rather than like metal. The
+   base of a gold surface still has to be GOLD. So the floor is #5c4310, the
+   same warm brown the display gradient sits on, and the step from there to the
+   highlight is 2.7× in luminance — enough to read as a specular travelling
+   across the phrase, at every phase of which the words are legible. */
+.foil-sm {
+  background-image:
+    linear-gradient(
+      100deg,
+      #5c4310 0%, #654913 12%, #705318 28%, #7e5f1a 40%,
+      #8f6f1d 47%, #977629 50%, #8f6f1d 53%, #7e5f1a 60%,
+      #705318 72%, #654913 88%, #5c4310 100%
+    ),
+    radial-gradient(circle at 30% 40%, rgba(255,244,214,.55) 0 .5px, transparent 1px),
+    radial-gradient(circle at 70% 65%, rgba(255,248,224,.42) 0 .4px, transparent .9px);
+}
+
+/* Foil AS INK: the glyphs themselves are the metal. */
 .foil-ink {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
+  /* A wrapped phrase gets its own background box per line, so the gradient
+     restarts at each line break instead of one box being stretched across
+     both — without this the second line of an emphasis is a different colour
+     from the first. */
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
-/* Foil AS GROUND: the sticker the words sit on. The text stays ink, so this
-   is the one that is safe in running prose — which is where most of the
-   emphasis in this product lives. */
+/* Insurance. `color: transparent` with the clip unsupported is INVISIBLE TEXT,
+   which was an acceptable risk while this class only ever held a numeral you
+   could also read elsewhere on the screen. It now holds sentences. */
+@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
+  .foil-ink {
+    background-image: none;
+    color: #7a5c16;
+    -webkit-text-fill-color: #7a5c16;
+  }
+}
+
+/* Foil AS GROUND: the sticker the words sit on, text left as ink.
+
+   Kept for the case where a whole block wants the material behind it. It is
+   NOT what marks a phrase in a paragraph any more: at 30% behind one clause of
+   running text the band reads as a highlighter stroke — which is to say as an
+   underline — and an underline is the weakest emphasis in typography. A
+   marked phrase now changes weight, size and colour instead, which are the
+   three channels that actually carry emphasis. */
 .foil-wash {
   border-radius: 3px;
   padding: 1px 4px;
   margin: 0 -1px;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
-  /* Held well back: at full strength the ground competes with the glyphs it
-     is behind, and a highlight passing under text is what makes it unreadable
-     rather than what makes it shine. */
   opacity: .3;
 }
 

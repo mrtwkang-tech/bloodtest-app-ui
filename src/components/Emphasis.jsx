@@ -3,54 +3,63 @@ import { C, T } from "../tokens";
 /**
  * Marks the phrase in a sentence that carries it.
  *
- * A paragraph of even grey is a paragraph the eye has to read in full before
- * it knows whether it needed to. Bolding is the usual reach, but bold Hangul
- * at body size thickens the counters and the line goes muddy rather than
- * emphatic. A pale wash behind the words does the same job by a different
- * channel — the phrase is found before it is read — and leaves the letterforms
- * alone.
+ * WHAT THIS REPLACES. The first version left the letterforms alone and put a
+ * pale gold wash BEHIND them, on the reasoning that bold Hangul at body size
+ * thickens the counters and the line goes muddy. The reasoning was sound and
+ * the result was still wrong: a 30%-opacity band sitting behind one clause of
+ * a grey paragraph does not read as a material, it reads as a highlighter
+ * stroke — which is to say as an underline. Underlining is the weakest
+ * emphasis in typography. It adds a line and changes nothing about the words.
  *
- * GOLD, AND WHY IT DOES NOT BREAK THE COLOUR RULE. The rule so far has been
- * that colour means a value is outside its range — so a flat amber highlighter
- * would claim a result that is not there. Foil is not a flat colour. It is a
- * MATERIAL: a highlight that moves independently of the thing it is on, which
- * no status swatch in this product does and no printed page can do at all.
- * That difference is the whole reason it can carry a second meaning — "this is
- * the sentence worth reading" — without being mistaken for 주의 amber.
+ * So the words change instead, on all three channels at once:
  *
- * The words stay ink. The foil is the ground they sit on, held at low opacity,
- * because a highlight travelling under a glyph is what destroys legibility
- * rather than what makes it shine. Foil as ink is reserved for display sizes
- * where the stroke is thick enough to survive it.
+ *   WEIGHT   420 → 680, which is the weight of `title2`. The marked phrase is
+ *            not "the same text, bolder"; it is set in the product's HEADING
+ *            register and dropped into running prose. That is a step a reader
+ *            registers before reading, which is the whole job.
+ *   SIZE     14 → 15. Small enough not to disturb the column, large enough
+ *            that the weight has somewhere to go.
+ *   COLOUR   the glyphs become the metal, at the reading-size gradient — see
+ *            `.foil-sm` for why the display gradient could not be reused.
  *
- * Text goes through `render` so a dictionary string can carry its own emphasis
- * with *asterisks*, keeping the editorial decision next to the sentence rather
- * than in the component that happens to display it.
+ * The muddy-counters objection was real, and the answer to it is the size
+ * bump: 15px at 680 has more counter than 14px at 680, and the gold is dark
+ * enough at every phase of the sweep to hold its shape against white.
+ *
+ * WHY GOLD DOES NOT BREAK THE COLOUR RULE. Colour in this product means a
+ * value is outside its range, so a flat amber would claim a result that is not
+ * there. Foil is not a flat colour. It is a MATERIAL — a highlight that moves
+ * independently of the thing it is on, which no status swatch does and no
+ * printed page can do at all. That is what lets it carry a second meaning
+ * without being mistaken for 주의 amber.
+ *
+ * Text goes through `withEmphasis` so a dictionary string can carry its own
+ * emphasis with *asterisks*, keeping the editorial decision next to the
+ * sentence rather than in the component that happens to display it.
  */
-export default function Emphasis({ children, tone = C.ink }) {
+export default function Emphasis({ children }) {
   return (
-    <span style={{ position: "relative", color: tone }}>
-      {/* The foil is a sibling rather than this span's own background: a
-          background cannot be given its own opacity without taking the text
-          down with it, and the text has to stay at full strength. */}
-      <span className="foil foil-wash" aria-hidden="true" style={FOIL_BEHIND} />
-      <span style={{ position: "relative" }}>{children}</span>
-    </span>
+    <strong className="foil foil-sm foil-ink" style={EMPH}>
+      {children}
+    </strong>
   );
 }
 
-const FOIL_BEHIND = {
-  position: "absolute",
-  inset: "-1px -4px",
-  zIndex: 0,
-  pointerEvents: "none",
+const EMPH = {
+  ...T.bodyText,
+  fontSize: 15,
+  fontWeight: 680,
+  letterSpacing: "-0.014em",
+  // The parent's strut is 14 × 1.58; a 15px inline carrying its own 1.58 would
+  // be taller than that and would push the one line it lands on further from
+  // its neighbours than the rest of the paragraph. Collapsing this inline's
+  // leading lets the parent's strut keep setting the rhythm.
+  lineHeight: 1,
 };
 
 /**
- * Foil as ink — the glyphs are the metal.
- *
- * Only for display sizes. Below about 18px the sweep passes through a stroke
- * thinner than the highlight and the word blinks out as it goes.
+ * Foil as ink at display size — the glyphs are the metal, in the brighter
+ * gradient a thick stroke can afford.
  */
 export function FoilText({ children, style }) {
   return (

@@ -72,6 +72,26 @@ export const J = {
   toeR: [-0.092, -0.525, 0.075],
 };
 
+/**
+ * The five hinges the figure moves on.
+ *
+ * Exported because the organs have to hang off the SAME points. A femur that
+ * swings about a hip 2 mm from the mannequin's hip walks out through the skin
+ * within a few degrees, and the only way to be sure the two agree is for there
+ * to be one table rather than two sets of numbers that look alike.
+ *
+ * The head pivot is not a joint in `J`: nodding happens at the atlanto-
+ * occipital joint, which is inside the skull base rather than at the neck's
+ * midpoint, and putting it at `J.neck` swung the chin through the sternum.
+ */
+export const PIVOTS = {
+  head: [0, 0.855, -0.004],
+  armL: J.shoulderL,
+  armR: J.shoulderR,
+  legL: J.hipL,
+  legR: J.hipR,
+};
+
 /** Frosted-mannequin surface — light passes through so organs read inside. */
 export function makeBodyMaterial() {
   return new THREE.MeshPhysicalMaterial({
@@ -148,9 +168,11 @@ function trunkDetail(y, a) {
 
   // 4. SPINAL FURROW — the groove over the spinous processes. Present the
   //    whole length of the back and deepest over the lumbar curve.
-  k -= (0.05 + 0.02 * g(y, 0.4, 0.09)) *
+  k -=
+    (0.05 + 0.02 * g(y, 0.4, 0.09)) *
     g(dTheta(a, (3 * Math.PI) / 2), 0, 0.3) *
-    smooth(0.78, 0.7, y) * smooth(0.16, 0.24, y);
+    smooth(0.78, 0.7, y) *
+    smooth(0.16, 0.24, y);
 
   // 5. ILIAC CREST — the shelf you rest your hands on. It is what stops the
   //    waist-to-hip transition reading as an upholstered curve.
@@ -161,6 +183,145 @@ function trunkDetail(y, a) {
   // the neck's — which opened a black slot under the chin, because what you
   // then see through the gap is the inside of a back face.
   return 1 + (k - 1) * smooth(0.772, 0.756, y);
+}
+
+/**
+ * Surface anatomy of a limb, as a radial multiplier on (path fraction, angle).
+ *
+ * SAME ARGUMENT AS `trunkDetail`, ONE STEP OUT. The trunk got its landmarks
+ * last round and the limbs did not, and the mismatch was worse than the
+ * original fault: a chest with a costal margin above two smooth tubes reads as
+ * a body wearing sleeves. A limb at this size is 10 px across, so what
+ * survives is not muscle definition — it is the four or five places where the
+ * outline stops being a taper. Those are all here and nothing else is.
+ *
+ * THE FRAME. Both limbs are swept with the seed (0,0,1), and a probe through
+ * `transportFrames` puts θ = 0 on +z and θ = π/2 on −x, on both sides. So
+ * anterior and posterior are side-independent, and medial/lateral flip with
+ * the side — hence the `k`.
+ */
+const gauss = (x, mu, sigma) => Math.exp(-(((x - mu) / sigma) ** 2));
+
+/** A ridge in angle — the positive counterpart of `groove`. */
+const ridgeAt = (th, at, width) => Math.exp(-((dTheta(th, at) / width) ** 2));
+
+/** Which way a point on the section faces. −x is medial on the LEFT limb. */
+function facing(th, k) {
+  const c = Math.cos(th);
+  const s = Math.sin(th);
+  return {
+    ant: Math.max(0, c),
+    post: Math.max(0, -c),
+    med: Math.max(0, k * s),
+    lat: Math.max(0, -k * s),
+  };
+}
+
+/**
+ * Where the arm's landmarks fall along its own path, as arc fractions.
+ *
+ * Measured, not guessed. `sweep` parameterises by ARC LENGTH, so the fraction
+ * a joint sits at is the running distance along the control polygon over its
+ * total — and it moves whenever the path does. The taper and the surface
+ * detail both key off this table so that an edit to the path cannot leave the
+ * elbow's pinch three centimetres above the elbow, which is what happened when
+ * the two carried their own copies of the numbers.
+ */
+export const ARM_AT = {
+  shoulder: 0.126,
+  elbow: 0.5,
+  wrist: 0.867,
+  palm: 0.915,
+};
+export const LEG_AT = { hip: 0.04, knee: 0.52, ankle: 1 };
+
+/**
+ * Arm surface, from the buried apex (t = 0) to the fingertip (t = 1).
+ *
+ * The deltoid is the one that matters most. It is not a swelling that fades —
+ * it ENDS, at its insertion a third of the way down the humerus, and that
+ * abrupt lower edge is the single line that tells a shoulder from a hinge. A
+ * Gaussian could not do it, so the cap is a plateau with a fast fall.
+ */
+function armDetail(t, th, k) {
+  const { ant, post, med, lat } = facing(th, k);
+  const E = ARM_AT.elbow;
+  let d = 0;
+
+  // DELTOID — over the top of the shoulder, heaviest laterally, cut off short.
+  d +=
+    0.1 *
+    smooth(0.06, 0.12, t) *
+    smooth(0.36, 0.27, t) *
+    (lat * 0.95 + post * 0.45 + ant * 0.3);
+  // BICEPS anterior, TRICEPS posterior and longer, ending in a flat tendon.
+  d += 0.05 * gauss(t, 0.32, 0.072) * ant;
+  d += 0.045 * gauss(t, 0.29, 0.095) * post;
+  d -= 0.022 * gauss(t, E - 0.065, 0.034) * post;
+  // ELBOW — olecranon behind as a hard point, cubital fossa hollow in front,
+  // epicondyles making the joint WIDE. A round elbow is the giveaway of a
+  // mannequin; a real one is a flat triangle from behind.
+  d += 0.07 * gauss(t, E + 0.008, 0.025) * post;
+  d -= 0.032 * gauss(t, E, 0.033) * ant;
+  d += 0.042 * gauss(t, E - 0.003, 0.029) * (lat + med);
+  // FOREARM — the flexor and extensor mass just below the elbow, then the
+  // subcutaneous ulnar border running flat all the way to the wrist.
+  d += 0.042 * gauss(t, 0.58, 0.072) * (ant * 0.65 + lat * 0.8 + post * 0.5);
+  d -= 0.026 * gauss(t, 0.685, 0.095) * med;
+  // WRIST — the two styloid processes, and the joint is flat front to back.
+  d += 0.045 * gauss(t, ARM_AT.wrist, 0.018) * (lat * 0.8 + med * 0.6);
+  // THENAR pad at the base of the thumb. The arm hangs palm-inward, so the
+  // thumb — and its pad — face forward.
+  d += 0.055 * gauss(t, 0.918, 0.026) * Math.max(0, ant - 0.25);
+  // KNUCKLES, across the metacarpal heads.
+  d += 0.03 * gauss(t, 0.935, 0.017) * (ant * 0.6 + post * 0.4);
+
+  return 1 + d;
+}
+
+/**
+ * Leg: hip at t ≈ 0.04, knee 0.52, ankle 1.
+ *
+ * Three landmarks carry a leg. The vastus medialis teardrop above the inside
+ * of the knee; the two calf bellies, of which the MEDIAL one hangs lower — the
+ * asymmetry is the fact, a symmetrical calf reads as a sock; and the malleoli,
+ * where again the medial one sits higher than the lateral. Get those three
+ * right and the shin can look after itself.
+ */
+function legDetail(t, th, k) {
+  const { ant, post, med, lat } = facing(th, k);
+  const K = LEG_AT.knee;
+  let d = 0;
+
+  // QUADRICEPS mass, the iliotibial flattening down the outside, and the
+  // vastus medialis teardrop just above the knee.
+  d += 0.036 * gauss(t, 0.26, 0.13) * ant;
+  d += 0.026 * gauss(t, 0.34, 0.1) * lat;
+  d += 0.05 * gauss(t, K - 0.08, 0.045) * (med * 0.95 + ant * 0.3);
+  // KNEE — condyles make it wide, the patella is a flat plate on the front,
+  // and the popliteal fossa is a hollow behind. Wide-and-flat, never round.
+  d += 0.042 * gauss(t, K + 0.005, 0.032) * (lat + med);
+  d += 0.028 * gauss(t, K - 0.008, 0.026) * Math.max(0, ant - 0.5);
+  d -= 0.03 * gauss(t, K + 0.028, 0.032) * post;
+  // CALF — lateral head higher, medial head lower and larger.
+  d += 0.055 * gauss(t, 0.632, 0.058) * (post * 0.85 + lat * 0.55);
+  d += 0.07 * gauss(t, 0.672, 0.062) * (post * 0.85 + med * 0.65);
+  // TIBIAL BORDER — the shin. A subcutaneous ridge a little medial of the
+  // front, with the flat of the bone beside it; this is why a lower leg is
+  // triangular in section and not a cylinder.
+  const shin = smooth(0.58, 0.68, t) * smooth(1.02, 0.9, t);
+  d += 0.022 * ridgeAt(th, k * 0.3, 0.26) * shin;
+  d -= 0.018 * ridgeAt(th, k * 0.95, 0.4) * shin;
+  // ACHILLES — the leg narrows hard side to side above the heel and the
+  // tendon stands proud behind it.
+  d -= 0.05 * gauss(t, 0.885, 0.07) * (lat + med) * 0.75;
+  d += 0.028 * gauss(t, 0.885, 0.07) * post;
+  // MALLEOLI. Medial higher, lateral lower — every plate shows this and it is
+  // the cheapest ankle there is.
+  d += 0.055 * gauss(t, 0.962, 0.02) * med;
+  d += 0.05 * gauss(t, 0.993, 0.02) * lat;
+
+  return 1 + d;
 }
 
 /**
@@ -180,12 +341,19 @@ function torsoGeometry() {
     // A wider ring here left a lens-shaped hole under the chin: the cone came
     // out of the neck, went back in, and you saw the inside of it through the
     // gap between the two surfaces.
+    // THE TRAPEZIUS SLOPE. These used to jump 0.044 → 0.118 → 0.158 over two
+    // centimetres, which left the trunk narrower than the arm all the way from
+    // the neck root down to the acromion — so the top of each arm stood out in
+    // open air beside the neck and read as a WING. It is a slope, not a step:
+    // roughly 19° from the neck root out to the shoulder tip, which is what a
+    // shoulder actually is, and it has to be sampled often enough to curve.
     { y: 0.776, rx: 0.044, rz: 0.04 },
-    { y: 0.768, rx: 0.076, rz: 0.058 },
-    { y: 0.762, rx: 0.1, rz: 0.07 },
-    { y: 0.758, rx: 0.118, rz: 0.08 },
-    { y: 0.744, rx: 0.158, rz: 0.091 },
-    { y: 0.728, rx: 0.176, rz: 0.099 },
+    { y: 0.77, rx: 0.074, rz: 0.056 },
+    { y: 0.764, rx: 0.102, rz: 0.069 },
+    { y: 0.757, rx: 0.13, rz: 0.079 },
+    { y: 0.75, rx: 0.152, rz: 0.086 },
+    { y: 0.742, rx: 0.17, rz: 0.092 },
+    { y: 0.73, rx: 0.18, rz: 0.099 },
     { y: 0.715, rx: 0.183, rz: 0.103 },
     { y: 0.63, rx: 0.176, rz: 0.108 },
     { y: 0.53, rx: 0.158, rz: 0.1 },
@@ -358,20 +526,26 @@ export function buildBody() {
   ].forEach(([s, k]) => {
     const r = taper([
       [0, 0.052], // deltoid
-      [0.06, 0.052],
-      [0.24, 0.042], // upper arm
-      [0.45, 0.033], // elbow — the narrowing IS the joint
-      [0.57, 0.037], // forearm belly
-      [0.84, 0.023], // wrist
-      [0.9, 0.03], // palm
+      [0.1, 0.053],
+      [0.28, 0.042], // upper arm
+      [ARM_AT.elbow, 0.033], // elbow — the narrowing IS the joint
+      [0.6, 0.037], // forearm belly
+      [ARM_AT.wrist, 0.023], // wrist
+      [ARM_AT.palm, 0.03], // palm
       [1, 0.013], // fingers
     ]);
     made[`arm${s}`] = push(
       sweep(
         mat,
         [
-          [k * 0.166, 0.786, -0.002],
-          [k * 0.178, 0.752, 0.0],
+          // The arm starts INSIDE the trapezius, not above it. It used to
+          // begin at y 0.786 — five centimetres higher than the shoulder joint
+          // and 12 cm out from the midline, at a height where the trunk is
+          // only 4 cm wide — so its domed top had nothing around it and the
+          // figure grew a pair of wings. Now the dome is buried and what
+          // emerges below the shoulder line is the deltoid.
+          [k * 0.096, 0.754, -0.002],
+          [k * 0.148, 0.742, 0.0],
           J[`shoulder${s}`],
           [k * 0.202, 0.616, 0.003],
           J[`elbow${s}`],
@@ -385,12 +559,17 @@ export function buildBody() {
           // flat disc, and a flat disc at the top of a shoulder stands off the
           // body like a cut. Taking the radius to zero with a vertical tangent
           // closes it as a hemisphere, which is the deltoid.
-          const rr = r(t) * domeStart(t, 0.075);
+          const rr = r(t) * domeStart(t, 0.075) * armDetail(t, th, k);
           // The hand flattens: thin across the palm, wider front to back.
-          const flat = smooth(0.86, 0.96, t);
+          const flat = smooth(ARM_AT.wrist, 0.965, t);
           return ellipse(th, rr * (1 + 0.5 * flat), rr * (1 - 0.42 * flat));
         },
-        { stations: 70, radial: 26, seed: new THREE.Vector3(0, 0, 1) },
+        // Resolution set by the smallest feature that has to survive, which is
+        // the styloid at σ = 0.019 of the path and the shin ridge at 0.26 rad.
+        // The old 70 × 26 put fewer than three rows across the first and one
+        // segment across the second, and a landmark narrower than the mesh
+        // does not exist however carefully it is written.
+        { stations: 104, radial: 40, seed: new THREE.Vector3(0, 0, 1) },
       ),
     );
   });
@@ -408,7 +587,7 @@ export function buildBody() {
       // a notch in the crotch that read as damage rather than as anatomy.
       [0.12, 0.059],
       [0.4, 0.051], // above the knee
-      [0.52, 0.046], // knee
+      [LEG_AT.knee, 0.046], // knee
       [0.62, 0.051], // calf
       [0.88, 0.031],
       [1, 0.027], // ankle
@@ -427,36 +606,76 @@ export function buildBody() {
         // Domed at the top, like the shoulder, and the dome sits deep inside
         // the pelvis where nothing can see it. A flat end cap here stood off
         // the hip as a plate.
+        // A LONGER dome than the arm's. The whole hip cap is buried in the
+        // pelvis, and on a surface with `depthWrite` off a buried surface
+        // still draws its own silhouette — a short cap put a hard equator
+        // ring across each hip that read as a pair of shorts. Stretching the
+        // cap over a tenth of the leg gives it no edge to draw.
         (t, th) => {
-          const rr = r(t) * domeStart(t, 0.055);
+          const rr = r(t) * domeStart(t, 0.1) * legDetail(t, th, k);
           return ellipse(th, rr * 0.96, rr);
         },
-        { stations: 56, radial: 26, seed: new THREE.Vector3(0, 0, 1) },
+        { stations: 96, radial: 40, seed: new THREE.Vector3(0, 0, 1) },
       ),
     );
 
-    // Foot, starting at the ankle radius so the join has no silhouette.
+    // Foot. Starts inside the ankle so the join has no silhouette.
+    //
+    // TWO THINGS WERE WRONG WITH IT, and they compounded.
+    //
+    // FIRST, IT WAS 9 cm LONG. The path ran from the ankle down and forward
+    // to a point 8 cm ahead of it, with nothing at all behind — so the figure
+    // had no heel, and a foot as wide as it was long reads as a paddle. A
+    // 176 cm person's foot is about 25 cm. The path is now a HOOK: back and
+    // down to the heel, then forward under the arch to the toes, which is the
+    // shape of the thing and is also what lets one surface carry both ends.
+    //
+    // SECOND, the profile put the wide axis on the frame's first vector and
+    // the narrow one on the second, and a probe through `transportFrames`
+    // says the first is the dorsal direction and the second is ±x. So "wide
+    // and shallow" was being applied to the wrong pair, and the foot came out
+    // 3.7 cm across and 8 cm tall — standing on its edge.
     const fr = taper([
-      [0, 0.027],
-      [0.3, 0.032],
-      [0.8, 0.03],
-      [1, 0.016],
+      [0, 0.026], // inside the ankle
+      [0.2, 0.033], // heel
+      [0.45, 0.031], // midfoot
+      [0.74, 0.031], // ball
+      [1, 0.014], // toes
     ]);
     made[`foot${s}`] = push(
       sweep(
         mat,
         [
-          J[`ankle${s}`],
-          [k * 0.092, -0.506, 0.014],
-          [k * 0.092, -0.522, 0.05],
-          J[`toe${s}`],
+          [k * 0.092, -0.479, -0.008],
+          [k * 0.092, -0.513, -0.032], // heel
+          [k * 0.092, -0.5295, -0.004], // under the heel
+          [k * 0.0925, -0.5325, 0.05], // midfoot, over the arch
+          [k * 0.093, -0.5335, 0.104], // ball
+          [k * 0.0935, -0.5345, 0.15], // toes
         ],
         (t, th) => {
-          // Wide and shallow: a foot is flat, and a round one reads as a hoof.
-          const spread = 0.55 + 0.75 * smooth(0, 0.5, t);
-          return ellipse(th, fr(t) * spread, fr(t) * 0.62);
+          // Wide across, flat through: a foot is a plate, and a round one
+          // reads as a hoof. The heel is the exception — it is deep rather
+          // than wide, which is why `through` starts high.
+          const across = 0.78 + 0.55 * smooth(0.08, 0.55, t);
+          const through = 0.98 - 0.52 * smooth(0.12, 0.78, t);
+          // The transported frame turns over as the path rounds the heel: a
+          // probe puts θ = 0 up-and-back at the heel and straight DOWN from
+          // the midfoot on, with θ = π/2 on +x throughout. So along the part
+          // of the foot that has an arch, the sole is +cos and not −cos —
+          // which is the opposite of the dorsum-first reading the arm and leg
+          // use, and getting it backwards hollows out the instep.
+          const sole = Math.max(0, Math.cos(th));
+          const med = Math.max(0, -k * Math.sin(th));
+          // THE ARCH. The instep lifts off the ground on the inside, and the
+          // hollow under it is the one thing that stops a foot being a wedge.
+          let d = -0.24 * gauss(t, 0.47, 0.13) * sole * (0.3 + 0.7 * med);
+          // The ball of the foot, under the metatarsal heads.
+          d += 0.1 * gauss(t, 0.76, 0.1) * sole;
+          const rr = fr(t) * (1 + d);
+          return ellipse(th, rr * through, rr * across);
         },
-        { stations: 26, radial: 20, seed: new THREE.Vector3(0, 1, 0) },
+        { stations: 52, radial: 28, seed: new THREE.Vector3(0, 1, 0) },
       ),
     );
   });
@@ -472,11 +691,11 @@ export function buildBody() {
   // arm's domed top is buried inside the shoulder yoke — and a large rotation
   // would drag it out into the open and reopen the seam the last pass closed.
   const rig = {
-    head: pivotAt(group, [0, 0.855, -0.004], [made.head, made.neck], "head"),
-    armL: pivotAt(group, J.shoulderL, [made.armL], "armL"),
-    armR: pivotAt(group, J.shoulderR, [made.armR], "armR"),
-    legL: pivotAt(group, J.hipL, [made.legL, made.footL], "legL"),
-    legR: pivotAt(group, J.hipR, [made.legR, made.footR], "legR"),
+    head: pivotAt(group, PIVOTS.head, [made.head, made.neck], "head"),
+    armL: pivotAt(group, PIVOTS.armL, [made.armL], "armL"),
+    armR: pivotAt(group, PIVOTS.armR, [made.armR], "armR"),
+    legL: pivotAt(group, PIVOTS.legL, [made.legL, made.footL], "legL"),
+    legR: pivotAt(group, PIVOTS.legR, [made.legR, made.footR], "legR"),
   };
 
   return { group, material: mat, parts, rig };

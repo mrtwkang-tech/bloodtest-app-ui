@@ -157,7 +157,8 @@ export const en = {
   "mech.cortDhea":
     "The balance between the hormone that breaks tissue down and the one that builds it back. A ratio, because both move with the hour of the draw and dividing cancels some of that.",
   "mech.crp": "The general-purpose inflammation signal. Days, not months.",
-  "mech.il6": "An upstream inflammatory messenger that acts directly on the brain.",
+  "mech.il6":
+    "An upstream inflammatory messenger that acts directly on the brain.",
   "mech.nlr":
     "The balance of two white cell types, straight off the differential. Rises with sustained stress and inflammation.",
   "mech.tryptophanPool":
@@ -418,7 +419,8 @@ export const en = {
   "home.inbody": "Body composition",
   "home.tracked": ({ n, m }) => `${n} rounds · ${m} months`,
   "store.monthly": "Monthly",
-  "store.monthlyNote": "Ships every month · the cadence this panel is built for",
+  "store.monthlyNote":
+    "Ships every month · the cadence this panel is built for",
   "store.ctaMonthly": "Start monthly · 59,000 KRW per test",
   "ix.residualInflammation.title": "Inflammation without the lipid signal",
   "ix.residualInflammation.body":
@@ -453,14 +455,16 @@ export const en = {
   "body.compositionRow": "Full body composition",
   "predict.title": "Forecast",
   "predict.subtitle": "What the models say, and what they are",
-  "home.state.predict": ({ age, gap }) => `Cell age ${age} · ${gap} vs calendar`,
+  "home.state.predict": ({ age, gap }) =>
+    `Cell age ${age} · ${gap} vs calendar`,
   "model.cellAge": "Cell age",
   "model.pace": "Ageing pace",
   "model.years": "years",
   "model.perYear": "per year",
   "model.vsCalendar": ({ age, gap }) => `calendar ${age} · ${gap}`,
   "model.paceRange": ({ lo, hi, n }) => `95% ${lo}–${hi} · from ${n} draws`,
-  "model.paceTooFew": ({ n }) => `${n} draws so far — a slope needs at least three`,
+  "model.paceTooFew": ({ n }) =>
+    `${n} draws so far — a slope needs at least three`,
   "model.kind.elastic-net": "penalised linear regression",
   "model.kind.ols-slope": "least-squares slope",
   "model.training": "Fitted on",
@@ -493,8 +497,7 @@ export const en = {
   "panel.clearedNote":
     "Saved plates cleared. Values already written stay until reload.",
   "panel.pastedAll": ({ n }) => `${n} matched. Review, then save.`,
-  "panel.pastedSome": ({ n, bad }) =>
-    `${n} matched. Could not place: ${bad}`,
+  "panel.pastedSome": ({ n, bad }) => `${n} matched. Could not place: ${bad}`,
   "auth.tagline":
     "One draw a month, read across ten specialties and five regulatory systems.",
   "auth.email": "Email",
@@ -570,6 +573,18 @@ export const en = {
   "sys.immune": "Joints & immunity",
   "sys.oncology": "Whole body",
   "sys.nutrition": "Nutrition",
+  // Where the system is, in the words someone would use pointing at themselves.
+  // This is the one thing the figure can say that the list of rows cannot.
+  "where.neuro": "Inside the skull, and down the spine",
+  "where.cardio": "Middle of the chest, tipped left",
+  "where.endocrine": "Neck, above the kidneys, behind the stomach",
+  "where.hepatic": "Under the ribs on the right",
+  "where.renal": "Either side of the spine, at the small of the back",
+  "where.hematology": "Marrow — spine, ribs, pelvis, hips",
+  "where.pulmonary": "Both sides of the chest, around the heart",
+  "where.immune": "Lymph nodes and joints, all over",
+  "where.oncology": "Not one place. Everywhere at once",
+  "where.nutrition": "Breastbone to pelvis, the length of the gut",
   "spec.neuro": "Neurology",
   "spec.cardio": "Cardiology",
   "spec.endocrine": "Endocrinology",
@@ -699,7 +714,8 @@ export const ko = {
   "home.state.mindClear": ({ n }) => `조절계 ${n}개 모두 정상 범위`,
   "home.state.mindWatch": ({ n }) => `5개 중 ${n}개 관찰 필요`,
   "home.state.bodyClear": ({ n }) => `질환 ${n}종 모두 이상 없음`,
-  "home.state.bodyWatch": ({ total, n }) => `질환 ${total}종 중 ${n}곳 관찰 필요`,
+  "home.state.bodyWatch": ({ total, n }) =>
+    `질환 ${total}종 중 ${n}곳 관찰 필요`,
   "home.state.signals": ({ n }) => `같이 봐야 보이는 것 ${n}가지`,
   "home.cohort.all": "전체 이용자",
   "home.cohort.age": ({ band }) => `${band}대`,
@@ -827,7 +843,8 @@ export const ko = {
     "값이 만들어지는 데 채혈 간격보다 오래 걸립니다. 그래서 이번 달만 떼어 읽을 수 없고, 지금 어디쯤인지를 보는 용도로만 씁니다.",
   "mech.cortDhea":
     "조직을 분해하는 호르몬과 다시 쌓는 호르몬의 균형입니다. 둘 다 채혈 시각에 따라 움직이기 때문에, 나눠서 그 영향을 일부 상쇄한 비율로 봅니다.",
-  "mech.crp": "가장 널리 쓰이는 염증 신호입니다. 몇 달이 아니라 며칠 단위로 움직입니다.",
+  "mech.crp":
+    "가장 널리 쓰이는 염증 신호입니다. 몇 달이 아니라 며칠 단위로 움직입니다.",
   "mech.il6": "뇌에 직접 작용하는 상류 염증 전달물질입니다.",
   "mech.nlr":
     "백혈구 두 종류의 균형입니다. 혈액검사에서 그냥 나오고, 스트레스와 염증이 이어지면 올라갑니다.",
@@ -1230,6 +1247,18 @@ export const ko = {
   "sys.immune": "관절·면역",
   "sys.oncology": "전신",
   "sys.nutrition": "영양",
+  // 계통이 몸의 어디인지. 손으로 짚으며 말할 때 쓰는 말로 —
+  // 행 목록이 못 하고 인체 도면만 할 수 있는 말이 이것이다.
+  "where.neuro": "머리뼈 안, 그리고 등뼈 속을 따라",
+  "where.cardio": "가슴 한가운데, 왼쪽으로 기울어",
+  "where.endocrine": "목 앞, 콩팥 위, 위장 뒤",
+  "where.hepatic": "오른쪽 갈비뼈 아래",
+  "where.renal": "허리 뒤, 척추 양옆",
+  "where.hematology": "골수 — 등뼈·갈비뼈·골반·넓적다리",
+  "where.pulmonary": "가슴 양쪽, 심장을 감싸고",
+  "where.immune": "온몸의 림프절과 관절",
+  "where.oncology": "한 곳이 아니라 전신",
+  "where.nutrition": "명치에서 골반까지, 소화관 전체",
   "spec.neuro": "신경과",
   "spec.cardio": "순환기내과",
   "spec.endocrine": "내분비내과",

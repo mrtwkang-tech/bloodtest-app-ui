@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { J } from "./figure";
+import { J, PIVOTS } from "./figure";
 import {
   LEVEL,
   capsule,
@@ -58,6 +58,56 @@ function organMaterial(color) {
 
 const round = (th, r) => ellipse(th, r, r);
 
+/* ------------------------------------------------------------------- rig */
+
+/**
+ * Marks a mesh as belonging to a limb, so it swings when that limb does.
+ *
+ * WHY THIS IS NEEDED AT ALL. The figure grew a rig last round and the organs
+ * did not. The result was a body that shifted its weight and swung its arms
+ * around a skeleton nailed to the floor — the humerus stayed put while the arm
+ * containing it moved, and at any real amplitude the bone came out through the
+ * skin. Worse than not animating: an organ that ignores the body it is in
+ * stops reading as being inside it, which is the one thing this view exists to
+ * say.
+ *
+ * Only structures that are ENTIRELY within a limb are marked. Anything that
+ * crosses a joint — a nerve, an artery — is split into two meshes at the joint
+ * instead, and the two share that exact point, so the swing puts a bend in it
+ * rather than a gap. A nerve bending at the shoulder is what a nerve does.
+ */
+function rides(name, mesh) {
+  mesh.userData.rides = name;
+  return mesh;
+}
+
+/**
+ * Hangs every marked mesh off its joint and hands back the pivots.
+ *
+ * Same trick as the mannequin's own `pivotAt`: the geometry is written in
+ * world coordinates, so it is translated back by the joint and the group is
+ * put AT the joint. Every system gets all five pivots whether it uses them or
+ * not, so the frame loop can drive any system with one piece of code.
+ */
+function rigify(group) {
+  const rig = {};
+  Object.entries(PIVOTS).forEach(([name, at]) => {
+    const g = new THREE.Group();
+    g.position.set(at[0], at[1], at[2]);
+    group.add(g);
+    rig[name] = g;
+  });
+  // Copy first: re-parenting mutates `children` underneath the iteration.
+  group.children
+    .filter((o) => o.userData.rides)
+    .forEach((m) => {
+      const at = PIVOTS[m.userData.rides];
+      m.geometry.translate(-at[0], -at[1], -at[2]);
+      rig[m.userData.rides].add(m);
+    });
+  return rig;
+}
+
 /* ------------------------------------------------------------------- neuro */
 
 /** Brain, cerebellum, brainstem, cord and the two great peripheral nerves. */
@@ -70,79 +120,103 @@ function buildNeuro(color) {
   // longitudinal fissure, the temporal lobe slung below the Sylvian fissure,
   // and gyri that run in tracts. An isotropic bump map instead of tracts reads
   // as damage, not as convolution.
+  //
+  // It nods with the head. Its centre is 11 cm above the pivot, so a head that
+  // drops 12° and a brain that does not part company by nearly 2 cm — the
+  // brain would sit outside the skull it is drawn inside.
   group.add(
-    ellipsoid(
-      mat,
-      [0, 0.969, 0.004],
-      [cm(6.9), cm(4.6), cm(8.1)],
-      (v, d) => {
-        const taper =
-          1 - 0.24 * Math.max(0, d.z) ** 2 - 0.16 * Math.max(0, -d.z) ** 2;
-        v.x *= taper;
-        // Sylvian fissure runs anteroinferior to posterosuperior; the temporal
-        // lobe hangs below it, and only on the lateral surface.
-        const syl = d.y + 0.34 * d.z + 0.08;
-        v.y -=
-          cm(1.7) *
-          Math.exp(-((syl / 0.36) ** 2)) *
-          Math.min(1, Math.abs(d.x) * 2.4);
-        // Deep above, fused below at the corpus callosum.
-        v.x *=
-          1 - 0.38 * smooth(-0.1, 0.4, d.y) * Math.exp(-Math.abs(d.x) / 0.17);
-        if (v.y < 0) v.y *= 0.8;
-        const g = Math.sin(d.x * 23 + d.z * 8) * Math.cos(d.y * 15 + d.z * 11);
-        v.multiplyScalar(1 + g * 0.021);
-      },
-      54,
+    rides(
+      "head",
+      ellipsoid(
+        mat,
+        [0, 0.969, 0.004],
+        [cm(6.9), cm(4.6), cm(8.1)],
+        (v, d) => {
+          const taper =
+            1 - 0.24 * Math.max(0, d.z) ** 2 - 0.16 * Math.max(0, -d.z) ** 2;
+          v.x *= taper;
+          // Sylvian fissure runs anteroinferior to posterosuperior; the temporal
+          // lobe hangs below it, and only on the lateral surface.
+          const syl = d.y + 0.34 * d.z + 0.08;
+          v.y -=
+            cm(1.7) *
+            Math.exp(-((syl / 0.36) ** 2)) *
+            Math.min(1, Math.abs(d.x) * 2.4);
+          // Deep above, fused below at the corpus callosum.
+          v.x *=
+            1 - 0.38 * smooth(-0.1, 0.4, d.y) * Math.exp(-Math.abs(d.x) / 0.17);
+          if (v.y < 0) v.y *= 0.8;
+          const g =
+            Math.sin(d.x * 23 + d.z * 8) * Math.cos(d.y * 15 + d.z * 11);
+          v.multiplyScalar(1 + g * 0.021);
+        },
+        54,
+      ),
     ),
   );
 
   // Cerebellum. Its folia are finer and far more regular than cerebral gyri;
   // that difference is how the two are told apart in a plate.
   group.add(
-    ellipsoid(
-      mat,
-      [0, 0.917, -0.052],
-      [cm(5.2), cm(2.4), cm(2.9)],
-      (v, d) => {
-        v.x *= 1 - 0.22 * Math.exp(-Math.abs(d.x) / 0.2);
-        v.multiplyScalar(1 + Math.sin(d.y * 40) * 0.028);
-        if (v.y > 0) v.y *= 0.82;
-      },
-      32,
+    rides(
+      "head",
+      ellipsoid(
+        mat,
+        [0, 0.917, -0.052],
+        [cm(5.2), cm(2.4), cm(2.9)],
+        (v, d) => {
+          v.x *= 1 - 0.22 * Math.exp(-Math.abs(d.x) / 0.2);
+          v.multiplyScalar(1 + Math.sin(d.y * 40) * 0.028);
+          if (v.y > 0) v.y *= 0.82;
+        },
+        32,
+      ),
     ),
   );
 
   // Brainstem: midbrain, then the pons bulging forward, then the medulla
-  // narrowing into the cord.
+  // narrowing into the cord. Rides the head with the rest of the contents of
+  // the skull; the cord below is extended up inside it (see next) so the bend
+  // between the two happens where nothing can see it.
   group.add(
-    sweep(
-      mat,
-      [
-        [0, 0.949, -0.004],
-        [0, 0.934, -0.003],
-        [0, 0.919, -0.008],
-        [0, 0.901, -0.013],
-        [0, 0.886, -0.016],
-      ],
-      (t, th) => {
-        const pons = Math.exp(-(((t - 0.42) / 0.22) ** 2));
-        const r = cm(1.15) * (1 - 0.28 * t) + cm(0.55) * pons;
-        return ellipse(th, r, r * (1 + 0.4 * pons));
-      },
-      { stations: 26, radial: 14 },
+    rides(
+      "head",
+      sweep(
+        mat,
+        [
+          [0, 0.949, -0.004],
+          [0, 0.934, -0.003],
+          [0, 0.919, -0.008],
+          [0, 0.901, -0.013],
+          [0, 0.886, -0.016],
+        ],
+        (t, th) => {
+          const pons = Math.exp(-(((t - 0.42) / 0.22) ** 2));
+          const r = cm(1.15) * (1 - 0.28 * t) + cm(0.55) * pons;
+          return ellipse(th, r, r * (1 + 0.4 * pons));
+        },
+        { stations: 26, radial: 14 },
+      ),
     ),
   );
 
   // Spinal cord, in the canal behind the vertebral bodies. Two enlargements
   // where the limb plexuses take off, and then it STOPS at L1 as the conus —
   // running it to the sacrum is the commonest error in a spine drawing.
+  //
+  // It starts 2 cm higher than the foramen magnum, INSIDE the medulla. That
+  // overlap is what lets the head nod: the medulla swings with the skull and
+  // the cord does not, and without the overlap the join would open as a step
+  // on a tube 7 px wide.
   group.add(
     sweep(
       mat,
-      [0.884, 0.83, 0.775, 0.7, 0.6, 0.52, 0.47, 0.442].map((y) =>
-        onSpine(y, -cm(1.9)),
-      ),
+      [
+        [0, 0.906, -0.014],
+        ...[0.884, 0.83, 0.775, 0.7, 0.6, 0.52, 0.47, 0.442].map((y) =>
+          onSpine(y, -cm(1.9)),
+        ),
+      ],
       (t, th) => {
         const cerv = Math.exp(-(((t - 0.18) / 0.13) ** 2));
         const lumb = Math.exp(-(((t - 0.8) / 0.1) ** 2));
@@ -196,6 +270,12 @@ function buildNeuro(color) {
     ["R", -1],
   ].forEach(([s, k]) => {
     // Brachial plexus, converging into the arm.
+    //
+    // CUT AT THE SHOULDER. A nerve that runs from the spine to the wrist is
+    // half in the trunk and half in a limb that swings 28°, and neither
+    // answer works for the whole of it. So it is two meshes meeting at exactly
+    // the joint the arm turns about: the swing then puts a BEND in the nerve
+    // rather than a gap, which is also what a shoulder does to a real one.
     group.add(
       tube(
         mat,
@@ -204,42 +284,78 @@ function buildNeuro(color) {
           [k * 0.06, 0.752, 0.006],
           [k * 0.13, 0.741, 0.005],
           J[`shoulder${s}`],
-          [k * 0.202, 0.618, 0.005],
-          J[`elbow${s}`],
-          [k * 0.242, 0.382, 0.013],
-          J[`wrist${s}`],
         ],
         cm(0.3),
-        { radial: 7, stations: 36, caps: false },
+        { radial: 7, stations: 16, caps: false },
+      ),
+    );
+    group.add(
+      rides(
+        `arm${s}`,
+        tube(
+          mat,
+          [
+            J[`shoulder${s}`],
+            [k * 0.202, 0.618, 0.005],
+            J[`elbow${s}`],
+            [k * 0.242, 0.382, 0.013],
+            J[`wrist${s}`],
+          ],
+          cm(0.3),
+          { radial: 7, stations: 26, caps: false },
+        ),
       ),
     );
     // Sciatic — the largest nerve in the body, and the one a reader has heard
-    // of. It divides above the knee, so it is drawn in two runs.
+    // of. It divides above the knee, so it is drawn in two runs, and it is cut
+    // once more at the hip for the reason the brachial is cut at the shoulder.
     group.add(
       tube(
         mat,
         [
           onSpine(0.3, -cm(1.1)),
           [k * 0.05, 0.246, -cm(1.7)],
-          [k * 0.076, 0.198, -0.02],
-          [k * 0.088, 0.04, -0.012],
-          [k * 0.088, -0.104, -0.006],
+          [k * 0.072, 0.206, -0.019],
+          J[`hip${s}`],
         ],
         cm(0.4),
-        { radial: 7, stations: 26, caps: false },
+        { radial: 7, stations: 18, caps: false },
       ),
     );
     group.add(
-      tube(
-        mat,
-        [
-          [k * 0.088, -0.104, -0.006],
-          [k * 0.084, -0.2, 0.002],
-          [k * 0.09, -0.38, -0.004],
-          J[`ankle${s}`],
-        ],
-        cm(0.23),
-        { radial: 6, stations: 18, caps: false },
+      rides(
+        `leg${s}`,
+        tube(
+          mat,
+          [
+            J[`hip${s}`],
+            // Straight back behind the joint: the nerve leaves the pelvis
+            // through the sciatic notch, well posterior to the hip, and the
+            // shared point at the joint centre is a splicing requirement rather
+            // than a claim about where it runs.
+            [k * 0.084, 0.152, -0.019],
+            [k * 0.088, 0.04, -0.012],
+            [k * 0.088, -0.104, -0.006],
+          ],
+          cm(0.4),
+          { radial: 7, stations: 22, caps: false },
+        ),
+      ),
+    );
+    group.add(
+      rides(
+        `leg${s}`,
+        tube(
+          mat,
+          [
+            [k * 0.088, -0.104, -0.006],
+            [k * 0.084, -0.2, 0.002],
+            [k * 0.09, -0.38, -0.004],
+            J[`ankle${s}`],
+          ],
+          cm(0.23),
+          { radial: 6, stations: 18, caps: false },
+        ),
       ),
     );
   });
@@ -427,6 +543,12 @@ function buildCardio(color) {
     ["L", 1],
     ["R", -1],
   ].forEach(([s, k]) => {
+    // Subclavian, then brachial. Cut at the shoulder and at the hip below for
+    // the reason the nerves are: the proximal half belongs to the trunk, the
+    // distal half swings with the limb, and the two share the joint centre so
+    // the swing bends the vessel instead of breaking it. Each half carries the
+    // slice of the taper it used to have, so the calibre is still continuous
+    // across the join.
     group.add(
       sweep(
         mat,
@@ -434,13 +556,26 @@ function buildCardio(color) {
           [k * 0.024, 0.727, -0.004],
           [k * 0.1, 0.743, 0.004],
           J[`shoulder${s}`],
-          [k * 0.202, 0.618, 0.006],
-          J[`elbow${s}`],
-          [k * 0.242, 0.382, 0.014],
-          J[`wrist${s}`],
         ],
-        (t, th) => round(th, cm(0.62) - cm(0.36) * t),
-        { radial: 8, stations: 32, caps: false },
+        (t, th) => round(th, cm(0.62) - cm(0.07) * t),
+        { radial: 8, stations: 14, caps: false },
+      ),
+    );
+    group.add(
+      rides(
+        `arm${s}`,
+        sweep(
+          mat,
+          [
+            J[`shoulder${s}`],
+            [k * 0.202, 0.618, 0.006],
+            J[`elbow${s}`],
+            [k * 0.242, 0.382, 0.014],
+            J[`wrist${s}`],
+          ],
+          (t, th) => round(th, cm(0.55) - cm(0.29) * t),
+          { radial: 8, stations: 26, caps: false },
+        ),
       ),
     );
     group.add(
@@ -451,13 +586,26 @@ function buildCardio(color) {
           [k * 0.03, 0.292, -0.026],
           [k * 0.056, 0.246, -0.008],
           J[`hip${s}`],
-          [k * 0.086, 0.022, 0.004],
-          J[`knee${s}`],
-          [k * 0.09, -0.3, -0.002],
-          J[`ankle${s}`],
         ],
-        (t, th) => round(th, cm(0.85) - cm(0.55) * t),
-        { radial: 8, stations: 38, caps: false },
+        (t, th) => round(th, cm(0.85) - cm(0.16) * t),
+        { radial: 8, stations: 18, caps: false },
+      ),
+    );
+    group.add(
+      rides(
+        `leg${s}`,
+        sweep(
+          mat,
+          [
+            J[`hip${s}`],
+            [k * 0.086, 0.022, 0.004],
+            J[`knee${s}`],
+            [k * 0.09, -0.3, -0.002],
+            J[`ankle${s}`],
+          ],
+          (t, th) => round(th, cm(0.69) - cm(0.39) * t),
+          { radial: 8, stations: 26, caps: false },
+        ),
       ),
     );
   });
@@ -557,7 +705,9 @@ function buildPulmonary(color) {
   // Bases sit on the diaphragm, the right higher because the liver is under
   // it — the reason the two lungs are not the same size.
   const shape = (t) =>
-    (0.36 + 0.64 * smooth(-0.05, 0.5, t)) * domeStart(t, 0.11) * domeEnd(t, 0.1);
+    (0.36 + 0.64 * smooth(-0.05, 0.5, t)) *
+    domeStart(t, 0.11) *
+    domeEnd(t, 0.1);
 
   group.add(
     sweep(
@@ -904,9 +1054,14 @@ function buildEndocrine(color) {
   const mat = organMaterial(color);
 
   // The master gland, in the sella under the brain. Small enough to be almost
-  // a dot, but an endocrine plate without it is missing its subject.
+  // a dot, but an endocrine plate without it is missing its subject. It sits
+  // in the skull, so it nods with it — the thyroid below does not, because the
+  // thyroid is on the trachea and the trachea does not nod.
   group.add(
-    ellipsoid(mat, [0, 0.928, 0.006], [cm(0.7), cm(0.5), cm(0.6)], null, 12),
+    rides(
+      "head",
+      ellipsoid(mat, [0, 0.928, 0.006], [cm(0.7), cm(0.5), cm(0.6)], null, 12),
+    ),
   );
 
   // Thyroid: two lobes flanking the trachea, joined by an isthmus across the
@@ -1006,7 +1161,13 @@ function buildEndocrine(color) {
   );
   // Uncinate process, hooking behind the mesenteric vessels.
   group.add(
-    ellipsoid(mat, [-0.03, 0.386, -0.02], [cm(1.5), cm(0.9), cm(1.0)], null, 14),
+    ellipsoid(
+      mat,
+      [-0.03, 0.386, -0.02],
+      [cm(1.5), cm(0.9), cm(1.0)],
+      null,
+      14,
+    ),
   );
 
   return { group, materials: [mat], focus: new THREE.Vector3(0, 0.56, 0) };
@@ -1038,6 +1199,279 @@ const RIBS = [
   { wide: cm(9.6), fall: cm(3.0), front: "float" },
   { wide: cm(6.8), fall: cm(2.2), front: "float" },
 ];
+
+/**
+ * Everything distal to the elbow and the knee.
+ *
+ * WHAT WAS MISSING AND WHY IT SHOWED. The skeleton had a humerus and a femur
+ * and then stopped. Half a limb is worse than none: the eye reads the gap as
+ * an amputation rather than as an omission, and the two joints it stops at are
+ * the two a reader can name. So the forearm, the hand, the shank and the foot
+ * are all here.
+ *
+ * The facts that make each pair read as a pair rather than as two sticks:
+ *
+ *   FOREARM  the ulna is the thick bone at the elbow and the thin one at the
+ *            wrist; the radius is the other way round. That crossover is the
+ *            whole silhouette of a forearm skeleton.
+ *   SHANK    the tibia carries the weight and the fibula carries none — it is
+ *            a splint, its head sits BELOW the knee joint and takes no part in
+ *            it, and its malleolus reaches LOWER than the tibia's. Ankles are
+ *            asymmetric and every plate shows it.
+ *   HAND     five rays that fan, with two waists each where the knuckles are.
+ *            At 18 px tall separate phalanges would be one-pixel gaps; the
+ *            waists say "jointed" and the gaps would only say "noisy".
+ *
+ * The arm hangs palm-inward, so the hand's spread is anteroposterior and the
+ * thumb points forward — which is why the digits fan in z and not in x, and
+ * the toes, on a foot that points forward, fan in x.
+ */
+function limbBones(group, mat, s, k) {
+  const el = J[`elbow${s}`];
+  const wr = J[`wrist${s}`];
+  const kn = J[`knee${s}`];
+  const an = J[`ankle${s}`];
+  const add = (limb, mesh) => group.add(rides(limb, mesh));
+  const arm = `arm${s}`;
+  const leg = `leg${s}`;
+  // Medial is toward the midline, which is −x on the left and +x on the right;
+  // multiplying an x already carrying `k` by a signed offset does that for
+  // both sides at once.
+  const med = (x, cmv) => k * (x - cm(cmv));
+  const lat = (x, cmv) => k * (x + cm(cmv));
+
+  // ---- forearm --------------------------------------------------------
+  add(
+    arm,
+    sweep(
+      mat,
+      [
+        // Olecranon: the point of the elbow, behind and above the joint.
+        [med(0.225, 0.4), el[1] + cm(1.9), el[2] - cm(1.5)],
+        [med(0.227, 0.5), el[1] - cm(0.6), el[2] - cm(0.6)],
+        [med(0.248, 1.4), 0.34, 0.016],
+        [med(0.255, 1.5), wr[1] + cm(0.3), wr[2]],
+      ],
+      (t, th) =>
+        round(
+          th,
+          (cm(1.25) -
+            cm(0.75) * smooth(0.06, 0.5, t) +
+            cm(0.3) * Math.exp(-(((t - 0.96) / 0.06) ** 2))) *
+            domeStart(t, 0.06) *
+            domeEnd(t, 0.05),
+        ),
+      { stations: 22, radial: 10 },
+    ),
+  );
+  add(
+    arm,
+    sweep(
+      mat,
+      [
+        // Radial head: a small disc against the capitellum, laterally.
+        [lat(0.225, 1.3), el[1] + cm(0.2), el[2] + cm(0.5)],
+        [lat(0.232, 1.0), 0.42, 0.011],
+        [lat(0.252, 0.9), 0.31, 0.018],
+        [lat(0.255, 1.0), wr[1] + cm(0.2), wr[2]],
+      ],
+      (t, th) =>
+        round(
+          th,
+          (cm(0.52) +
+            cm(0.24) * Math.exp(-((t / 0.07) ** 2)) +
+            cm(0.72) * smooth(0.62, 1, t)) *
+            domeStart(t, 0.05) *
+            domeEnd(t, 0.06),
+        ),
+      { stations: 22, radial: 10 },
+    ),
+  );
+
+  // ---- carpus and hand -------------------------------------------------
+  add(
+    arm,
+    ellipsoid(
+      mat,
+      [k * 0.2565, 0.2555, 0.0215],
+      [cm(0.9), cm(0.8), cm(2.1)],
+      null,
+      14,
+    ),
+  );
+  for (let i = 0; i < 4; i++) {
+    // Index most anterior, little finger most posterior.
+    const near = (1.5 - i) * cm(2.1);
+    const far = (1.5 - i) * cm(2.4);
+    add(
+      arm,
+      sweep(
+        mat,
+        [
+          [k * 0.2575, 0.2465, 0.0205 + near * 0.7],
+          [k * 0.2605, 0.221, 0.0245 + near],
+          [k * 0.2625, 0.2, 0.0265 + far * 0.96],
+          [k * 0.2635, 0.184, 0.0275 + far],
+        ],
+        (t, th) =>
+          round(
+            th,
+            cm(0.4) *
+              (1 - 0.32 * t) *
+              // Two waists: the knuckle and the middle joint. A finger reads
+              // as jointed because it is narrow in two places, not because
+              // there are gaps between three bones eight pixels long.
+              (1 - 0.3 * Math.exp(-(((t - 0.42) / 0.09) ** 2))) *
+              (1 - 0.26 * Math.exp(-(((t - 0.74) / 0.08) ** 2))) *
+              domeEnd(t, 0.12),
+          ),
+        { stations: 20, radial: 8 },
+      ),
+    );
+  }
+  // Thumb: shorter, thicker, and pointing forward out of the palm.
+  add(
+    arm,
+    sweep(
+      mat,
+      [
+        [k * 0.2545, 0.2495, 0.0265],
+        [k * 0.2515, 0.2325, 0.0425],
+        [k * 0.2495, 0.2185, 0.0525],
+      ],
+      (t, th) => round(th, cm(0.52) * (1 - 0.3 * t) * domeEnd(t, 0.16)),
+      { stations: 14, radial: 8 },
+    ),
+  );
+
+  // ---- patella, tibia, fibula -----------------------------------------
+  add(
+    leg,
+    ellipsoid(
+      mat,
+      [k * 0.088, -0.132, 0.0355],
+      [cm(2.2), cm(2.4), cm(0.7)],
+      (v, d) => {
+        // Flat behind, domed in front, and pointed at the bottom — a patella
+        // is a triangle, not a coin.
+        v.z += cm(0.3) * Math.max(0, d.z);
+        v.x *= 1 - 0.4 * Math.max(0, -d.y) ** 1.6;
+      },
+      18,
+    ),
+  );
+  add(
+    leg,
+    sweep(
+      mat,
+      [
+        [med(0.088, 0.7), kn[1] + cm(0.6), kn[2] - cm(0.3)],
+        [med(0.09, 0.6), -0.3, 0.004],
+        [med(0.092, 0.9), an[1] - cm(0.4), -0.003],
+      ],
+      (t, th) => {
+        // Triangular in section, with the subcutaneous crest facing forward
+        // and slightly medial. This is the shin you bark on furniture.
+        const r =
+          cm(2.05) -
+          cm(0.95) * smooth(0.03, 0.45, t) +
+          cm(0.4) * smooth(0.78, 1, t);
+        const crest = 1 + 0.16 * Math.exp(-((dTheta(th, k * 0.3) / 0.5) ** 2));
+        return round(th, r * crest * domeStart(t, 0.05) * domeEnd(t, 0.05));
+      },
+      { stations: 26, radial: 12 },
+    ),
+  );
+  add(
+    leg,
+    sweep(
+      mat,
+      [
+        // The head sits below the knee joint: the fibula takes no share of
+        // the body's weight, and the gap is the point.
+        [lat(0.088, 1.7), kn[1] - cm(2.4), kn[2] - cm(0.9)],
+        [lat(0.09, 1.6), -0.32, -0.002],
+        // …and its malleolus hangs lower than the tibia's.
+        [lat(0.092, 1.5), an[1] - cm(1.9), -0.008],
+      ],
+      (t, th) =>
+        round(
+          th,
+          (cm(0.42) +
+            cm(0.3) * Math.exp(-((t / 0.09) ** 2)) +
+            cm(0.34) * smooth(0.82, 1, t)) *
+            domeStart(t, 0.06) *
+            domeEnd(t, 0.06),
+        ),
+      { stations: 24, radial: 10 },
+    ),
+  );
+
+  // ---- tarsus and foot --------------------------------------------------
+  // Calcaneus: the heel, and the largest bone below the knee. It projects
+  // BEHIND the ankle, which is the whole reason a foot is a lever.
+  add(
+    leg,
+    sweep(
+      mat,
+      [
+        [k * 0.092, -0.5065, -0.019],
+        [k * 0.092, -0.524, -0.005],
+        [k * 0.092, -0.5265, 0.018],
+      ],
+      (t, th) =>
+        round(
+          th,
+          cm(1.55) * (1 - 0.22 * t) * domeStart(t, 0.16) * domeEnd(t, 0.16),
+        ),
+      { stations: 16, radial: 10, seed: new THREE.Vector3(0, 1, 0) },
+    ),
+  );
+  // Talus and the midfoot cluster, riding on top of it.
+  add(
+    leg,
+    ellipsoid(
+      mat,
+      [k * 0.092, -0.5185, 0.006],
+      [cm(1.3), cm(0.9), cm(1.5)],
+      null,
+      14,
+    ),
+  );
+  for (let i = 0; i < 5; i++) {
+    // Big toe medial, little toe lateral, and the big toe two-thirds thicker
+    // than the rest — the two facts that keep a foot from reading as a comb.
+    // They converge slightly toward the tips because the foot they are inside
+    // narrows there; splaying them the way real toes do would put the outer
+    // two through the skin.
+    const near = (i - 2) * cm(0.95);
+    const mid = (i - 2) * cm(1.35);
+    const far = (i - 2) * cm(1.25);
+    const big = i === 0 ? 1.65 : 1;
+    add(
+      leg,
+      sweep(
+        mat,
+        [
+          [k * (0.092 + near), -0.5245, 0.036],
+          [k * (0.092 + mid), -0.5285, 0.102],
+          [k * (0.092 + far), -0.5295, 0.126],
+          [k * (0.092 + far), -0.5305, 0.14],
+        ],
+        (t, th) =>
+          round(
+            th,
+            cm(0.34) *
+              big *
+              (1 - 0.28 * t) *
+              (1 - 0.3 * Math.exp(-(((t - 0.66) / 0.09) ** 2))) *
+              domeEnd(t, 0.14),
+          ),
+        { stations: 20, radial: 8, seed: new THREE.Vector3(0, 1, 0) },
+      ),
+    );
+  }
+}
 
 function buildHematology(color) {
   const group = new THREE.Group();
@@ -1234,53 +1668,67 @@ function buildHematology(color) {
   });
 
   // Long bones. Marrow is in the axial skeleton and the proximal long bones,
-  // which is exactly what a haematology panel is sampling.
+  // which is exactly what a haematology panel is sampling — but the skeleton
+  // still has to be a whole skeleton. It used to stop at the elbow and the
+  // knee: two bones per limb, and then nothing where a reader's eye goes
+  // first, because a hand and a foot are the parts of a skeleton everyone can
+  // draw from memory. Everything distal to those two joints is below.
   [
     ["L", 1],
     ["R", -1],
   ].forEach(([s, k]) => {
+    limbBones(group, mat, s, k);
     group.add(
-      sweep(
-        mat,
-        [J[`hip${s}`], [k * 0.086, 0.02, 0.006], J[`knee${s}`]],
-        (t, th) =>
-          round(
-            th,
-            cm(1.6) +
-              cm(1.1) *
-                (Math.exp(-((t / 0.12) ** 2)) +
-                  Math.exp(-(((1 - t) / 0.12) ** 2))),
-          ),
-        { stations: 24, radial: 12 },
+      rides(
+        `leg${s}`,
+        sweep(
+          mat,
+          [J[`hip${s}`], [k * 0.086, 0.02, 0.006], J[`knee${s}`]],
+          (t, th) =>
+            round(
+              th,
+              cm(1.6) +
+                cm(1.1) *
+                  (Math.exp(-((t / 0.12) ** 2)) +
+                    Math.exp(-(((1 - t) / 0.12) ** 2))),
+            ),
+          { stations: 24, radial: 12 },
+        ),
       ),
     );
     group.add(
-      sweep(
-        mat,
-        [J[`shoulder${s}`], [k * 0.2, 0.618, 0.003], J[`elbow${s}`]],
-        (t, th) =>
-          round(
-            th,
-            cm(1.1) +
-              cm(0.8) *
-                (Math.exp(-((t / 0.14) ** 2)) +
-                  Math.exp(-(((1 - t) / 0.14) ** 2))),
-          ),
-        { stations: 22, radial: 12 },
+      rides(
+        `arm${s}`,
+        sweep(
+          mat,
+          [J[`shoulder${s}`], [k * 0.2, 0.618, 0.003], J[`elbow${s}`]],
+          (t, th) =>
+            round(
+              th,
+              cm(1.1) +
+                cm(0.8) *
+                  (Math.exp(-((t / 0.14) ** 2)) +
+                    Math.exp(-(((1 - t) / 0.14) ** 2))),
+            ),
+          { stations: 22, radial: 12 },
+        ),
       ),
     );
   });
 
   // Calvaria — the diploë between its tables is marrow too.
   group.add(
-    ellipsoid(
-      mat,
-      [0, 0.962, 0.002],
-      [cm(7.6), cm(8.2), cm(8.6)],
-      (v, d) => {
-        if (v.y < 0) v.y *= 0.4;
-      },
-      26,
+    rides(
+      "head",
+      ellipsoid(
+        mat,
+        [0, 0.962, 0.002],
+        [cm(7.6), cm(8.2), cm(8.6)],
+        (v, d) => {
+          if (v.y < 0) v.y *= 0.4;
+        },
+        26,
+      ),
     ),
   );
 
@@ -1432,21 +1880,28 @@ function buildImmune(color) {
   // The joints. Rheumatoid disease is symmetrical and small-joint first — it
   // takes the knuckles before the knees — so the hand is drawn out rather
   // than left as the single blob the mannequin has.
+  // Every one of these is in a limb, so every one of them rides it. The
+  // shoulder and hip capsules sit ON their pivot, so their own rotation is
+  // invisible — they are parented anyway, because a joint that stayed behind
+  // while the limb it belongs to moved would be the most obviously wrong
+  // object on the screen.
   [
-    "shoulderL",
-    "shoulderR",
-    "elbowL",
-    "elbowR",
-    "wristL",
-    "wristR",
-    "hipL",
-    "hipR",
-    "kneeL",
-    "kneeR",
-    "ankleL",
-    "ankleR",
-  ].forEach((k) => {
-    group.add(ellipsoid(mat, J[k], [cm(2.8), cm(2.2), cm(2.8)], null, 16));
+    ["shoulderL", "armL"],
+    ["shoulderR", "armR"],
+    ["elbowL", "armL"],
+    ["elbowR", "armR"],
+    ["wristL", "armL"],
+    ["wristR", "armR"],
+    ["hipL", "legL"],
+    ["hipR", "legR"],
+    ["kneeL", "legL"],
+    ["kneeR", "legR"],
+    ["ankleL", "legL"],
+    ["ankleR", "legR"],
+  ].forEach(([j, limb]) => {
+    group.add(
+      rides(limb, ellipsoid(mat, J[j], [cm(2.8), cm(2.2), cm(2.8)], null, 16)),
+    );
   });
   [
     ["L", 1],
@@ -1456,21 +1911,27 @@ function buildImmune(color) {
     for (let i = 0; i < 4; i++) {
       const spread = (i - 1.5) * cm(1.5);
       group.add(
-        ellipsoid(
-          mat,
-          [w[0] + k * cm(0.6), w[1] - cm(6.5), w[2] + spread],
-          [cm(0.7), cm(0.7), cm(0.7)],
-          null,
-          10,
+        rides(
+          `arm${s}`,
+          ellipsoid(
+            mat,
+            [w[0] + k * cm(0.6), w[1] - cm(6.5), w[2] + spread],
+            [cm(0.7), cm(0.7), cm(0.7)],
+            null,
+            10,
+          ),
         ),
       );
       group.add(
-        ellipsoid(
-          mat,
-          [w[0] + k * cm(0.8), w[1] - cm(9.5), w[2] + spread * 1.1],
-          [cm(0.55), cm(0.55), cm(0.55)],
-          null,
-          10,
+        rides(
+          `arm${s}`,
+          ellipsoid(
+            mat,
+            [w[0] + k * cm(0.8), w[1] - cm(9.5), w[2] + spread * 1.1],
+            [cm(0.55), cm(0.55), cm(0.55)],
+            null,
+            10,
+          ),
         ),
       );
     }
@@ -1566,7 +2027,10 @@ function buildNutrition(color) {
     const width = cm(6.8) * wob * (1 - 0.14 * t);
     coils.push([
       -(Math.sin(turn) * width - cm(0.6) + cm(3.2) * t),
-      0.408 - t * 0.122 + Math.cos(turn * 0.5) * cm(1.2) + Math.sin(t * 17) * cm(0.6),
+      0.408 -
+        t * 0.122 +
+        Math.cos(turn * 0.5) * cm(1.2) +
+        Math.sin(t * 17) * cm(0.6),
       0.03 - Math.cos(turn) * cm(1.9) - cm(0.5) * t,
     ]);
   }
@@ -1575,7 +2039,8 @@ function buildNutrition(color) {
       mat,
       coils,
       // Jejunum is wider than ileum, and it narrows the whole way down.
-      (t, th) => round(th, (cm(1.55) - cm(0.5) * t) * (1 + 0.06 * Math.sin(t * 61))),
+      (t, th) =>
+        round(th, (cm(1.55) - cm(0.5) * t) * (1 + 0.06 * Math.sin(t * 61))),
       { stations: 220, radial: 10, caps: false },
     ),
   );
@@ -1670,7 +2135,7 @@ export function buildOrgans(bodyGroup) {
   // Hues are spread around the wheel rather than clustered in earth tones:
   // with ten systems, "which organ am I looking at" has to survive being
   // answered by colour alone.
-  return {
+  const systems = {
     neuro: buildNeuro(0x7c5cd6), // violet
     cardio: buildCardio(0xdc3f3f), // red
     endocrine: buildEndocrine(0xe8a01a), // amber
@@ -1679,9 +2144,17 @@ export function buildOrgans(bodyGroup) {
     hematology: buildHematology(0xd42a72), // magenta
     pulmonary: buildPulmonary(0x2f8fd6), // sky
     immune: buildImmune(0x3fae55), // green
-    oncology: buildSystemic(0x5f6bd8, bodyGroup), // indigo shell
     nutrition: buildNutrition(0x9ec219), // lime
   };
+  // Rigged here rather than inside each builder so that the ones with nothing
+  // in a limb — a liver, a pair of lungs — still hand back the same five
+  // pivots, and the frame loop never has to ask which kind it is holding.
+  Object.values(systems).forEach((s) => {
+    s.rig = rigify(s.group);
+  });
+  // The shell is the figure, so it gets its rig by cloning the figure's.
+  systems.oncology = buildSystemic(0x5f6bd8, bodyGroup); // indigo shell
+  return systems;
 }
 
 /** Soft additive halo behind an organ. */

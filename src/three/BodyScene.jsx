@@ -264,12 +264,21 @@ export default function BodyScene({
       state.vitality +=
         (state.vitalityTarget - state.vitality) * Math.min(1, dt * 1.6);
       pose(body.rig, body.group, t, state.vitality, reduced);
-      // The cancer view is a shell OF this figure, so it wears the same pose.
-      const shell = organs.oncology;
-      shell.group.position.copy(body.group.position);
-      shell.group.rotation.copy(body.group.rotation);
-      Object.entries(shell.rig).forEach(([n, node]) => {
-        node.rotation.copy(body.rig[n].rotation);
+      // Everything inside the body wears the body's pose. One transform copy
+      // for the whole-figure motion — the weight shift, the bounce, the
+      // forward fold of a slump — and then the five hinges, for the structures
+      // that live in a limb and were built with their own copy of the pivots.
+      //
+      // Copying rather than parenting: the systems are siblings of the figure
+      // in the scene, which keeps the raycast able to test organs before skin
+      // and keeps the shell's clone from picking up ten organ systems.
+      ZONE_KEYS.forEach((k) => {
+        const o = organs[k];
+        o.group.position.copy(body.group.position);
+        o.group.rotation.copy(body.group.rotation);
+        Object.entries(o.rig).forEach(([n, node]) => {
+          node.rotation.copy(body.rig[n].rotation);
+        });
       });
 
       ZONE_KEYS.forEach((k) => {

@@ -27,9 +27,12 @@ import * as THREE from "three";
  * rendering it and squinting. Every organ below is written in the units its
  * source is written in.
  *
- * Axes: +x is the subject's right, +y up, +z anterior. The camera sits on +z,
- * so the subject faces the viewer and their right hand falls on the viewer's
- * left — the convention every anatomical plate uses.
+ * Axes: +y is up and +z is anterior, and the camera sits on +z, so the subject
+ * faces the viewer. That fixes the third axis — someone facing +z with +y up
+ * has their right hand toward −x — so the subject's right is NEGATIVE x and a
+ * viewer sees it on their own left, the convention every anatomical plate
+ * uses. (This paragraph used to say +x was the subject's right, which is the
+ * mirror of what the code does; it cost a whole pass of situs inversus.)
  */
 
 /** The figure is 1.587 units from crown to sole, drawn at 176 cm. */
