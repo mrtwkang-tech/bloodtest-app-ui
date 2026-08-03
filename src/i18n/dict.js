@@ -447,7 +447,6 @@ export const en = {
     "Where your composition changes how a blood value should be read. Both panels track the same body over the same rounds, which is what makes the comparison worth anything.",
   "ib.fromDevice": "device",
   "ib.fromBlood": "blood",
-  "ib.link.loss.title": "Weight coming off without you trying",
   "ib.link.loss.body":
     "You have lost weight over the last two rounds while phase angle — a measure of cell integrity — fell with it. Unintentional loss of this size is worth explaining, and it is happening in the same window as the liver markers.",
   "ib.link.creatinine.title": "Your creatinine is muscle, not kidney",
@@ -630,18 +629,6 @@ export const en = {
   "body.consultNow": "A specialist visit is recommended",
   "body.rotateHint": "Drag to rotate",
   // Zones
-  "zone.neuro": "Brain & nerves",
-  "zone.cardio": "Cardiovascular",
-  "zone.metab": "Metabolic",
-  "zone.systemic": "Whole body",
-  "zone.neuro.note":
-    "Proteins that leak into the blood when nerve cells are damaged or degenerating.",
-  "zone.cardio.note":
-    "Vessel inflammation and lipid build-up. Shares some markers with stroke risk.",
-  "zone.metab.note":
-    "Your average blood sugar over 2–3 months, and how well insulin is working.",
-  "zone.systemic.note":
-    "Tumour-related markers that circulate through the whole body rather than sitting in one organ — which is why the whole figure lights up.",
   // Systems, one per medical specialty
   "sys.neuro": "Brain & nerves",
   "sys.cardio": "Heart & vessels",
@@ -1210,7 +1197,6 @@ export const ko = {
     "체성분이 혈액 수치의 해석을 바꾸는 지점입니다. 두 검사가 같은 몸을 같은 회차로 따라가기 때문에 비교에 의미가 생깁니다.",
   "ib.fromDevice": "기기",
   "ib.fromBlood": "혈액",
-  "ib.link.loss.title": "의도하지 않은 체중 감소",
   "ib.link.loss.body":
     "최근 두 회차에 걸쳐 체중이 빠졌고, 세포 건강도를 보는 위상각도 함께 떨어졌습니다. 이 정도의 의도하지 않은 감소는 원인을 확인할 필요가 있고, 간 수치가 움직인 기간과 겹칩니다.",
   "ib.link.creatinine.title": "크레아티닌이 높은 건 신장이 아니라 근육 때문",
@@ -1370,18 +1356,6 @@ export const ko = {
     "스크리닝 결과는 의학적 진단이 아닙니다. 수치가 범위를 벗어났다는 뜻이며, 질환의 확진이나 배제를 의미하지 않습니다. 판단은 반드시 의료진과 함께 하세요.",
   "body.consultNow": "전문의 상담을 권합니다",
   "body.rotateHint": "드래그해서 돌려보세요",
-  "zone.neuro": "뇌·신경",
-  "zone.cardio": "심혈관",
-  "zone.metab": "대사",
-  "zone.systemic": "전신",
-  "zone.neuro.note":
-    "신경세포가 손상되거나 퇴행할 때 혈중으로 흘러나오는 단백 수치를 봅니다.",
-  "zone.cardio.note":
-    "혈관 염증과 지질 축적 정도를 봅니다. 뇌졸중 위험과도 일부 수치를 공유합니다.",
-  "zone.metab.note":
-    "최근 2~3개월의 평균 혈당과 인슐린이 얼마나 잘 듣고 있는지를 봅니다.",
-  "zone.systemic.note":
-    "특정 장기가 아니라 몸 전체를 도는 종양 관련 수치를 봅니다. 그래서 실루엣 전체가 반응합니다.",
   // 분과별 계열
   "sys.neuro": "뇌·신경",
   "sys.cardio": "심장·혈관",
