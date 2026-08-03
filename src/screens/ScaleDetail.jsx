@@ -159,11 +159,20 @@ export default function ScaleDetail({ scaleKey, sel }) {
         {counted.map((d) => (
           <div key={d.marker.name}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+              {/* The dot said "this reading cost you points" in COLOUR AND
+                  NOTHING ELSE — no legend, no label, no alternative. That is
+                  information carried by hue alone, which a reader who cannot
+                  separate amber from grey never receives. The two strings were
+                  already written and already in the score's own direction;
+                  they were just never rendered. */}
               <Dot
                 color={d.pushesUp ? C.watchLamp : C.inRangeLamp}
                 size={5}
                 style={{ transform: "translateY(-2px)" }}
               />
+              <span className="sr-only">
+                {t(d.pushesUp ? "mind.pushesUp" : "mind.pushesDown")}
+              </span>
               <span style={{ ...T.label, color: C.ink }}>
                 {plainKeyOf(d.marker) ? t(plainKeyOf(d.marker)) : d.marker.name}
               </span>

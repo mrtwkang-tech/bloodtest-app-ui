@@ -58,8 +58,15 @@ export function computeTrend({ series, reference, selIndex, marker }) {
   // Reading round 5 and being told about a trend that runs through round 12
   // would be the chart quietly using the future. Three points cannot carry a
   // slope test worth printing, so four is the floor.
+  //
+  // NOT GATED ON `marker`, and it was. A slope test needs a time series, not an
+  // assay CV — the two tests are independent, which this file's own header says
+  // is the whole point of having both, and then the gate tied them to the same
+  // input. The cost was silence: on the mind tab, which passes no marker, three
+  // of the five scales have a statistically significant direction and the chart
+  // said nothing about any of them.
   const sofar = series.slice(0, selX + 1);
-  const fit = marker && sofar.length >= 4 ? slopeTest(sofar) : null;
+  const fit = sofar.length >= 4 ? slopeTest(sofar) : null;
 
   return {
     xs,

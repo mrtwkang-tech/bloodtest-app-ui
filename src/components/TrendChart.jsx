@@ -53,26 +53,17 @@ export default function TrendChart({
           ? t(better ? "trend.downGood" : "trend.down", { p: tr.pctChange })
           : t(better ? "trend.upGood" : "trend.up", { p: tr.pctChange });
 
-  // ONE LINE UNDER THE TITLE, ALWAYS SAYING SOMETHING when the month came back
-  // flat — because "의미 있는 변화 아님" on its own is a dead end. It has two
-  // things it can be.
-  //
-  // The first is THE LINE THIS WHOLE FEATURE EXISTS TO PRINT: no single month
-  // cleared the noise, and the run of rounds is going somewhere anyway. Both
-  // halves or neither — the first alone hides a year of drift, the second alone
-  // invents a signal that is not there.
-  //
-  // The second is the threshold itself, in the marker's own units rather than
-  // as a percentage. "1.0에서 3.1 이상" is a number a reader can hold against
-  // the chart in front of them; "213%" is a number they have to do arithmetic
-  // on, and for a marker like hs-CRP the arithmetic is startling enough that
-  // they should be able to check it.
+  // TWO INDEPENDENT CLAIMS, and they used to be one. The trend line only fired
+  // when the month was ALSO flat, and then opened by repeating that — "이번 달은
+  // 변화 없음 · 12회차 추세는 상승" under a caption 20px above already reading
+  // "의미 있는 변화 아님". Whether the month moved and whether the run is going
+  // somewhere are different questions with different tests; the delta caption
+  // answers the first, this line answers the second, and neither needs to state
+  // the other's answer.
   const prev = tr.isFirst ? null : series[tr.selX - 1];
   const flatNote =
-    !tr.moved && !tr.isFirst && tr.trending !== 0
-      ? t(tr.trending > 0 ? "trend.flatButRising" : "trend.flatButFalling", {
-          n: tr.rounds,
-        })
+    tr.trending !== 0
+      ? t(tr.trending > 0 ? "trend.rising" : "trend.falling", { n: tr.rounds })
       : !tr.moved && prev > 0 && marker?.rcv
         ? t("trend.flatNote", {
             lo: formatValue(prev / marker.rcv),

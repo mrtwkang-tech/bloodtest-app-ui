@@ -728,9 +728,8 @@ export const en = {
   "trend.flat": "No real change",
   "trend.flatNote": ({ lo, hi }) =>
     `Anything between ${lo} and ${hi} is inside this test's own measurement error`,
-  "trend.flatButRising": ({ n }) => `Flat this month · rising over ${n} rounds`,
-  "trend.flatButFalling": ({ n }) =>
-    `Flat this month · falling over ${n} rounds`,
+  "trend.rising": ({ n }) => `Rising over ${n} rounds`,
+  "trend.falling": ({ n }) => `Falling over ${n} rounds`,
   // Store
   "store.title": "Buy a kit",
   "store.subtitle": "Draw at home, post it back, read the report here",
@@ -1462,10 +1461,8 @@ export const ko = {
   "trend.flat": "의미 있는 변화 아님",
   "trend.flatNote": ({ lo, hi }) =>
     `${lo}~${hi}는 이 검사 자체의 측정 오차와 구분되지 않습니다`,
-  "trend.flatButRising": ({ n }) =>
-    `이번 달은 변화 없음 · ${n}회차 추세는 상승`,
-  "trend.flatButFalling": ({ n }) =>
-    `이번 달은 변화 없음 · ${n}회차 추세는 하락`,
+  "trend.rising": ({ n }) => `${n}회차 추세는 상승`,
+  "trend.falling": ({ n }) => `${n}회차 추세는 하락`,
   "store.title": "키트 구매",
   "store.subtitle": "집에서 채혈하고 보내면 결과는 여기서",
   "store.kit": "풀배터리 검사 키트",
