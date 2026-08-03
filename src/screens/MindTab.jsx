@@ -19,6 +19,7 @@ import { SCALE_LEVEL, SCALE_META, scaleSummaryLine } from "../data/scales";
 import { scalePercentile } from "../data/cohorts";
 import { SESSIONS, mindSummary, pick } from "../data/sessions";
 import ScaleDetail from "./ScaleDetail";
+import { crisisLines } from "../data/legal";
 import { useLang } from "../i18n";
 
 /**
@@ -333,7 +334,7 @@ export default function MindTab({ sel, onPickSession }) {
             textWrap: "pretty",
           }}
         >
-          {t("mind.crisis")}
+          {t("mind.crisis", { lines: crisisLines(lang) })}
         </p>
       </Card>
     </div>

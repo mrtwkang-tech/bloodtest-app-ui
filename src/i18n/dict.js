@@ -125,8 +125,11 @@ export const en = {
   "mind.trend": ({ name }) => `${name} over time`,
   "mind.activities": "What to do next",
   "mind.state": "Where you are now",
-  "mind.crisis":
-    "This is a screening result, not a diagnosis. If things stay hard, contact a clinician or a crisis line.",
+  // The numbers come from legal.js so there is one source. This string used to
+  // name none at all in English, on the one screen in the app that surfaces a
+  // crisis resource next to mental-health content.
+  "mind.crisis": ({ lines }) =>
+    `This is a screening result, not a diagnosis. If things stay hard, contact a clinician, or ${lines}.`,
   // Scales
   // Mind indices — derived from blood, not a questionnaire
   "scale.recovery": "Stress recovery",
@@ -749,7 +752,7 @@ export const en = {
   "store.incl2": "QR registration and progress alerts",
   "store.incl3": "Five mind indices, derived from the same draw",
   "store.incl4": ({ n }) =>
-    `${n} measurements across 10 specialties, every normal range shown`,
+    `${n} measurements across 11 specialties, every normal range shown`,
   "store.incl5": "Round-over-round trend charts",
   "store.ctaSingle": "Pay 89,000 KRW for one test",
   "store.ctaQuarter": "Start quarterly · 69,000 KRW per test",
@@ -825,7 +828,7 @@ export const ko = {
   "dx.title": "예상 질환 추정",
   "dx.beta": "베타",
   "dx.note":
-    "우리는 진단하지 않습니다. 같은 나이대의 기본 확률에서 출발해, 이번 결과가 그 확률을 얼마나 올리고 내리는지를 계산한 값입니다.",
+    "우리는 진단하지 않습니다. 같은 나이대의 기본 확률에서 출발해, 이번 결과가 그 확률을 얼마나 올리고 내리는지를 계산한 값이며, 그 계산에 쓰인 우도비는 데모 값입니다.",
   "dx.prior": "검사 전",
   "dx.posterior": "검사 후",
   "dx.multiple": ({ n }) => `기본 확률의 ${n}배`,
@@ -905,8 +908,8 @@ export const ko = {
   "mind.trend": ({ name }) => `${name} 추이`,
   "mind.activities": "권장 활동",
   "mind.state": "현재 상태",
-  "mind.crisis":
-    "선별검사 결과이며 의학적 진단이 아닙니다. 힘든 상태가 이어진다면 정신건강상담전화 1577-0199 또는 의료기관을 이용하세요.",
+  "mind.crisis": ({ lines }) =>
+    `선별검사 결과이며 의학적 진단이 아닙니다. 힘든 상태가 이어진다면 ${lines} 또는 의료기관을 이용하세요.`,
   // 마음 지수 — 설문이 아니라 혈액에서 유도
   "scale.recovery": "스트레스 회복력",
   "scale.inflammation": "염증 부담",
@@ -1235,7 +1238,7 @@ export const ko = {
   "ix.hepaticTrajectory.body": ({ rate }) =>
     `AFP가 지난 1년 동안 매 채혈마다 올라갔습니다. 회차당 약 ${rate}%씩입니다. 같은 기간 GGT와 섬유화 추정치가 함께 오르고 혈소판은 떨어졌습니다. 이 수치들은 그 기간 대부분 정상 범위 안에 있었기 때문에, 한 번만 검사했다면 매번 정상으로 나왔을 것입니다. 여기서의 발견은 회차를 가로지르는 모양입니다.`,
   "ix.hepaticTrajectory.action":
-    "간암 감시에서 찾는 바로 그 패턴입니다. 소화기내과를 예약하고 간 초음파와 AFP 재검을 요청하세요. 오늘 수치가 아니라 전체 시계열을 가져가세요.",
+    "간 추적 관찰에서 찾는 바로 그 패턴입니다. 소화기내과를 예약하고 간 초음파와 AFP 재검을 요청하세요. 오늘 수치가 아니라 전체 시계열을 가져가세요.",
   "ix.crossedNow": "AFP가 정상 범위를 넘었습니다.",
   "ix.notCrossedYet": "AFP는 아직 정상 범위 안입니다.",
   "home.inbody": "체성분",

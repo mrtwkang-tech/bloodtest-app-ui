@@ -4,7 +4,7 @@
  * The two jurisdictions are genuinely different, not translations of each
  * other. Korean readers get the 의료기기법 / 개인정보 보호법 framing and Korean
  * crisis lines; English readers get the US framing — FDA device status, the
- * CLIA / laboratory-developed-test position, HIPAA, and the 988 line. Serving
+ * CLIA / laboratory-developed-test position, HIPAA, and the crisis lines below. Serving
  * a translated Korean notice to a US reader would be wrong on the substance,
  * not just the language.
  *
@@ -15,43 +15,108 @@ export const APP_VERSION = "0.7.0";
 export const APP_BUILD = "demo";
 
 export const COMPANY = {
-  name: { en: 'Pedia, Inc.', ko: '주식회사 페디아' },
-  ceo: { en: 'Kang Tae-woo', ko: '강태우' },
+  name: { en: "Pedia, Inc.", ko: "주식회사 페디아" },
+  ceo: { en: "Kang Tae-woo", ko: "강태우" },
   address: {
-    en: '4F, 231 Teheran-ro, Gangnam-gu, Seoul 06142, Republic of Korea',
-    ko: '서울특별시 강남구 테헤란로 231, 4층 (06142)',
+    en: "4F, 231 Teheran-ro, Gangnam-gu, Seoul 06142, Republic of Korea",
+    ko: "서울특별시 강남구 테헤란로 231, 4층 (06142)",
   },
-  bizNo: '412-88-02937',
-  mailOrderNo: { en: '2026-Seoul Gangnam-01184', ko: '제2026-서울강남-01184호' },
-  privacyOfficer: { en: 'Seo Ji-min, Data Protection Officer', ko: '서지민 (개인정보 보호책임자)' },
-  privacyEmail: 'privacy@pedia.health',
-  supportEmail: 'help@pedia.health',
-  supportPhone: '1660-0417',
+  bizNo: "412-88-02937",
+  mailOrderNo: {
+    en: "2026-Seoul Gangnam-01184",
+    ko: "제2026-서울강남-01184호",
+  },
+  privacyOfficer: {
+    en: "Seo Ji-min, Data Protection Officer",
+    ko: "서지민 (개인정보 보호책임자)",
+  },
+  privacyEmail: "privacy@pedia.health",
+  supportEmail: "help@pedia.health",
+  supportPhone: "1660-0417",
 };
 
 /**
+ * WHICH COUNTRY'S EMERGENCY SYSTEM THE READER CAN ACTUALLY REACH.
+ *
+ * This used to be decided by the UI language, and those are not the same
+ * question. `i18n` picks English unless the browser asks for Korean, so a
+ * Korean reader on an English-locale phone was shown 988 and 741741 — neither
+ * of which connects from Korea. A crisis number that does not connect is worse
+ * than no number, because it is read as help and consumes the attempt.
+ *
+ * This service is registered in Korea (see COMPANY: 사업자등록번호,
+ * 통신판매업신고번호), so the jurisdiction is KR for every reader whatever
+ * language they read in. The US block stays because the framing genuinely
+ * differs and a US entity may exist later; it is not reachable today.
+ */
+export const JURISDICTION = "KR";
+
+/**
+ * Crisis resources, in ONE place.
+ *
+ * They lived in two — here and in the dictionary — and disagreed: the Mind
+ * tab, the only screen that surfaces a crisis resource next to mental-health
+ * content, carried 1577-0199 alone and omitted 109, the suicide-specific line,
+ * which existed only on the More tab behind a tap. The English Mind tab named
+ * no number at all.
+ */
+export const CRISIS = {
+  KR: {
+    emergency: "119",
+    lines: [
+      {
+        name: { ko: "자살예방상담전화", en: "the suicide prevention line" },
+        no: "109",
+      },
+      {
+        name: { ko: "정신건강상담전화", en: "the mental health helpline" },
+        no: "1577-0199",
+      },
+    ],
+  },
+  US: {
+    emergency: "911",
+    lines: [
+      {
+        name: { ko: "988 자살·위기 상담", en: "the Suicide & Crisis Lifeline" },
+        no: "988",
+      },
+    ],
+  },
+};
+
+/** The lines as one readable clause, for whichever string needs to name them. */
+export function crisisLines(lang, jurisdiction = JURISDICTION) {
+  const { lines } = CRISIS[jurisdiction] ?? CRISIS.KR;
+  return lines
+    .map((l) =>
+      lang === "ko" ? `${l.name.ko} ${l.no}` : `${l.name.en} on ${l.no}`,
+    )
+    .join(lang === "ko" ? ", " : ", or ");
+}
+
+/**
  * The one notice that is not optional, written per jurisdiction rather than
- * translated. US readers need the FDA / CLIA / HIPAA framing and the 988
- * line; Korean readers need 의료기기법 and the Korean crisis numbers.
+ * translated. The framing differs — 의료기기법 versus FDA / CLIA / HIPAA — but
+ * the numbers come from CRISIS above so the two cannot drift apart again.
  */
 export const MEDICAL_NOTICE = {
   en: {
-    title: 'Medical notice',
-    body:
-      'Pedia is a wellness service, not a medical device. It has not been cleared or approved by the U.S. Food and Drug Administration, and nothing it reports is a diagnosis, treatment, cure or prescription. Assays are performed by a CLIA-certified laboratory as laboratory-developed tests; a screening result does not confirm or rule out any condition. Do not start, stop or change any medication or treatment based on this report. If you have symptoms, or a result concerns you, contact a licensed clinician. In an emergency call 911 or go to the nearest emergency department.',
+    title: "Medical notice",
+    body: "Pedia is a wellness service, not a medical device. It has not been cleared or approved by the U.S. Food and Drug Administration, and nothing it reports is a diagnosis, treatment, cure or prescription. Assays are performed by a CLIA-certified laboratory as laboratory-developed tests; a screening result does not confirm or rule out any condition. Do not start, stop or change any medication or treatment based on this report. If you have symptoms, or a result concerns you, contact a licensed clinician. In an emergency call 119 or go to the nearest emergency department.",
     crisis:
-      'If you are in crisis, call or text 988 to reach the Suicide & Crisis Lifeline, available 24/7 in the United States. You can also text HOME to 741741 to reach the Crisis Text Line.',
+      // Korean numbers, in English, because this is a Korea-registered service
+      // and a US line does not connect from here. See JURISDICTION above.
+      `If you are in crisis, you can reach ${crisisLines("en")} at any hour. In an emergency call 119.`,
     privacy:
-      'Health information you provide is handled under our HIPAA Notice of Privacy Practices. Residents of California, Virginia, Colorado, Connecticut and other states with comprehensive privacy laws have additional rights over their data, including access and deletion.',
+      "Health information you provide is handled under our HIPAA Notice of Privacy Practices. Residents of California, Virginia, Colorado, Connecticut and other states with comprehensive privacy laws have additional rights over their data, including access and deletion.",
   },
   ko: {
-    title: '의료 고지',
-    body:
-      '본 서비스는 의료기기법상 의료기기가 아니며, 제공되는 모든 수치와 해석은 의학적 진단·치료·처방이 아닙니다. 검사는 수탁 검사기관에서 수행되며, 선별검사 결과는 특정 질환의 확진이나 배제를 의미하지 않습니다. 이 리포트를 근거로 약물이나 치료를 시작·중단·변경하지 마세요. 증상이 있거나 결과가 우려된다면 반드시 의료기관을 방문하세요. 응급 상황에서는 119 또는 가까운 응급실을 이용하세요.',
-    crisis:
-      '정신건강 위기 상담은 자살예방상담전화 109, 정신건강상담전화 1577-0199에서 24시간 이용할 수 있습니다.',
+    title: "의료 고지",
+    body: "본 서비스는 의료기기법상 의료기기가 아니며, 제공되는 모든 수치와 해석은 의학적 진단·치료·처방이 아닙니다. 검사는 수탁 검사기관에서 수행되며, 선별검사 결과는 특정 질환의 확진이나 배제를 의미하지 않습니다. 이 리포트를 근거로 약물이나 치료를 시작·중단·변경하지 마세요. 증상이 있거나 결과가 우려된다면 반드시 의료기관을 방문하세요. 응급 상황에서는 119 또는 가까운 응급실을 이용하세요.",
+    crisis: `정신건강 위기 상담은 ${crisisLines("ko")}에서 24시간 이용할 수 있습니다.`,
     privacy:
-      '건강정보는 개인정보 보호법 제23조의 민감정보로 분류되어 별도 동의를 받아 처리하며, 정보주체는 언제든 열람·정정·삭제·처리정지를 요구할 수 있습니다.',
+      "건강정보는 개인정보 보호법 제23조의 민감정보로 분류되어 별도 동의를 받아 처리하며, 정보주체는 언제든 열람·정정·삭제·처리정지를 요구할 수 있습니다.",
   },
 };
 
