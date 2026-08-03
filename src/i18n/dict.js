@@ -160,8 +160,8 @@ export const en = {
   "brain.belowNeck": "below the neck",
   "day.wake": "waking",
   "day.dim": "melatonin onset",
-  "day.cortisol": "cortisol — wakes you up",
-  "day.melatonin": "melatonin — sends you to sleep",
+  "day.cortisol": "cortisol",
+  "day.melatonin": "melatonin",
   "day.peerDay": "a peer's day",
   "day.est": "est.",
   "day.night": "night — onset to waking",
@@ -389,6 +389,11 @@ export const en = {
   "mind.pushesDown": "holding",
   "mind.index": "Index",
   "mind.scoreLabel": "Score",
+  // The row's second line. Direction-neutral on purpose: six of the drivers
+  // are `dir: "low"`, so "over the limit" would be backwards for half of them
+  // and `deviationOf` already folds the sign away.
+  "mind.driversClear": ({ n }) => `All ${n} counted readings in range`,
+  "mind.driversMore": ({ n }) => `+${n} more`,
   "mind.indexNote":
     "100 is the lowest biological load, 50 is the peer average, 0 the highest. Higher is better here, as it is on the body panel.",
   "mind.tapAxis": "Tap the picture to see the markers behind a scale",
@@ -930,8 +935,8 @@ export const ko = {
   "brain.belowNeck": "목 아래",
   "day.wake": "기상",
   "day.dim": "멜라토닌 시작",
-  "day.cortisol": "코르티솔 — 깨우는 호르몬",
-  "day.melatonin": "멜라토닌 — 재우는 호르몬",
+  "day.cortisol": "코르티솔",
+  "day.melatonin": "멜라토닌",
   "day.peerDay": "또래의 하루",
   "day.est": "추정",
   "day.night": "밤 — 멜라토닌 시작부터 기상까지",
@@ -1154,6 +1159,8 @@ export const ko = {
   "mind.pushesDown": "점수를 지킨 것",
   "mind.index": "지수",
   "mind.scoreLabel": "점수",
+  "mind.driversClear": ({ n }) => `계산에 쓴 ${n}개 모두 범위 안`,
+  "mind.driversMore": ({ n }) => `외 ${n}개`,
   "mind.indexNote":
     "100이 생물학적 부하가 가장 낮고, 50이 또래 평균, 0이 가장 높습니다. 몸 패널과 같이 여기서도 높을수록 좋습니다.",
   "mind.tapAxis": "그림을 눌러 근거 수치를 확인하세요",

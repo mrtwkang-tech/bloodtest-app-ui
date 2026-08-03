@@ -254,28 +254,32 @@ export default function DayDial({
     { h: dim, key: "day.dim", delta: dim - PEER_DIM },
   ];
 
-  // Three rows, all left-aligned. The peer entry sat to the right of the first
-  // row until the Korean gloss and the English one turned out to need different
-  // amounts of room and only one of them fit. Stacking costs 15px and cannot
-  // collide in any language.
+  // ONE ROW OF THREE, and it was four stacked rows because of the glosses.
+  //
+  // The comment this replaces blamed the stack on ko and en needing different
+  // widths — true, but only because each entry carried an explanation. Bare
+  // names are 44px in Korean and 43–51px in English, and three of those fit on
+  // one line in both languages. The explanations were the problem, and the
+  // explanations were also redundant: the cortisol band BEGINS at the dot
+  // labelled 기상 and the melatonin band at the dot labelled 멜라토닌 시작, so
+  // "the one that wakes you" restates the picture it sits under.
+  //
+  // `day.night` went for the same reason, harder. Its Korean was "밤 —
+  // 멜라토닌 시작부터 기상까지", a verbatim concatenation of two labels already
+  // printed as the reader's own clock times 30px above, naming an arc that
+  // physically terminates under each of those two dots. And its grey was a
+  // near-match for the melatonin grey two rows below it, so the legend made the
+  // two harder to tell apart rather than easier.
   const legend = [
-    { color: tint(line, 0.5), width: 7, dash: null, label: t("day.cortisol") },
-    {
-      color: tint(C.ink, 0.22),
-      width: 7,
-      dash: null,
-      label: t("day.melatonin"),
-    },
-    { color: C.peerStroke, width: 1.4, dash: "3 3", label: t("day.peerDay") },
-    // The rim arc. Every other mark on this dial is now named, and leaving one
-    // unnamed is how the old version got here — a shape the reader has to
-    // guess at is a shape they stop trusting.
-    { color: tint(C.ink, 0.3), width: 5, dash: null, label: t("day.night") },
+    { at: 16, color: tint(line, 0.5), width: 7, dash: null, label: t("day.cortisol") },
+    { at: 108, color: tint(C.ink, 0.22), width: 7, dash: null, label: t("day.melatonin") },
+    { at: 196, color: C.peerStroke, width: 1.4, dash: "3 3", label: t("day.peerDay") },
   ];
+
 
   return (
     <svg
-      viewBox="0 0 300 365"
+      viewBox="0 0 300 316"
       width="100%"
       style={{ display: "block", touchAction: "pan-y", cursor: "pointer" }}
       role="img"
@@ -527,20 +531,20 @@ export default function DayDial({
           what it stands for. The line this replaces said "filled curve:
           cortisol · outline: melatonin", which stopped being true the day the
           two got separate tracks and both got filled. */}
-      {legend.map((l, i) => (
+      {legend.map((l) => (
         <g key={l.label}>
           <line
-            x1={16}
-            y1={280 + i * 15}
-            x2={30}
-            y2={280 + i * 15}
+            x1={l.at}
+            y1={280}
+            x2={l.at + 14}
+            y2={280}
             stroke={l.color}
             strokeWidth={l.width}
             strokeDasharray={l.dash ?? undefined}
           />
           <text
-            x={38}
-            y={284 + i * 15}
+            x={l.at + 22}
+            y={284}
             style={{ ...T.caption, fontSize: 11, fill: C.body }}
           >
             {l.label}
@@ -553,7 +557,7 @@ export default function DayDial({
           written down anywhere on this screen. */}
       <text
         x={16}
-        y={353}
+        y={304}
         style={{ ...T.caption, fontSize: 11, fill: C.faint }}
       >
         {t("day.howto")}

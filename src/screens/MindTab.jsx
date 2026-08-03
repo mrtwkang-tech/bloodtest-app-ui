@@ -13,10 +13,9 @@ import {
   SectionLabel,
   SectionTitle,
   Segmented,
-  Status,
 } from "../components/primitives";
 import { C, STATUS_COLOR, T, fadeUp } from "../tokens";
-import { SCALE_LEVEL, SCALE_META, band } from "../data/scales";
+import { SCALE_LEVEL, SCALE_META, scaleSummaryLine } from "../data/scales";
 import { scalePercentile } from "../data/cohorts";
 import { SESSIONS, mindSummary, pick } from "../data/sessions";
 import ScaleDetail from "./ScaleDetail";
@@ -126,55 +125,27 @@ export default function MindTab({ sel, onPickSession }) {
         onPickSession={onPickSession}
       />
 
+      {/* THE COUNT, ONCE.
+          It used to be stated four times in about 110px: as "4/5" here, as a
+          sentence 9px below, as a chip row naming the flagged one, and as
+          "4/5" again over the row list. The sentence is the one that survives
+          — it is the only version a reader does not have to decode — and the
+          chip row went because the five rows underneath already carry the same
+          icon at the same level, which is what a chip is. */}
       <Card pad="md" delay={40}>
-        <SectionLabel value={`${summary.ok}/${SCALE_META.length}`}>
-          {t("mind.summary")}
-        </SectionLabel>
+        <SectionLabel>{t("mind.summary")}</SectionLabel>
         <div style={{ ...T.title3, color: C.ink, marginTop: 9 }}>
           {summary.warn === 0
             ? t("mind.allGood")
             : t("mind.someGood", { ok: summary.ok })}
         </div>
-        {summary.warn > 0 && (
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 14,
-              marginTop: 10,
-            }}
-          >
-            {summary.keys.map((k) => {
-              const i = SCALE_META.findIndex((m) => m.key === k);
-              const m = SCALE_META[i];
-              return (
-                <Status
-                  key={k}
-                  icon={m.icon}
-                  level={SCALE_LEVEL[session.status[i]]}
-                >
-                  {t(m.axisKey)}
-                </Status>
-              );
-            })}
-          </div>
-        )}
-        {/* In full. A "더 보기" on a three-line paragraph asks the reader to
-            work for text that was going to fit anyway. Optional, though: since
-            the move to monthly most rounds have nothing worth saying, and an
-            empty paragraph is better left unrendered than filled. */}
-        {pick(session.summary, lang) && (
-          <p
-            style={{
-              ...T.bodyText,
-              color: C.body,
-              margin: "12px 0 0",
-              textWrap: "pretty",
-            }}
-          >
-            {withEmphasis(pick(session.summary, lang))}
-          </p>
-        )}
+        {/* `session.summary` used to render here: twelve hand-authored
+            paragraphs for twelve demo rounds, five of the six contradicting the
+            numbers plotted below them — round 8 said "다섯 경로 모두 또래 평균
+            아래입니다" over four scores above 50 — and, the argument that
+            settled it, nothing at all for a real reader's thirteenth draw. A
+            computed finding takes this slot; until then the slot is empty,
+            which is the honest state of a card that has nothing to add. */}
       </Card>
 
       {/* TEMPORARY — the chooser. Comes out with three of the four pictures. */}
@@ -216,16 +187,24 @@ export default function MindTab({ sel, onPickSession }) {
             />
           )}
         </div>
-        <div
-          style={{
-            ...T.caption,
-            color: C.faintest,
-            textAlign: "center",
-            padding: "0 18px",
-          }}
-        >
-          {t("mind.tapAxis")}
-        </div>
+        {/* NOT ON THE DIAL, because there it is false. The circuit, the section
+            and the radar each pass a per-shape key, so tapping picks which
+            scale to open. `DayDial`'s root svg is `onClick={() =>
+            onPick("circadian")}` — one hardcoded target, because the dial only
+            ever speaks for one axis. Telling a reader to choose from a picture
+            with nothing to choose is worse than saying nothing. */}
+        {view !== "day" && (
+          <div
+            style={{
+              ...T.caption,
+              color: C.faintest,
+              textAlign: "center",
+              padding: "0 18px",
+            }}
+          >
+            {t("mind.tapAxis")}
+          </div>
+        )}
       </Card>
 
       <SectionTitle value={`${summary.ok}/${SCALE_META.length}`}>
@@ -255,7 +234,7 @@ export default function MindTab({ sel, onPickSession }) {
             level={SCALE_LEVEL[session.status[i]]}
             score={session.scores[i]}
             statusLabel={t(`status.${session.status[i]}`)}
-            detail={t(`mind.vsPeer.${band(session.scores[i])}`)}
+            detail={scaleSummaryLine(m, session.roundIndex, t)}
             onOpen={() => openScale(m.key)}
             open={active === m.key}
             last={i === SCALE_META.length - 1}
@@ -334,12 +313,16 @@ export default function MindTab({ sel, onPickSession }) {
             {withEmphasis(pick(session.mind, lang))}
           </p>
         )}
-        {/* The caveats, as a footnote rather than a badge. A tinted pill made
-            the disclaimer look like a status the reader had earned; it is not
-            a result, it is the terms these numbers come under. The sentences
-            themselves stay — the assays really are hypothetical and none of
-            this is a diagnosis, and dropping either claim would misrepresent
-            what the panel is. */}
+        {/* ONE SENTENCE PAIR, NOT THREE.
+            This was three keys concatenated, and the reader saw "정신질환의
+            진단이 아닙니다. 선별검사 결과이며 의학적 진단이 아닙니다." back to
+            back — the same claim twice inside one paragraph. `mind.crisis`
+            already opens with it and is the only one of the three that also
+            carries a number a reader in trouble can call, so it is the one
+            that stays. `epi.hypothetical` moved to the screen that prints the
+            assays; it was rendering in both places, identically.
+            Never gated on status: the reader who needs the last sentence is
+            not necessarily the one with a flagged scale. */}
         <p
           style={{
             ...T.caption,
@@ -350,7 +333,7 @@ export default function MindTab({ sel, onPickSession }) {
             textWrap: "pretty",
           }}
         >
-          {t("epi.hypothetical")} {t("mind.notDiagnosis")} {t("mind.crisis")}
+          {t("mind.crisis")}
         </p>
       </Card>
     </div>

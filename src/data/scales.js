@@ -1,4 +1,5 @@
-import { valuesAt } from "./body";
+import { deviationOf, markerLevel, valuesAt } from "./body";
+import { plainKeyOf } from "./plainNames";
 import { findMarker } from "./panels";
 import { indexWeight, sampling, SAMPLING } from "./window";
 
@@ -200,6 +201,40 @@ export function scaleDrivers(meta, roundIndex) {
       };
     })
     .sort((a, b) => b.contribution - a.contribution);
+}
+
+/**
+ * The row's second line: which readings are past their reference, and by how
+ * much. The exact twin of `zoneSummaryLine` on the body side, deliberately.
+ *
+ * WHAT IT REPLACED AND WHY. The slot used to hold `mind.vsPeer.*`, which is
+ * `band(score)` — a four-bucket quantisation of the numeral printed 40px to its
+ * right. It could not disagree with the number, could not be more precise than
+ * it, and at round 12 three of the five rows emitted the byte-identical
+ * "또래와 비슷합니다". A column of the same sentence three times is the clearest
+ * possible evidence that the sentence is not carrying anything.
+ *
+ * This line can say things the score cannot. 신경 재료 is the best-scoring scale
+ * on the panel and has TWO readings past their reference; 생체리듬 scores lower
+ * and has none. The score is a weighted mean of loads, so it hides exactly this.
+ *
+ * Counted drivers only. A context marker carries `indexWeight` 0 — naming it
+ * here would attribute the number to something that contributed nothing to it.
+ */
+export function scaleSummaryLine(meta, roundIndex, t) {
+  const counted = scaleDrivers(meta, roundIndex).filter((d) => d.counted);
+  const over = counted.filter((d) => markerLevel(d.marker, d.value) > 0);
+  if (over.length === 0) {
+    return t("mind.driversClear", { n: counted.length });
+  }
+  const [first, ...rest] = over;
+  const k = plainKeyOf(first.marker);
+  const head = `${k ? t(k) : first.marker.name} ${
+    deviationOf(first.marker, first.value).pct
+  }%`;
+  return rest.length
+    ? `${head} · ${t("mind.driversMore", { n: rest.length })}`
+    : head;
 }
 
 /** 'good' | 'watch' | 'alert' from the index itself. */

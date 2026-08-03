@@ -1,9 +1,9 @@
-import Emphasis, { withEmphasis } from "../components/Emphasis";
+import { withEmphasis } from "../components/Emphasis";
 import { Dot } from "../components/primitives";
 import { C, DIVIDER_TOP, EASE, STATUS_COLOR, STATUS_LAMP, T } from "../tokens";
 import { formatValue } from "../data/body";
 import { plainKeyOf } from "../data/plainNames";
-import { SCALE_META, band, scaleDrivers } from "../data/scales";
+import { SCALE_META, scaleDrivers } from "../data/scales";
 import { windowKeyOf } from "../data/window";
 import { SESSIONS } from "../data/sessions";
 import { scalePercentile } from "../data/cohorts";
@@ -47,21 +47,15 @@ export default function ScaleDetail({ scaleKey, sel }) {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
-        <span style={{ ...T.bodyText, color: C.ink }}>
-          <Emphasis>{t(`mind.vsPeer.${band(score)}`)}</Emphasis>
-        </span>
-        <span
-          style={{
-            ...T.caption,
-            color: STATUS_COLOR[status],
-            marginLeft: "auto",
-          }}
-        >
-          {t(`status.${status}`)}
-        </span>
-      </div>
+      {/* The peer band used to lead this panel, in the row's own words, ~20px
+          under the row still rendered above — the same dict key with the same
+          argument, twice. The percentile below says the same thing exactly
+          rather than in four buckets, so the band is gone from the tab.
 
+          The status word stays, and moved down to sit with the score. It is
+          NOT redundant: `PanelRow` only prints a status when the level is above
+          zero, so across the fixture 43 of 60 open-row states are "good" and
+          this is the only place the word appears at all. */}
       <div
         style={{
           position: "relative",
@@ -95,8 +89,13 @@ export default function ScaleDetail({ scaleKey, sel }) {
           }}
         />
       </div>
+      {/* The whole ruler, not a third of it. `mind.peerMark` said only what the
+          notch was; two other strings elsewhere each said another third of the
+          same scale. This one string states all three anchors and the
+          direction, and it is the last thing read before the panel switches
+          from score units to load units below. */}
       <div style={{ ...T.caption, color: C.faintest }}>
-        {t("mind.peerMark")}
+        {t("mind.indexNote")}
       </div>
 
       {/* The score, spelled out. The row above carries the bare numeral so the
@@ -118,6 +117,15 @@ export default function ScaleDetail({ scaleKey, sel }) {
           {t("body.scoreVsPeers", {
             pct: scalePercentile(score, meta.drivers.length),
           })}
+        </span>
+        <span
+          style={{
+            ...T.caption,
+            color: STATUS_COLOR[status],
+            marginLeft: "auto",
+          }}
+        >
+          {t(`status.${status}`)}
         </span>
       </div>
 
@@ -271,12 +279,15 @@ export default function ScaleDetail({ scaleKey, sel }) {
         </div>
       )}
 
-      {/* The terms these numbers come under, on the screen that shows the
-          assays. This is the deepest surface in the mind panel — every
-          brain-region cfDNA marker is named here with a value beside it — and
-          it was the one place the "these assays are hypothetical" sentence did
-          not reach. It only ever rendered on the parent tab, in a footnote a
-          reader arriving here by tapping a row may never have scrolled to. */}
+      {/* THE ASSAY CAVEAT, HERE, AND ONLY THE ASSAY CAVEAT.
+          This is the only surface in the app that prints cfDNA sgACC, FKBP5,
+          SLC6A4 and the rest with a value, a unit and a sentence asserting
+          biology, so the sentence about whether those assays are validated
+          belongs on it and nowhere else.
+          "Not a diagnosis" used to be appended here as well. That is a claim
+          about the panel, not about these numbers, and the tab states it — so
+          the reader was getting the identical two sentences twice, once here
+          and once 600px further down. */}
       <p
         style={{
           ...T.caption,
@@ -287,7 +298,7 @@ export default function ScaleDetail({ scaleKey, sel }) {
           textWrap: "pretty",
         }}
       >
-        {t("epi.hypothetical")} {t("mind.notDiagnosis")}
+        {t("epi.hypothetical")}
       </p>
     </div>
   );
