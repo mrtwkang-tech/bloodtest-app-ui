@@ -395,7 +395,10 @@ export const en = {
   "mind.view.circuit": "Circuit",
   "mind.view.section": "Section",
   "mind.view.day": "Day",
-  "mind.view.radar": "Index",
+  // "Index" named the quantity this view does NOT plot. `scaleIndex` and
+  // `scaleScore` are defined as opposites in scales.js, the card is headed
+  // "Score", and the polygon is `session.scores`.
+  "mind.view.radar": "Score",
   "mind.vsPeer.above": "Well above the peer average",
   "mind.vsPeer.avg": "About the same as your peers",
   "mind.vsPeer.belowAvg": "A little below the peer average",
@@ -498,8 +501,23 @@ export const en = {
   "status.good": "In range",
   "status.watch": "Watch",
   "status.alert": "See someone",
-  "status.line.good": "Below the peer average and not affecting daily life.",
-  "status.line.watch": "Above the peer average — worth watching for now.",
+  // THESE NO LONGER MENTION PEERS, AND THAT IS THE FIX.
+  //
+  // They were derived from the LOAD index (higher is worse) while every sentence
+  // around them is derived from the SCORE (higher is better), so they said the
+  // opposite of their neighbours in 39 of 60 scale-rounds — a scale at the 95th
+  // percentile carried "below the peer average" 40px under "ahead of 95%".
+  //
+  // Flipping the direction would have fixed the contradiction and left the
+  // duplication: the percentile line directly above states the peer position
+  // exactly, and a four-bucket restatement of it can only be less precise. So
+  // the peer clause is gone and the sentence says the one thing nothing else
+  // says — what this status means for the reader.
+  //
+  // "not affecting daily life" is gone for a second reason: it is a claim about
+  // experience, from a panel whose own copy says feelings are not in blood.
+  "status.line.good": "Nothing here is asking for attention this round.",
+  "status.line.watch": "Worth looking at again at the next draw.",
   "status.line.alert": "Past the screening threshold. Talk to a professional.",
   // Body
   "body.title": "Body",
@@ -1142,7 +1160,7 @@ export const ko = {
   "mind.view.circuit": "회로",
   "mind.view.section": "단면",
   "mind.view.day": "하루",
-  "mind.view.radar": "지수",
+  "mind.view.radar": "점수",
   "mind.vsPeer.above": "또래보다 뚜렷하게 높습니다",
   "mind.vsPeer.avg": "또래와 비슷합니다",
   "mind.vsPeer.belowAvg": "또래보다 조금 낮습니다",
@@ -1242,8 +1260,8 @@ export const ko = {
   "status.good": "양호",
   "status.watch": "주의",
   "status.alert": "상담 권장",
-  "status.line.good": "또래 평균보다 낮아 일상에 지장을 주지 않는 범위입니다.",
-  "status.line.watch": "또래 평균을 웃돌아 당분간 관찰이 필요한 범위입니다.",
+  "status.line.good": "이번 회차에 따로 볼 것은 없습니다.",
+  "status.line.watch": "다음 회차에 다시 볼 항목입니다.",
   "status.line.alert": "선별 기준을 넘었습니다. 전문가 상담을 권합니다.",
   "body.title": "몸",
   "body.compositionRow": "체성분 전체 보기",
